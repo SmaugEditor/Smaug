@@ -9,7 +9,6 @@ public:
 	void initialize(int _argc, char** _argv)
 	{
 
-		//bgfx::setDebug( BGFX_DEBUG_TEXT );
 		m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
 
 	}

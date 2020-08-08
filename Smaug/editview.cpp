@@ -1,10 +1,12 @@
-#include "3dview.h"
+#include "editview.h"
+
 
 #include <bigg.hpp>
 #include <bx/string.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp> 
+
 
 /*
  * Snagged from Bigg's examples
@@ -33,8 +35,7 @@ static struct PosColorVertex
 	}
 	static bgfx::VertexLayout ms_layout;
 };
-
-//bgfx::VertexLayout PosColorVertex::ms_layout;
+bgfx::VertexLayout PosColorVertex::ms_layout;
 
 static PosColorVertex s_cubeVertices[] =
 {
@@ -50,7 +51,7 @@ static PosColorVertex s_cubeVertices[] =
 static const uint16_t s_cubeTriList[] = { 2, 1, 0, 2, 3, 1, 5, 6, 4, 7, 6, 5, 4, 2, 0, 6, 2, 4, 3, 5, 1, 3, 7, 5, 1, 4, 0, 1, 5, 4, 6, 3, 2, 7, 3, 6 };
 
 
-void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
@@ -85,33 +86,56 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_hVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 
-	m_flTime = 0.0f;
 }
 
-void C3DView::Update(float dt)
+float t = 0;
+
+void CEditView::Update(float dt)
 {
 	CBaseView::Update(dt);
 
-	m_flTime += dt;
+	glm::vec3 cubePos = glm::vec3(0, -10, 0);
 
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, -35.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), float(m_width) / m_height, 0.1f, 100.0f);
+	t += dt;
+								// This is looking from the side?
+	glm::mat4 view = glm::mat4(1.0f);// = glm::lookAt(glm::vec3(0.0f, 10.0f, 0), cubePos, glm::vec3(0.0f, 1.0f, 0.0f));
+
+
+	// translate then rotate does something weird
+	// so does rotate then translate
+	// figure it out punk
+
+
+	//camera pos
+	view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	view = glm::translate(view, glm::vec3(0, 30, 0));
+	//view *= glm::yawPitchRoll(t * 2, t * 3, t * 4);
+	glm::mat4 proj = 
+		glm::ortho(-80.0f, (float)80, (float)-80, 80.0f, -900.0f, 900.0f);
+	//glm::perspective(glm::radians(60.0f), float(m_width) / m_height, 0.1f, 100.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
-	for (uint32_t yy = 0; yy < 3; ++yy)
-	{
-		for (uint32_t xx = 0; xx < 11; ++xx)
-		{
-			glm::mat4 mtx = glm::identity<glm::mat4>();
-			mtx = glm::translate(mtx, glm::vec3(15.0f - float(xx) * 3.0f, -15.0f + float(yy) * 3.0f, 0.0f));
-			mtx *= glm::yawPitchRoll(m_flTime + xx * 0.21f, m_flTime + yy * 0.37f, 0.0f);
-			bgfx::setTransform(&mtx[0][0]);
-			bgfx::setVertexBuffer(0, m_hVertexBuf);
-			bgfx::setIndexBuffer(m_hIndexBuf);
-			bgfx::setState(BGFX_STATE_DEFAULT);
-			bgfx::submit(m_viewId, m_hShaderProgram);
-		}
-	}
+	glm::mat4 mtx;
+
+	mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, glm::vec3(0, -100, 0));
+	mtx = glm::scale(mtx, glm::vec3(30, 1, 10));
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_hVertexBuf);
+	bgfx::setIndexBuffer(m_hIndexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	bgfx::submit(m_viewId, m_hShaderProgram);
+
+
+	mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, cubePos);
+	mtx = glm::scale(mtx, glm::vec3(10, 10, 10));
+	mtx *= glm::yawPitchRoll(1.37f * t, t, 2*t);
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_hVertexBuf);
+	bgfx::setIndexBuffer(m_hIndexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	bgfx::submit(m_viewId, m_hShaderProgram);
+
+
 }
-
-
