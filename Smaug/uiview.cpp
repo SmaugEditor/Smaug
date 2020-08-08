@@ -17,9 +17,14 @@ void CUIView::Update(float dt)
 
 	ImGui::ShowDemoWindow();
 
+
 	ImGui::Begin("2D Editor");
 	m_drawEditView = ImGui::IsWindowCollapsed();
 	ImGui::Image(m_editView.GetImTextureID(), ImVec2(400, 400));
+	ImVec2 mv = ImGui::GetMousePos();
+	ImVec2 inv = ImGui::GetItemRectMin();
+	ImVec2 ixv = ImGui::GetItemRectMax();
+
 	ImGui::End();
 
 	ImGui::Begin("3D Preview");
@@ -30,7 +35,7 @@ void CUIView::Update(float dt)
 
 
 	if(!m_drawEditView)
-		m_editView.Update(dt);
+		m_editView.Update(dt, (mv.x - inv.x) / ( ixv.x - inv.x ), (mv.y - inv.y) / ( ixv.y - inv.y));
 	if(!m_drawPreviewView)
 		m_previewView.Update(dt);
 

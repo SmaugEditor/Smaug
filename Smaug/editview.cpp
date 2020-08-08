@@ -85,57 +85,67 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_hShaderProgram = bigg::loadProgram(vsName, fsName);
 	m_hVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
+	
 
+
+	m_viewportWidth = m_viewportHeight = 120.0f;
+
+	m_cameraPos = glm::vec3(0, 10, 0);
 }
 
 float t = 0;
 
-void CEditView::Update(float dt)
+void CEditView::Update(float dt, float mx, float my)
 {
+	t += dt;
 	CBaseView::Update(dt);
 
-	glm::vec3 cubePos = glm::vec3(0, -10, 0);
 
-	t += dt;
-								// This is looking from the side?
-	glm::mat4 view = glm::mat4(1.0f);// = glm::lookAt(glm::vec3(0.0f, 10.0f, 0), cubePos, glm::vec3(0.0f, 1.0f, 0.0f));
-
-
-	// translate then rotate does something weird
-	// so does rotate then translate
-	// figure it out punk
+	// Zoom and pan .
+	m_viewportHeight = m_viewportWidth = 80;
+	m_cameraPos = glm::vec3(0, 10, 0);
 
 
-	//camera pos
-	view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1, 0, 0));
-	view = glm::translate(view, glm::vec3(0, 30, 0));
-	//view *= glm::yawPitchRoll(t * 2, t * 3, t * 4);
-	glm::mat4 proj = 
-		glm::ortho(-80.0f, (float)80, (float)-80, 80.0f, -900.0f, 900.0f);
-	//glm::perspective(glm::radians(60.0f), float(m_width) / m_height, 0.1f, 100.0f);
+	// Put the mouse pos into the world
+	mx = (mx * 2 - 1) * m_viewportWidth - m_cameraPos.x;
+	my = (my * 2 - 1) * m_viewportHeight - m_cameraPos.z;
+
+	// Camera
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1, 0, 0)); // Look down
+	view = glm::translate(view, m_cameraPos); // Set our pos to be 10 units up
+	glm::mat4 proj = glm::ortho(-m_viewportWidth, m_viewportWidth, -m_viewportHeight, m_viewportHeight, -900.0f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
+
 
 	glm::mat4 mtx;
 
-	mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, glm::vec3(0, -100, 0));
-	mtx = glm::scale(mtx, glm::vec3(30, 1, 10));
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_hVertexBuf);
-	bgfx::setIndexBuffer(m_hIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-	bgfx::submit(m_viewId, m_hShaderProgram);
+
+	// Plane
+	{
+		mtx = glm::identity<glm::mat4>();
+		mtx = glm::translate(mtx, glm::vec3(0, -100, 0));
+		mtx = glm::scale(mtx, glm::vec3(30, 1, 10));
+		bgfx::setTransform(&mtx[0][0]);
+		bgfx::setVertexBuffer(0, m_hVertexBuf);
+		bgfx::setIndexBuffer(m_hIndexBuf);
+		bgfx::setState(BGFX_STATE_DEFAULT);
+		bgfx::submit(m_viewId, m_hShaderProgram);
+	}
 
 
-	mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, cubePos);
-	mtx = glm::scale(mtx, glm::vec3(10, 10, 10));
-	mtx *= glm::yawPitchRoll(1.37f * t, t, 2*t);
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_hVertexBuf);
-	bgfx::setIndexBuffer(m_hIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-	bgfx::submit(m_viewId, m_hShaderProgram);
-
+	// Cursor
+	{
+		glm::vec3 cursorPos = glm::vec3(mx, 5, my);
+		mtx = glm::identity<glm::mat4>();
+		mtx = glm::translate(mtx, cursorPos);
+		mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
+		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
+		bgfx::setTransform(&mtx[0][0]);
+		bgfx::setVertexBuffer(0, m_hVertexBuf);
+		bgfx::setIndexBuffer(m_hIndexBuf);
+		bgfx::setState(BGFX_STATE_DEFAULT);
+		bgfx::submit(m_viewId, m_hShaderProgram);
+	}
 
 }
