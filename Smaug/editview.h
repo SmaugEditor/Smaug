@@ -2,6 +2,18 @@
 #include "baseview.h"
 #include <glm/vec3.hpp>
 
+struct nodeSide_t;
+class CNode;
+
+
+enum class SelectionMode
+{
+	NONE,
+	SIDE,
+	NODE,
+	VERTEX,
+};
+
 class CEditView : public CBaseView
 {
 public:
@@ -17,5 +29,13 @@ private:
 	float m_viewportHeight;
 
 	glm::vec3 m_cameraPos;
+
+	struct selectionData_t
+	{
+		nodeSide_t* m_selectedSide;
+		CNode* m_selectedNode;
+		glm::vec3 m_mouseStartPos;
+
+	} m_selectData;
 };
 

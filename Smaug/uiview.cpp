@@ -34,8 +34,22 @@ void CUIView::Update(float dt)
 	ImGui::End();
 
 
-	if(!m_drawEditView)
-		m_editView.Update(dt, (mv.x - inv.x) / ( ixv.x - inv.x ), (mv.y - inv.y) / ( ixv.y - inv.y));
+	if (!m_drawEditView)
+	{
+		bool wantCapture = ImGui::GetIO().WantCaptureMouse;
+		float x = (mv.x - inv.x) / (ixv.x - inv.x);
+		float y = (mv.y - inv.y) / (ixv.y - inv.y);
+		// Probably a better way to do this
+		if (x >= 0 && x <= 1 && y >= 0 && y <= 1)
+			ImGui::GetIO().WantCaptureMouse = false;
+		m_editView.Update(dt, x, y);
+		ImGui::GetIO().WantCaptureMouse = wantCapture;
+		int
+			a
+			=
+			1
+			;
+	}
 	if(!m_drawPreviewView)
 		m_previewView.Update(dt);
 

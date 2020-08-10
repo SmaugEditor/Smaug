@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include <vector>
-
+#include "worldrenderer.h"
 
 enum class Constraint
 {
@@ -10,6 +10,7 @@ enum class Constraint
 
 };
 
+// Do not change this struct without editing CreateVertexLayout in worldrenderer
 struct nodeSide_t
 {
 	glm::vec3 point1;
@@ -20,15 +21,59 @@ struct nodeSide_t
 	nodeSide_t* parentSide;
 };
 
-struct node_t
+enum class NodeType
 {
-	
-	std::vector<nodeSide_t> sides;
+	NONE,
+	QUAD,
+	TRI,
+};
+
+class CNode
+{
+public:
+	void Update();
+protected:
+	void LinkSides();
+public:
+	nodeSide_t* m_sides;
+	int m_sideCount;
+
+	NodeType m_nodeType;
+
+	glm::vec3 m_origin;
+
+	CNodeRenderData m_renderData;
+};
+
+// I've been told hammer only likes triangles and quads. How sad!
+
+class CQuadNode : public CNode
+{
+public:
+	CQuadNode();
 
 };
+
+class CTriNode : public CNode
+{
+public:
+	CTriNode();
+
+};
+
 
 class CWorldEditor
 {
+public:
+	CWorldEditor();
+
+	void RegisterNode(CNode* node);
+	CQuadNode* CreateQuad();
+	CTriNode* CreateTri();
+
+	std::vector<CNode*> m_nodes;
+
 
 };
 
+CWorldEditor& GetWorldEditor();

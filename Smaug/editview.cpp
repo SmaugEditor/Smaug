@@ -1,12 +1,15 @@
 #include "editview.h"
 
+#include "smaugapp.h"
 
 #include <bigg.hpp>
 #include <bx/string.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp> 
-
+#include "worldeditor.h"
+#include "worldrenderer.h"
+#include "utils.h"
 
 /*
  * Snagged from Bigg's examples
@@ -87,6 +90,10 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 	
 
+	CQuadNode* node = GetWorldEditor().CreateQuad();
+	node->m_origin = glm::vec3(0, 0, 0);
+	for (int i = 0; i < node->m_sideCount; i++)
+		node->m_sides[i].point1 *= 10;
 
 	m_viewportWidth = m_viewportHeight = 120.0f;
 
@@ -101,10 +108,9 @@ void CEditView::Update(float dt, float mx, float my)
 	CBaseView::Update(dt);
 
 
-	// Zoom and pan .
+	// Zoom and pan
 	m_viewportHeight = m_viewportWidth = 80;
 	m_cameraPos = glm::vec3(0, 10, 0);
-
 
 	// Put the mouse pos into the world
 	mx = (mx * 2 - 1) * m_viewportWidth - m_cameraPos.x;
@@ -118,34 +124,79 @@ void CEditView::Update(float dt, float mx, float my)
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
 
+	GetWorldRenderer().Draw(m_viewId, m_hShaderProgram);
+
+
+	s_cubeVertices[0].x = cos(t) * 15;
+	s_cubeVertices[0].z = sin(t) * 15;
+
+
 	glm::mat4 mtx;
+	
+	glm::vec3 cursorPos = glm::vec3(mx, 5, my);
 
-
-	// Plane
 	{
-		mtx = glm::identity<glm::mat4>();
-		mtx = glm::translate(mtx, glm::vec3(0, -100, 0));
-		mtx = glm::scale(mtx, glm::vec3(30, 1, 10));
-		bgfx::setTransform(&mtx[0][0]);
-		bgfx::setVertexBuffer(0, m_hVertexBuf);
-		bgfx::setIndexBuffer(m_hIndexBuf);
-		bgfx::setState(BGFX_STATE_DEFAULT);
-		bgfx::submit(m_viewId, m_hShaderProgram);
+		// Cursor
+		
+		
+
+
+
+		//if (!m_selectedSide)
+		{
+			for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
+			{
+				CNode* node = GetWorldEditor().m_nodes[i];
+				//int j = 3;
+				for (int j = 0; j < node->m_sideCount; j++)
+				{
+					if (IsPointOnLine(node->m_sides[j].point1 + node->m_origin, *node->m_sides[j].point2 + node->m_origin, cursorPos, 2))
+					{
+						mtx = glm::identity<glm::mat4>();
+						mtx = glm::translate(mtx, cursorPos);
+						mtx = glm::scale(mtx, glm::vec3(10, 10, 10));
+						mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
+						bgfx::setTransform(&mtx[0][0]);
+						bgfx::setVertexBuffer(0, m_hVertexBuf);
+						bgfx::setIndexBuffer(m_hIndexBuf);
+						bgfx::setState(BGFX_STATE_DEFAULT);
+						bgfx::submit(m_viewId, m_hShaderProgram);
+
+
+						if (GetApp().isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+						{
+							m_selectData.m_selectedSide = &node->m_sides[j];
+							m_selectData.m_selectedNode = node;
+							m_selectData.m_mouseStartPos = cursorPos;
+							break;
+						}
+					}
+				}
+				if (GetApp().isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+					if(m_selectData.m_selectedSide)
+						break;
+			}
+		}
+		
+
+
 	}
 
-
-	// Cursor
+	if (!GetApp().isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
 	{
-		glm::vec3 cursorPos = glm::vec3(mx, 5, my);
-		mtx = glm::identity<glm::mat4>();
-		mtx = glm::translate(mtx, cursorPos);
-		mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
-		bgfx::setTransform(&mtx[0][0]);
-		bgfx::setVertexBuffer(0, m_hVertexBuf);
-		bgfx::setIndexBuffer(m_hIndexBuf);
-		bgfx::setState(BGFX_STATE_DEFAULT);
-		bgfx::submit(m_viewId, m_hShaderProgram);
+		if (m_selectData.m_selectedSide)
+		{
+			glm::vec3 mouseDelta = cursorPos - m_selectData.m_mouseStartPos;
+			m_selectData.m_selectedSide->point1 += mouseDelta;
+			*m_selectData.m_selectedSide->point2 += mouseDelta;
+			m_selectData.m_selectedNode->Update();
+			m_selectData.m_selectedSide = nullptr;
+			
+		}
+	}
+
+	if (GetApp().isKeyDown(GLFW_KEY_SPACE))
+	{
 	}
 
 }
