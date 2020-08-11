@@ -6,19 +6,30 @@
 enum class Constraint
 {
 	NONE,
-	LOCKED_TO_PARENT,
+	SIDE,
+	VERTEX
 
 };
 
+struct nodeSide_t;
+
 // Do not change this struct without editing CreateVertexLayout in worldrenderer
+struct nodeVertex_t
+{
+	glm::vec3 origin;
+	Constraint constraint;
+	union
+	{
+		nodeVertex_t* m_parentVertex;
+		nodeSide_t* m_parentSide;
+	};
+};
+
 struct nodeSide_t
 {
-	glm::vec3 point1;
-	glm::vec3* point2; // Links to the next side's point 1
+	nodeVertex_t* vertex1;
+	nodeVertex_t* vertex2; // Links to the next side's point 1
 	
-	Constraint constraint;
-	std::vector<nodeSide_t> linkedSides;
-	nodeSide_t* parentSide;
 };
 
 enum class NodeType
@@ -35,6 +46,8 @@ public:
 protected:
 	void LinkSides();
 public:
+
+	nodeVertex_t* m_vertexes;
 	nodeSide_t* m_sides;
 	int m_sideCount;
 

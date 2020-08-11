@@ -10,7 +10,7 @@ bgfx::VertexLayout CreateVertexLayout()
 	bgfx::VertexLayout layout;
 	layout.begin()
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.skip(sizeof(nodeSide_t) - sizeof(glm::vec3)) // This value depends on nodeSide_t's layout. Make sure it's correct!
+		.skip(sizeof(nodeVertex_t) - sizeof(glm::vec3)) // This value depends on nodeSide_t's layout. Make sure it's correct!
 		.end();
 	return layout;
 }
@@ -44,7 +44,7 @@ void CNodeRenderData::Setup(CNode* node)
 {
 	m_parentNode = node;
 
-	m_vertexBuf = bgfx::createDynamicVertexBuffer(bgfx::makeRef(node->m_sides, sizeof(nodeSide_t) * node->m_sideCount), g_vertexLayout);
+	m_vertexBuf = bgfx::createDynamicVertexBuffer(bgfx::makeRef(node->m_vertexes, sizeof(nodeVertex_t) * node->m_sideCount), g_vertexLayout);
 
 	switch (node->m_nodeType)
 	{
@@ -60,7 +60,7 @@ void CNodeRenderData::Setup(CNode* node)
 
 void CNodeRenderData::UpdateVertexBuf()
 {
-	bgfx::update(m_vertexBuf, 0, bgfx::makeRef(m_parentNode->m_sides, sizeof(nodeSide_t) * m_parentNode->m_sideCount));
+	bgfx::update(m_vertexBuf, 0, bgfx::makeRef(m_parentNode->m_vertexes, sizeof(nodeVertex_t) * m_parentNode->m_sideCount));
 }
 
 void CNodeRenderData::Draw()

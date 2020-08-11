@@ -43,24 +43,26 @@ void CNode::LinkSides()
 	// Link up the sides
 	for (int i = 0; i < m_sideCount - 1; i++)
 	{
-		m_sides[i].point2 = &m_sides[i + 1].point1;
+		m_sides[i].vertex1 = &m_vertexes[i];
+		m_sides[i].vertex2 = &m_vertexes[i + 1];
 	}
-	m_sides[m_sideCount - 1].point2 = &m_sides[0].point1;
+	m_sides[m_sideCount - 1].vertex1 = &m_vertexes[m_sideCount - 1];
+	m_sides[m_sideCount - 1].vertex2 = &m_vertexes[0];
 }
 
 CQuadNode::CQuadNode()
 {
 	m_nodeType = NodeType::QUAD;
-
 	m_sideCount = 4;
+	m_vertexes = new nodeVertex_t[4];
+
+	// Start at the left side and rotate clockwise
+	m_vertexes[0].origin = glm::vec3(-1,  0, -1); // Bottom Left
+	m_vertexes[1].origin = glm::vec3(-1,  0,  1); // Top Left
+	m_vertexes[2].origin = glm::vec3( 1,  0,  1); // Top Right
+	m_vertexes[3].origin = glm::vec3( 1,  0, -1); // Bottom Right
+
 	m_sides = new nodeSide_t[m_sideCount];
-
-	// Start at the left side
-	m_sides[0].point1 = glm::vec3(-1,  0, -1); // Bottom Left
-	m_sides[1].point1 = glm::vec3(-1,  0,  1); // Top Left
-	m_sides[2].point1 = glm::vec3( 1,  0,  1); // Top Right
-	m_sides[3].point1 = glm::vec3( 1,  0, -1); // Bottom Right
-
 	LinkSides();
 
 	m_origin = glm::vec3(0, 0, 0);
@@ -73,13 +75,14 @@ CTriNode::CTriNode()
 	m_nodeType = NodeType::TRI;
 
 	m_sideCount = 3;
-	m_sides = new nodeSide_t[m_sideCount];
+	m_vertexes = new nodeVertex_t[3];
 
 	// Start at the left side
-	m_sides[0].point1 = glm::vec3( 0,  0, -1); // Bottom Left
-	m_sides[1].point1 = glm::vec3(-1,  0,  1); // Top Left
-	m_sides[2].point1 = glm::vec3( 1,  0,  1); // Top Right
+	m_vertexes[0].origin = glm::vec3( 0,  0, -1); // Bottom Left
+	m_vertexes[1].origin = glm::vec3(-1,  0,  1); // Top Left
+	m_vertexes[2].origin = glm::vec3( 1,  0,  1); // Top Right
 
+	m_sides = new nodeSide_t[m_sideCount];
 	LinkSides();
 
 	m_origin = glm::vec3(0, 0, 0);

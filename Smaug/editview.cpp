@@ -90,10 +90,18 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 	
 
-	CQuadNode* node = GetWorldEditor().CreateQuad();
-	node->m_origin = glm::vec3(0, 0, 0);
-	for (int i = 0; i < node->m_sideCount; i++)
-		node->m_sides[i].point1 *= 10;
+	CQuadNode* quad = GetWorldEditor().CreateQuad();
+	quad->m_origin = glm::vec3(0, 0, 0);
+	for (int i = 0; i < quad->m_sideCount; i++)
+		quad->m_sides[i].vertex1->origin *= 10;
+
+	// Our Z is upside-down for some reason. Fix it?
+
+	CTriNode* tri = GetWorldEditor().CreateTri();
+	tri->m_origin = glm::vec3(0, 0, -20);
+
+	for (int i = 0; i < tri->m_sideCount; i++)
+		tri->m_sides[i].vertex1->origin *= 10;
 
 	m_viewportWidth = m_viewportHeight = 120.0f;
 
@@ -115,6 +123,8 @@ void CEditView::Update(float dt, float mx, float my)
 	// Put the mouse pos into the world
 	mx = (mx * 2 - 1) * m_viewportWidth - m_cameraPos.x;
 	my = (my * 2 - 1) * m_viewportHeight - m_cameraPos.z;
+
+	//printf("%f\n", my);
 
 	// Camera
 	glm::mat4 view = glm::mat4(1.0f);
@@ -147,10 +157,10 @@ void CEditView::Update(float dt, float mx, float my)
 			for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 			{
 				CNode* node = GetWorldEditor().m_nodes[i];
-				//int j = 3;
+				
 				for (int j = 0; j < node->m_sideCount; j++)
 				{
-					if (IsPointOnLine(node->m_sides[j].point1 + node->m_origin, *node->m_sides[j].point2 + node->m_origin, cursorPos, 2))
+					if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, cursorPos, 2))
 					{
 						mtx = glm::identity<glm::mat4>();
 						mtx = glm::translate(mtx, cursorPos);
@@ -187,16 +197,11 @@ void CEditView::Update(float dt, float mx, float my)
 		if (m_selectData.m_selectedSide)
 		{
 			glm::vec3 mouseDelta = cursorPos - m_selectData.m_mouseStartPos;
-			m_selectData.m_selectedSide->point1 += mouseDelta;
-			*m_selectData.m_selectedSide->point2 += mouseDelta;
+			m_selectData.m_selectedSide->vertex1->origin += mouseDelta;
+			m_selectData.m_selectedSide->vertex2->origin += mouseDelta;
 			m_selectData.m_selectedNode->Update();
 			m_selectData.m_selectedSide = nullptr;
 			
 		}
 	}
-
-	if (GetApp().isKeyDown(GLFW_KEY_SPACE))
-	{
-	}
-
 }

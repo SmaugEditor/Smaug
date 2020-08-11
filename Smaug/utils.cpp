@@ -34,19 +34,38 @@ bool IsPointOnLine(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float ra
 	}
 
 	float slope = (point1.z - point2.z) / (point1.x - point2.x);
-	float perp = 1 / slope;
+	float perp = -1 / slope;
 
 	glm::vec3 topLeft = glm::vec3(point1.x - range, 0, point1.z - range * perp);
 
 	glm::vec3 bottomRight = glm::vec3(point2.x + range, 0, point2.z + range * perp);
+	
 
-	// Right 
-	if ((mouse.x - bottomRight.x) * slope + bottomRight.z > mouse.z)
-		return false;
+	// When the line points up, we have to check if we're above on the right side and below on the left
+	// When it points down, it's vice versa
+	if (slope < 0) // Line points down
+	{
 
-	// Left
-	if ((mouse.x - topLeft.x) * slope + topLeft.z < mouse.z)
-		return false;
+		// Right 
+		if ((mouse.x - bottomRight.x) * slope + bottomRight.z < mouse.z)
+			return false;
+
+		// Left
+		if ((mouse.x - topLeft.x) * slope + topLeft.z > mouse.z)
+			return false;
+	}
+	else // Line points up
+	{ 
+
+		// Right 
+		if ((mouse.x - bottomRight.x) * slope + bottomRight.z > mouse.z)
+			return false;
+
+		// Left
+		if ((mouse.x - topLeft.x) * slope + topLeft.z < mouse.z)
+			return false;
+	
+	}
 
 	// Top
 	if ((mouse.x - topLeft.x) * perp + topLeft.z < mouse.z)
