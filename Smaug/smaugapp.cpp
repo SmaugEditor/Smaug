@@ -17,7 +17,8 @@ void CSmaugApp::onReset()
 
 void CSmaugApp::update(float dt)
 {
-	m_uiView.Update(dt);
+	m_uiView.Update(dt,0,0);
+	m_uiView.Draw(dt);
 }
 
 

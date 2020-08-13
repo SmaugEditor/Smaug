@@ -90,11 +90,6 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 	
 
-	CQuadNode* quad = GetWorldEditor().CreateQuad();
-	quad->m_origin = glm::vec3(0, 0, 0);
-	for (int i = 0; i < quad->m_sideCount; i++)
-		quad->m_sides[i].vertex1->origin *= 10;
-
 	// Our Z is upside-down for some reason. Fix it?
 
 	CTriNode* tri = GetWorldEditor().CreateTri();
@@ -103,28 +98,159 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	for (int i = 0; i < tri->m_sideCount; i++)
 		tri->m_sides[i].vertex1->origin *= 10;
 
-	m_viewportWidth = m_viewportHeight = 120.0f;
-
+	// Zoom and pan
+	m_viewportHeight = m_viewportWidth = 80;
 	m_cameraPos = glm::vec3(0, 10, 0);
+
+	m_cursorSpin = 1;
+	m_actionData.actionMode = ActionMode::NONE;
 }
 
 float t = 0;
 
 void CEditView::Update(float dt, float mx, float my)
 {
-	t += dt;
-	CBaseView::Update(dt);
-
-
-	// Zoom and pan
-	m_viewportHeight = m_viewportWidth = 80;
-	m_cameraPos = glm::vec3(0, 10, 0);
-
 	// Put the mouse pos into the world
 	mx = (mx * 2 - 1) * m_viewportWidth - m_cameraPos.x;
 	my = (my * 2 - 1) * m_viewportHeight - m_cameraPos.z;
 
-	//printf("%f\n", my);
+	glm::mat4 mtx;
+
+	m_cursorPos = glm::vec3(mx, 5, my);
+
+	m_cursorSpin = 1;
+
+	CSmaugApp& app = GetApp();
+
+	if (m_actionData.actionMode == ActionMode::NONE)
+	{
+		// Should we pan the view?
+		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
+		{
+			m_actionData.mouseStartPos = m_cursorPos;
+			m_actionData.actionMode = ActionMode::PAN_VIEW;
+			return;
+		}
+
+		// Find the selected item
+		for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
+		{
+			CNode* node = GetWorldEditor().m_nodes[i];
+
+			for (int j = 0; j < node->m_sideCount; j++)
+			{
+				if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, m_cursorPos, 2))
+				{
+					// Spin the cursor backwards if we're selecting something
+					m_cursorSpin = -1;
+
+					m_actionData.selectedSide = &node->m_sides[j];
+					m_actionData.selectedNode = node;
+					break;
+				}
+			}
+			if (m_actionData.selectedSide)
+				break;
+		}
+
+		// Did we find a side?
+		if (m_actionData.selectedSide)
+		{
+			// Should we extrude the selected side?
+			if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
+			{
+				m_actionData.mouseStartPos = m_cursorPos;
+				m_actionData.actionMode = ActionMode::EXTRUDE_SIDE;
+			}
+			// Should we extend the selected side?
+			else if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+			{
+				m_actionData.mouseStartPos = m_cursorPos;
+				m_actionData.actionMode = ActionMode::DRAG_SIDE;
+			}
+
+		}
+		
+
+	}
+	else if(m_actionData.actionMode == ActionMode::PAN_VIEW)
+	{
+		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
+		{
+		}
+		else
+		{
+			m_cameraPos += m_cursorPos - m_actionData.mouseStartPos;
+			m_actionData.mouseStartPos = m_cursorPos;
+			m_actionData.actionMode = ActionMode::NONE;
+		}
+	}
+	else if (m_actionData.actionMode == ActionMode::DRAG_SIDE)
+	{
+		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+		{
+		}
+		else
+		{
+			glm::vec3 mouseDelta = m_cursorPos - m_actionData.mouseStartPos;
+
+			m_actionData.selectedSide->vertex1->origin += mouseDelta;
+			m_actionData.selectedSide->vertex2->origin += mouseDelta;
+			m_actionData.selectedNode->Update();
+
+			printf("Stretched Node\n");
+			
+			m_actionData.selectedNode = nullptr;
+			m_actionData.selectedSide = nullptr;
+			m_actionData.actionMode = ActionMode::NONE;
+		}
+	}
+	else if (m_actionData.actionMode == ActionMode::EXTRUDE_SIDE)
+	{
+		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
+		{
+		}
+		else
+		{
+			glm::vec3 mouseDelta = m_cursorPos - m_actionData.mouseStartPos;
+
+			CQuadNode* quad = GetWorldEditor().CreateQuad();
+			quad->m_origin = m_actionData.selectedNode->m_origin;
+
+			// If we don't flip vertex 1 and 2 here, the tri gets messed up and wont render.
+
+			// 2 to 1 and 1 to 2
+			// 
+			// 2-----1
+			// |     |
+			// 1 --- 2
+
+			quad->m_sides[0].vertex1->origin = m_actionData.selectedSide->vertex2->origin;
+			quad->m_sides[0].vertex2->origin = m_actionData.selectedSide->vertex1->origin;
+
+			quad->m_sides[2].vertex1->origin = m_actionData.selectedSide->vertex1->origin + mouseDelta;
+			quad->m_sides[2].vertex2->origin = m_actionData.selectedSide->vertex2->origin + mouseDelta;
+
+			quad->Update();
+
+			printf("Created New Node\n");
+
+			m_actionData.selectedNode = nullptr;
+			m_actionData.selectedSide = nullptr;
+			m_actionData.actionMode = ActionMode::NONE;
+
+		}
+	}
+
+
+
+}
+
+void CEditView::Draw(float dt)
+{
+	t += dt * m_cursorSpin;
+	CBaseView::Draw(dt);
+
 
 	// Camera
 	glm::mat4 view = glm::mat4(1.0f);
@@ -137,71 +263,29 @@ void CEditView::Update(float dt, float mx, float my)
 	GetWorldRenderer().Draw(m_viewId, m_hShaderProgram);
 
 
-	s_cubeVertices[0].x = cos(t) * 15;
-	s_cubeVertices[0].z = sin(t) * 15;
-
-
-	glm::mat4 mtx;
-	
-	glm::vec3 cursorPos = glm::vec3(mx, 5, my);
-
+	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 	{
-		// Cursor
-		
-		
-
-
-
-		//if (!m_selectedSide)
-		{
-			for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
-			{
-				CNode* node = GetWorldEditor().m_nodes[i];
-				
-				for (int j = 0; j < node->m_sideCount; j++)
-				{
-					if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, cursorPos, 2))
-					{
-						mtx = glm::identity<glm::mat4>();
-						mtx = glm::translate(mtx, cursorPos);
-						mtx = glm::scale(mtx, glm::vec3(10, 10, 10));
-						mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
-						bgfx::setTransform(&mtx[0][0]);
-						bgfx::setVertexBuffer(0, m_hVertexBuf);
-						bgfx::setIndexBuffer(m_hIndexBuf);
-						bgfx::setState(BGFX_STATE_DEFAULT);
-						bgfx::submit(m_viewId, m_hShaderProgram);
-
-
-						if (GetApp().isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-						{
-							m_selectData.m_selectedSide = &node->m_sides[j];
-							m_selectData.m_selectedNode = node;
-							m_selectData.m_mouseStartPos = cursorPos;
-							break;
-						}
-					}
-				}
-				if (GetApp().isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-					if(m_selectData.m_selectedSide)
-						break;
-			}
-		}
-		
-
-
+		glm::mat4 mtx = glm::identity<glm::mat4>();
+		mtx = glm::translate(mtx, GetWorldEditor().m_nodes[i]->m_origin);
+		mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
+		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
+		bgfx::setTransform(&mtx[0][0]);
+		bgfx::setVertexBuffer(0, m_hVertexBuf);
+		bgfx::setIndexBuffer(m_hIndexBuf);
+		bgfx::setState(BGFX_STATE_DEFAULT);
+		bgfx::submit(m_viewId, m_hShaderProgram);
 	}
 
-	if (!GetApp().isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-	{
-		if (m_selectData.m_selectedSide)
-		{
-			glm::vec3 mouseDelta = cursorPos - m_selectData.m_mouseStartPos;
-			m_selectData.m_selectedSide->vertex1->origin += mouseDelta;
-			m_selectData.m_selectedSide->vertex2->origin += mouseDelta;
-			m_selectData.m_selectedNode->Update();
-			m_selectData.m_selectedSide = nullptr;
-			
-		}
-	}
+
+	// Cursor
+	glm::mat4 mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, m_cursorPos);
+	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
+	mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_hVertexBuf);
+	bgfx::setIndexBuffer(m_hIndexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	bgfx::submit(m_viewId, m_hShaderProgram);
+
 }

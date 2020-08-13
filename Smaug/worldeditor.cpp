@@ -35,6 +35,24 @@ CWorldEditor& GetWorldEditor()
 
 void CNode::Update()
 {
+	// Recenter the origin
+	// Not sure how needed this is, but it keeps me sane
+	//glm::vec3 startOrigin = m_origin;
+
+	glm::vec3 averageOrigin = glm::vec3(0,0,0);
+	for (int i = 0; i < m_sideCount; i++)
+	{
+		averageOrigin += m_sides[i].vertex1->origin;
+	}
+	averageOrigin /= m_sideCount;
+
+	// Shift the vertexes
+	m_origin += averageOrigin;
+	for (int i = 0; i < m_sideCount; i++)
+	{
+		m_sides[i].vertex1->origin -= averageOrigin;
+	}
+
 	m_renderData.UpdateVertexBuf();
 }
 

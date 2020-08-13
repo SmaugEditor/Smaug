@@ -12,7 +12,7 @@ void CBaseView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 		m_framebuffer = bgfx::createFrameBuffer(width, height, bgfx::TextureFormat::BGRA8, true);
 }
 
-void CBaseView::Update(float dt)
+void CBaseView::Draw(float dt)
 {
 	if (m_viewId != 0)
 		bgfx::setViewFrameBuffer(m_viewId, m_framebuffer);

@@ -88,9 +88,9 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_flTime = 0.0f;
 }
 
-void C3DView::Update(float dt)
+void C3DView::Draw(float dt)
 {
-	CBaseView::Update(dt);
+	CBaseView::Draw(dt);
 
 	m_flTime += dt;
 

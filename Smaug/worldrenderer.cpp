@@ -65,7 +65,6 @@ void CNodeRenderData::UpdateVertexBuf()
 
 void CNodeRenderData::Draw()
 {
-
 	glm::mat4 mtx = glm::identity<glm::mat4>();
 	mtx = glm::translate(mtx, m_parentNode->m_origin);
 

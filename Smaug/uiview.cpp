@@ -1,8 +1,11 @@
 #include "uiview.h"
+#include "imgui_internal.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
+
+	//ImGui::CreateNewWindow
 
 	m_editView.Init(ViewID::EDIT_VIEW, 1024, 1024, 0x00FFFFFF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x00000000);
@@ -11,12 +14,27 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_drawEditView = true;
 }
 
-void CUIView::Update(float dt)
+void CUIView::Draw(float dt)
 {
-	CBaseView::Update(dt);
+	CBaseView::Draw(dt);
+
+
+
+	if (!m_drawEditView)
+	{
+		m_editView.Draw(dt);
+	}
+	if(!m_drawPreviewView)
+		m_previewView.Draw(dt);
+
+
+}
+
+void CUIView::Update(float dt, float mx, float my)
+{
+	
 
 	ImGui::ShowDemoWindow();
-
 
 	ImGui::Begin("2D Editor");
 	m_drawEditView = ImGui::IsWindowCollapsed();
@@ -24,7 +42,6 @@ void CUIView::Update(float dt)
 	ImVec2 mv = ImGui::GetMousePos();
 	ImVec2 inv = ImGui::GetItemRectMin();
 	ImVec2 ixv = ImGui::GetItemRectMax();
-
 	ImGui::End();
 
 	ImGui::Begin("3D Preview");
@@ -33,9 +50,9 @@ void CUIView::Update(float dt)
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
-
 	if (!m_drawEditView)
 	{
+		ImGui::GetIO().WantCaptureKeyboard = false;
 		bool wantCapture = ImGui::GetIO().WantCaptureMouse;
 		float x = (mv.x - inv.x) / (ixv.x - inv.x);
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
@@ -44,14 +61,6 @@ void CUIView::Update(float dt)
 			ImGui::GetIO().WantCaptureMouse = false;
 		m_editView.Update(dt, x, y);
 		ImGui::GetIO().WantCaptureMouse = wantCapture;
-		int
-			a
-			=
-			1
-			;
 	}
-	if(!m_drawPreviewView)
-		m_previewView.Update(dt);
-
 
 }
