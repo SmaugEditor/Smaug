@@ -54,6 +54,7 @@ static PosColorVertex s_cubeVertices[] =
 static const uint16_t s_cubeTriList[] = { 2, 1, 0, 2, 3, 1, 5, 6, 4, 7, 6, 5, 4, 2, 0, 6, 2, 4, 3, 5, 1, 3, 7, 5, 1, 4, 0, 1, 5, 4, 6, 3, 2, 7, 3, 6 };
 
 
+
 void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
@@ -116,7 +117,7 @@ void CEditView::Update(float dt, float mx, float my)
 
 	glm::mat4 mtx;
 
-	m_cursorPos = glm::vec3(mx, 5, my);
+	m_mousePos = glm::vec3(mx, 5, my);
 
 	m_cursorSpin = 1;
 
@@ -127,10 +128,15 @@ void CEditView::Update(float dt, float mx, float my)
 		// Should we pan the view?
 		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
 		{
-			m_actionData.mouseStartPos = m_cursorPos;
+			m_actionData.mouseStartPos = m_mousePos;
 			m_actionData.actionMode = ActionMode::PAN_VIEW;
 			return;
 		}
+
+		m_actionData.selectedSide = nullptr;
+		m_actionData.selectedNode = nullptr;
+		bool hasFoundItem = false;
+		m_actionData.cursorPos = m_mousePos;
 
 		// Find the selected item
 		for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
@@ -139,19 +145,25 @@ void CEditView::Update(float dt, float mx, float my)
 
 			for (int j = 0; j < node->m_sideCount; j++)
 			{
-				if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, m_cursorPos, 2))
+				if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, m_mousePos, 2))
 				{
 					// Spin the cursor backwards if we're selecting something
 					m_cursorSpin = -1;
 
 					m_actionData.selectedSide = &node->m_sides[j];
 					m_actionData.selectedNode = node;
+
+					m_actionData.cursorPos = (m_actionData.selectedSide->vertex1->origin + m_actionData.selectedSide->vertex2->origin) / 2.0f + node->m_origin;
+					
+					hasFoundItem = true;
+
 					break;
 				}
 			}
-			if (m_actionData.selectedSide)
+			if (hasFoundItem)
 				break;
 		}
+
 
 		// Did we find a side?
 		if (m_actionData.selectedSide)
@@ -159,13 +171,13 @@ void CEditView::Update(float dt, float mx, float my)
 			// Should we extrude the selected side?
 			if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
 			{
-				m_actionData.mouseStartPos = m_cursorPos;
+				m_actionData.mouseStartPos = m_mousePos;
 				m_actionData.actionMode = ActionMode::EXTRUDE_SIDE;
 			}
 			// Should we extend the selected side?
 			else if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
 			{
-				m_actionData.mouseStartPos = m_cursorPos;
+				m_actionData.mouseStartPos = m_mousePos;
 				m_actionData.actionMode = ActionMode::DRAG_SIDE;
 			}
 
@@ -180,8 +192,8 @@ void CEditView::Update(float dt, float mx, float my)
 		}
 		else
 		{
-			m_cameraPos += m_cursorPos - m_actionData.mouseStartPos;
-			m_actionData.mouseStartPos = m_cursorPos;
+			m_cameraPos += m_mousePos - m_actionData.mouseStartPos;
+			m_actionData.mouseStartPos = m_mousePos;
 			m_actionData.actionMode = ActionMode::NONE;
 		}
 	}
@@ -192,7 +204,7 @@ void CEditView::Update(float dt, float mx, float my)
 		}
 		else
 		{
-			glm::vec3 mouseDelta = m_cursorPos - m_actionData.mouseStartPos;
+			glm::vec3 mouseDelta = m_mousePos - m_actionData.mouseStartPos;
 
 			m_actionData.selectedSide->vertex1->origin += mouseDelta;
 			m_actionData.selectedSide->vertex2->origin += mouseDelta;
@@ -212,7 +224,7 @@ void CEditView::Update(float dt, float mx, float my)
 		}
 		else
 		{
-			glm::vec3 mouseDelta = m_cursorPos - m_actionData.mouseStartPos;
+			glm::vec3 mouseDelta = m_mousePos - m_actionData.mouseStartPos;
 
 			CQuadNode* quad = GetWorldEditor().CreateQuad();
 			quad->m_origin = m_actionData.selectedNode->m_origin;
@@ -279,7 +291,7 @@ void CEditView::Draw(float dt)
 
 	// Cursor
 	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, m_cursorPos);
+	mtx = glm::translate(mtx, m_actionData.cursorPos);
 	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
 	mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
 	bgfx::setTransform(&mtx[0][0]);

@@ -34,6 +34,8 @@ private:
 
 	struct actionData_t
 	{
+		glm::vec3 cursorPos;
+
 		glm::vec3 mouseStartPos;
 
 		nodeSide_t* selectedSide;
@@ -42,7 +44,7 @@ private:
 		ActionMode actionMode;
 	} m_actionData;
 
-	glm::vec3 m_cursorPos;
+	glm::vec3 m_mousePos;
 	int m_cursorSpin;
 };
 
