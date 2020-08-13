@@ -53,7 +53,7 @@ static PosColorVertex s_cubeVertices[] =
 };
 static const uint16_t s_cubeTriList[] = { 2, 1, 0, 2, 3, 1, 5, 6, 4, 7, 6, 5, 4, 2, 0, 6, 2, 4, 3, 5, 1, 3, 7, 5, 1, 4, 0, 1, 5, 4, 6, 3, 2, 7, 3, 6 };
 
-
+#define SCROLL_SPEED 5
 
 void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -111,6 +111,11 @@ float t = 0;
 
 void CEditView::Update(float dt, float mx, float my)
 {
+	float scrollDelta = ImGui::GetIO().MouseWheel * SCROLL_SPEED;
+	m_viewportWidth  -= scrollDelta;
+	m_viewportHeight -= scrollDelta;
+	// Offset the cam with the scrollDelta!
+
 	// Put the mouse pos into the world
 	mx = (mx * 2 - 1) * m_viewportWidth - m_cameraPos.x;
 	my = (my * 2 - 1) * m_viewportHeight - m_cameraPos.z;
