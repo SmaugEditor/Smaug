@@ -61,7 +61,7 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 
 	PosColorVertex::init();
 
-	m_hShaderProgram = LoadShader("vs_cubes.bin", "fs_cubes.bin");
+	m_hShaderProgram = LoadShader("fs_cubes.bin", "vs_cubes.bin");
 	m_hVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 	

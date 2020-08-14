@@ -10,7 +10,7 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
-	m_hShaderProgram = LoadShader("vs_cubes.bin", "fs_cubes.bin");
+	m_hShaderProgram = LoadShader("fs_cubes.bin", "vs_cubes.bin");
 }
 
 void C3DView::Draw(float dt)
