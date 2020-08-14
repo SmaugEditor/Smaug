@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <bigg.hpp>
 
 bool IsPointOnLine(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
 {
@@ -71,4 +72,47 @@ bool IsPointOnLine(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float ra
 		return false;
 
 	return true;
+}
+
+bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
+{
+	// Static so we don't reinitiate this
+	static const char** shaderPaths = new const char* [9]
+	{
+		nullptr,		  // No Renderer
+		"shaders/dx9/",   // Direct3D9
+		"shaders/dx11/",  // Direct3D11
+		"shaders/dx11/",  // Direct3D12
+		nullptr,		  // Gnm
+		nullptr,		  // Metal
+		"shaders/glsl/",  // OpenGL
+		nullptr,		  // OpenGL ES
+		"shaders/spirv/", // Vulkan
+	};
+
+	int type = bgfx::getRendererType();
+
+	// Out of bounds. Return an invalid handle
+	if (type >= bgfx::RendererType::Count || type < 0)
+	{
+		return BGFX_INVALID_HANDLE;
+	}
+
+	const char* shaderPath = shaderPaths[bgfx::getRendererType()];
+
+	// Unsupported platform. Return invalid handle
+	if (!shaderPath)
+	{
+		return BGFX_INVALID_HANDLE;
+	}
+
+	char vsPath[32];
+	strcpy(vsPath, shaderPath);
+	strcat(vsPath, vertex);
+
+	char fsPath[32];
+	strcpy(fsPath, shaderPath);
+	strcat(fsPath, fragment);
+
+	return bigg::loadProgram(vsPath, fsPath);
 }
