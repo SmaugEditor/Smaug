@@ -215,13 +215,30 @@ void CEditView::Update(float dt, float mx, float my)
 			// |     |
 			// 1 --- 2
 
-			quad->m_sides[0].vertex1->origin = m_actionData.selectedSide->vertex2->origin;
-			quad->m_sides[0].vertex2->origin = m_actionData.selectedSide->vertex1->origin;
+			nodeSide_t* attachedSide = &quad->m_sides[0];
+			nodeSide_t* extrudedSide = &quad->m_sides[2];
 
-			quad->m_sides[2].vertex1->origin = m_actionData.selectedSide->vertex1->origin + mouseDelta;
-			quad->m_sides[2].vertex2->origin = m_actionData.selectedSide->vertex2->origin + mouseDelta;
+			attachedSide->vertex1->origin = m_actionData.selectedSide->vertex2->origin;
+			attachedSide->vertex2->origin = m_actionData.selectedSide->vertex1->origin;
+
+			extrudedSide->vertex1->origin = m_actionData.selectedSide->vertex1->origin + mouseDelta;
+			extrudedSide->vertex2->origin = m_actionData.selectedSide->vertex2->origin + mouseDelta;
 
 			quad->Update();
+
+			// The two verts touching the side being extruded have to be constrained to it 
+			attachedSide->vertex1->parentSide = m_actionData.selectedSide;
+			attachedSide->vertex1->constraint = Constraint::SIDE;
+			attachedSide->vertex2->parentSide = m_actionData.selectedSide;
+			attachedSide->vertex2->constraint = Constraint::SIDE;
+
+			// The other two dont need to be constrained
+			extrudedSide->vertex1->constraint = Constraint::NONE;
+			extrudedSide->vertex2->constraint = Constraint::NONE;
+			
+			// Now we have to tell the side that it has some new kids
+			m_actionData.selectedSide->children.push_back(attachedSide->vertex1);
+			m_actionData.selectedSide->children.push_back(attachedSide->vertex2);
 
 			printf("Created New Node\n");
 

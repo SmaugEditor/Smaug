@@ -7,11 +7,12 @@ enum class Constraint
 {
 	NONE,
 	SIDE,
-	VERTEX
+	//VERTEX
 
 };
 
 struct nodeSide_t;
+class CNode;
 
 // Do not change this struct without editing CreateVertexLayout in worldrenderer
 struct nodeVertex_t
@@ -20,15 +21,23 @@ struct nodeVertex_t
 	Constraint constraint;
 	union
 	{
-		nodeVertex_t* m_parentVertex;
-		nodeSide_t* m_parentSide;
+		nodeVertex_t* parentVertex;
+		nodeSide_t* parentSide;
 	};
+
+
+	CNode* homeNode;
+
+	// I'm probably a criminal to some for having a function in a struct, but oh well. Maybe I'll make it a class later.
+	void Constrain();
 };
 
 struct nodeSide_t
 {
 	nodeVertex_t* vertex1;
 	nodeVertex_t* vertex2; // Links to the next side's point 1
+	
+	std::vector<nodeVertex_t*> children;
 	
 };
 
