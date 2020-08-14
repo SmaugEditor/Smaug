@@ -35,8 +35,16 @@ CWorldEditor& GetWorldEditor()
 
 void CNode::Update()
 {
-	// Recenter the origin
 
+	// Make sure our new position fits our constraints
+	for (int i = 0; i < m_sideCount; i++)
+	{
+		m_vertexes[i].Constrain();
+	}
+
+
+
+	// Recenter the origin
 	glm::vec3 averageOrigin = glm::vec3(0,0,0);
 	for (int i = 0; i < m_sideCount; i++)
 	{
@@ -53,7 +61,7 @@ void CNode::Update()
 
 	m_renderData.UpdateVertexBuf();
 
-	// Now that we've updated ourself, we have to update our vertexes' constraints.
+	// Now that we've updated ourself, we have to update our sides' constraints.
 	for (int i = 0; i < m_sideCount; i++)
 	{
 		nodeSide_t& side = m_sides[i];
@@ -62,8 +70,8 @@ void CNode::Update()
 			side.children[j]->Constrain();
 			side.children[j]->homeNode->Update(); // Update its verts
 		}
-	}
 
+	}
 
 }
 
