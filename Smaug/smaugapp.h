@@ -11,6 +11,7 @@ public:
 		: bigg::Application("Smaug", 960, 720) {}
 
 	void initialize(int _argc, char** _argv);
+	int  shutdown();
 	void update(float dt);
 	void onReset();
 
