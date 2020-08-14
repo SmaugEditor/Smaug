@@ -10,6 +10,7 @@
 #include "worldeditor.h"
 #include "worldrenderer.h"
 #include "utils.h"
+#include "shadermanager.h"
 
 /*
  * Snagged from Bigg's examples
@@ -61,7 +62,7 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 
 	PosColorVertex::init();
 
-	m_hShaderProgram = LoadShader("fs_cubes.bin", "vs_cubes.bin");
+	m_hShaderProgram = ShaderManager::GetShaderProgram(Shader::EDIT_VIEW_SHADER);
 	m_hVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 	
@@ -197,7 +198,7 @@ void CEditView::Update(float dt, float mx, float my)
 	}
 	else if (m_actionData.actionMode == ActionMode::EXTRUDE_SIDE)
 	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
+		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
 		{
 		}
 		else

@@ -1,8 +1,11 @@
 #include "smaugapp.h"
 #include "worldrenderer.h"
+#include "shadermanager.h"
 
 void CSmaugApp::initialize(int _argc, char** _argv)
 {
+	ShaderManager::Init();
+
 	ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 	GetWorldRenderer().Init();
 

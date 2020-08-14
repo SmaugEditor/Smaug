@@ -1,7 +1,7 @@
 #include "3dview.h"
 
 #include "worldrenderer.h"
-#include "utils.h"
+#include "shadermanager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -10,7 +10,7 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
-	m_hShaderProgram = LoadShader("fs_cubes.bin", "vs_cubes.bin");
+	m_hShaderProgram = ShaderManager::GetShaderProgram(Shader::WORLD_PREVIEW_SHADER);
 }
 
 void C3DView::Draw(float dt)
