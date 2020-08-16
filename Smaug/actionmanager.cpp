@@ -24,6 +24,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 		}
 
 		selectedSide = nullptr;
+		selectedVertex = nullptr;
 		selectedNode = nullptr;
 		bool hasFoundItem = false;
 		cursorPos = mousePos;
@@ -33,9 +34,33 @@ void CActionManager::Act(glm::vec3 mousePos)
 		{
 			CNode* node = GetWorldEditor().m_nodes[i];
 
+			// Corner check
 			for (int j = 0; j < node->m_sideCount; j++)
 			{
-				if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, mousePos, 2))
+				if (IsPointNearPoint2D(node->m_vertexes[j].origin + node->m_origin, mousePos, 4))
+				{
+					// Spin the cursor backwards if we're selecting something
+					GetApp().m_uiView.m_editView.m_cursorSpin = -1;
+
+					selectedVertex = &node->m_vertexes[j];
+					selectedNode = node;
+
+					cursorPos = selectedVertex->origin + node->m_origin;
+
+					hasFoundItem = true;
+
+					break;
+				}
+			}
+
+			if (hasFoundItem)
+				break;
+
+
+			// Side check
+			for (int j = 0; j < node->m_sideCount; j++)
+			{
+				if (IsPointOnLine2D(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, mousePos, 2))
 				{
 					// Spin the cursor backwards if we're selecting something
 					GetApp().m_uiView.m_editView.m_cursorSpin = -1;
@@ -50,6 +75,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 					break;
 				}
 			}
+
 			if (hasFoundItem)
 				break;
 		}
@@ -72,7 +98,16 @@ void CActionManager::Act(glm::vec3 mousePos)
 			}
 
 		}
+		else if (selectedVertex)
+		{
 
+			// Should we drag the selected side?
+			if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+			{
+				mouseStartPos = mousePos;
+				actionMode = ActionMode::DRAG_VERTEX;
+			}
+		}
 
 	}
 	else if (actionMode == ActionMode::PAN_VIEW)
@@ -100,10 +135,30 @@ void CActionManager::Act(glm::vec3 mousePos)
 			selectedSide->vertex2->origin += mouseDelta;
 			selectedNode->Update();
 
-			printf("Stretched Node\n");
+			printf("Stretched Node - Side\n");
 
 			selectedNode = nullptr;
 			selectedSide = nullptr;
+			actionMode = ActionMode::NONE;
+		}
+	}
+	else if (actionMode == ActionMode::DRAG_VERTEX)
+	{
+		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+		{
+		}
+		else
+		{
+			glm::vec3 mouseDelta = mousePos - mouseStartPos;
+
+			selectedVertex->origin += mouseDelta;
+
+			selectedNode->Update();
+
+			printf("Stretched Node - Vertex\n");
+
+			selectedNode = nullptr;
+			selectedVertex = nullptr;
 			actionMode = ActionMode::NONE;
 		}
 	}

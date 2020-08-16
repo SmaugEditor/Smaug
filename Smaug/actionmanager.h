@@ -23,6 +23,7 @@ public:
 	glm::vec3 mouseStartPos;
 
 	nodeSide_t* selectedSide;
+	nodeVertex_t* selectedVertex;
 	CNode* selectedNode;
 
 	ActionMode actionMode;

@@ -1,7 +1,7 @@
 #include "utils.h"
 #include <bigg.hpp>
 
-bool IsPointOnLine(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
+bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
 {
 	// Top point is always point1
 	if (point2.z > point1.z)
@@ -72,6 +72,15 @@ bool IsPointOnLine(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float ra
 		return false;
 
 	return true;
+}
+
+bool IsPointNearPoint2D(glm::vec3 point1, glm::vec3 point2, float range)
+{
+	// Ignore Y
+	point1.y = 0;
+	point2.y = 0;
+
+	return glm::length(point2 - point1) <= range;
 }
 
 bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
