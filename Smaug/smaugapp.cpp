@@ -36,8 +36,3 @@ CSmaugApp& GetApp()
 	static CSmaugApp app;
 	return app;
 }
-
-
-
-
-

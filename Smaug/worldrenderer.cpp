@@ -30,8 +30,9 @@ void CWorldRenderer::Init()
 	g_triTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_triTriIndexList, sizeof(g_triTriIndexList)));
 }
 
-void CWorldRenderer::Draw(bgfx::ViewId viewId, bgfx::ProgramHandle shaderProgram)
+void CWorldRenderer::Draw(bgfx::ViewId viewId, Shader shader)
 {
+	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
 	for (int i = 0; i < world.m_nodes.size(); i++)
 	{

@@ -15,7 +15,6 @@ public:
 	void update(float dt);
 	void onReset();
 
-private:
 	CUIView m_uiView;
 
 };

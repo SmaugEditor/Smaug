@@ -78,7 +78,7 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_cameraPos = glm::vec3(0, 10, 0);
 
 	m_cursorSpin = 1;
-	m_actionData.actionMode = ActionMode::NONE;
+	GetActionManager().actionMode = ActionMode::NONE;
 }
 
 float t = 0;
@@ -95,161 +95,14 @@ void CEditView::Update(float dt, float mx, float my)
 	my = (my * 2 - 1) * m_viewportHeight - m_cameraPos.z;
 
 	glm::mat4 mtx;
-
+ 
 	m_mousePos = glm::vec3(mx, 5, my);
 
 	m_cursorSpin = 1;
 
 	CSmaugApp& app = GetApp();
 
-	if (m_actionData.actionMode == ActionMode::NONE)
-	{
-		// Should we pan the view?
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
-		{
-			m_actionData.mouseStartPos = m_mousePos;
-			m_actionData.actionMode = ActionMode::PAN_VIEW;
-			return;
-		}
-
-		m_actionData.selectedSide = nullptr;
-		m_actionData.selectedNode = nullptr;
-		bool hasFoundItem = false;
-		m_actionData.cursorPos = m_mousePos;
-
-		// Find the selected item
-		for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
-		{
-			CNode* node = GetWorldEditor().m_nodes[i];
-
-			for (int j = 0; j < node->m_sideCount; j++)
-			{
-				if (IsPointOnLine(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, m_mousePos, 2))
-				{
-					// Spin the cursor backwards if we're selecting something
-					m_cursorSpin = -1;
-
-					m_actionData.selectedSide = &node->m_sides[j];
-					m_actionData.selectedNode = node;
-
-					m_actionData.cursorPos = (m_actionData.selectedSide->vertex1->origin + m_actionData.selectedSide->vertex2->origin) / 2.0f + node->m_origin;
-					
-					hasFoundItem = true;
-
-					break;
-				}
-			}
-			if (hasFoundItem)
-				break;
-		}
-
-
-		// Did we find a side?
-		if (m_actionData.selectedSide)
-		{
-			// Should we extrude the selected side?
-			if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
-			{
-				m_actionData.mouseStartPos = m_mousePos;
-				m_actionData.actionMode = ActionMode::EXTRUDE_SIDE;
-			}
-			// Should we extend the selected side?
-			else if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-			{
-				m_actionData.mouseStartPos = m_mousePos;
-				m_actionData.actionMode = ActionMode::DRAG_SIDE;
-			}
-
-		}
-		
-
-	}
-	else if(m_actionData.actionMode == ActionMode::PAN_VIEW)
-	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
-		{
-		}
-		else
-		{
-			m_cameraPos += m_mousePos - m_actionData.mouseStartPos;
-			m_actionData.mouseStartPos = m_mousePos;
-			m_actionData.actionMode = ActionMode::NONE;
-		}
-	}
-	else if (m_actionData.actionMode == ActionMode::DRAG_SIDE)
-	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-		{
-		}
-		else
-		{
-			glm::vec3 mouseDelta = m_mousePos - m_actionData.mouseStartPos;
-
-			m_actionData.selectedSide->vertex1->origin += mouseDelta;
-			m_actionData.selectedSide->vertex2->origin += mouseDelta;
-			m_actionData.selectedNode->Update();
-
-			printf("Stretched Node\n");
-			
-			m_actionData.selectedNode = nullptr;
-			m_actionData.selectedSide = nullptr;
-			m_actionData.actionMode = ActionMode::NONE;
-		}
-	}
-	else if (m_actionData.actionMode == ActionMode::EXTRUDE_SIDE)
-	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-		{
-		}
-		else
-		{
-			glm::vec3 mouseDelta = m_mousePos - m_actionData.mouseStartPos;
-
-			CQuadNode* quad = GetWorldEditor().CreateQuad();
-			quad->m_origin = m_actionData.selectedNode->m_origin;
-
-			// If we don't flip vertex 1 and 2 here, the tri gets messed up and wont render.
-
-			// 2 to 1 and 1 to 2
-			// 
-			// 2-----1
-			// |     |
-			// 1 --- 2
-
-			nodeSide_t* attachedSide = &quad->m_sides[0];
-			nodeSide_t* extrudedSide = &quad->m_sides[2];
-
-			attachedSide->vertex1->origin = m_actionData.selectedSide->vertex2->origin;
-			attachedSide->vertex2->origin = m_actionData.selectedSide->vertex1->origin;
-
-			extrudedSide->vertex1->origin = m_actionData.selectedSide->vertex1->origin + mouseDelta;
-			extrudedSide->vertex2->origin = m_actionData.selectedSide->vertex2->origin + mouseDelta;
-
-			quad->Update();
-
-			// The two verts touching the side being extruded have to be constrained to it 
-			attachedSide->vertex1->parentSide = m_actionData.selectedSide;
-			attachedSide->vertex1->constraint = Constraint::SIDE;
-			attachedSide->vertex2->parentSide = m_actionData.selectedSide;
-			attachedSide->vertex2->constraint = Constraint::SIDE;
-
-			// The other two dont need to be constrained
-			extrudedSide->vertex1->constraint = Constraint::NONE;
-			extrudedSide->vertex2->constraint = Constraint::NONE;
-			
-			// Now we have to tell the side that it has some new kids
-			m_actionData.selectedSide->children.push_back(attachedSide->vertex1);
-			m_actionData.selectedSide->children.push_back(attachedSide->vertex2);
-
-			printf("Created New Node\n");
-
-			m_actionData.selectedNode = nullptr;
-			m_actionData.selectedSide = nullptr;
-			m_actionData.actionMode = ActionMode::NONE;
-
-		}
-	}
-
+	GetActionManager().Act(m_mousePos);
 
 
 }
@@ -268,7 +121,7 @@ void CEditView::Draw(float dt)
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
 
-	GetWorldRenderer().Draw(m_viewId, m_hShaderProgram);
+	GetWorldRenderer().Draw(m_viewId, Shader::EDIT_VIEW_SHADER);
 
 
 	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
@@ -287,7 +140,7 @@ void CEditView::Draw(float dt)
 
 	// Cursor
 	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, m_actionData.cursorPos);
+	mtx = glm::translate(mtx, GetActionManager().cursorPos);
 	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
 	mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
 	bgfx::setTransform(&mtx[0][0]);

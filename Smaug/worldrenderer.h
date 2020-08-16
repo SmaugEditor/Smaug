@@ -1,12 +1,13 @@
 #pragma once
 
 #include <bgfx/bgfx.h>
+#include "shadermanager.h"
 
 class CWorldRenderer
 {
 public:
 	void Init();
-	void Draw(bgfx::ViewId viewId, bgfx::ProgramHandle shaderProgram);
+	void Draw(bgfx::ViewId viewId, Shader shader);
 
 };
 
