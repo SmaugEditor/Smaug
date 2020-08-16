@@ -140,9 +140,9 @@ void CActionManager::Act(glm::vec3 mousePos)
 
 			// The two verts touching the side being extruded have to be constrained to it 
 			attachedSide->vertex1->parentSide = selectedSide;
-			attachedSide->vertex1->constraint = Constraint::SIDE;
+			attachedSide->vertex1->constraint = Constraint::VERTEX_SIDE;
 			attachedSide->vertex2->parentSide = selectedSide;
-			attachedSide->vertex2->constraint = Constraint::SIDE;
+			attachedSide->vertex2->constraint = Constraint::VERTEX_SIDE;
 
 			// The other two dont need to be constrained
 			extrudedSide->vertex1->constraint = Constraint::NONE;

@@ -6,7 +6,7 @@
 enum class Constraint
 {
 	NONE,
-	SIDE,
+	VERTEX_SIDE, // Vertex to side constraint
 	//VERTEX
 
 };

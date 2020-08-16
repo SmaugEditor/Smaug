@@ -1,5 +1,5 @@
 #include "worldeditor.h"
-
+#include <glm/geometric.hpp>
 
 CWorldEditor::CWorldEditor()
 {
@@ -138,7 +138,7 @@ void nodeVertex_t::Constrain()
 	{
 	case Constraint::NONE:
 		return; // No constraint. Let's dip.
-	case Constraint::SIDE:
+	case Constraint::VERTEX_SIDE:
 	{
 		// I'm really tired while writing this, so this is probably going to need some revamping at some point.
 		// But this is how it works. We can solve the vertex to the line using two ways: solving to the line using the vert's X, or solving using the Z.
@@ -178,6 +178,30 @@ void nodeVertex_t::Constrain()
 		// Find the y for our new X Z
 		slope = line.y / line.x;
 		//newOrigin.y = (newOrigin.x - parentVert1.x) * slope + parentVert1.y;
+
+		// Lock the vertex to the side
+		// This is probably terrible. Revisit when not tired.
+
+		glm::vec3 midpoint = (parentVert1 + parentVert2) / 2.0f;
+		float linePercent = glm::length(newOrigin - midpoint) / glm::length(parentVert2 - midpoint);
+		
+		if (linePercent > 1.0f)
+		{
+			// Out of line. Find nearest and lock to it.
+			// Not how I'd want to do this...
+
+			float lenTo1 = glm::length(parentVert1 - newOrigin);
+			float lenTo2 = glm::length(parentVert2 - newOrigin);
+
+			if (lenTo1 < lenTo2)
+			{
+				newOrigin = parentVert1;
+			}
+			else
+			{
+				newOrigin = parentVert2;
+			}
+		}
 
 		printf("origin - (%f, %f)\tnew - (%f, %f)\n", origin.x, origin.z, newOrigin.x, newOrigin.z);
 		
