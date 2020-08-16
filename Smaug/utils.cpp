@@ -77,7 +77,7 @@ bool IsPointOnLine(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float ra
 bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 {
 	// Static so we don't reinitiate this
-	static const char** shaderPaths = new const char* [9]
+	static const char** shaderPaths = new const char* [10]
 	{
 		nullptr,		  // No Renderer
 		"shaders/dx9/",   // Direct3D9
@@ -85,6 +85,7 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 		"shaders/dx11/",  // Direct3D12
 		nullptr,		  // Gnm
 		nullptr,		  // Metal
+		nullptr,		  // Nvm
 		"shaders/glsl/",  // OpenGL
 		nullptr,		  // OpenGL ES
 		"shaders/spirv/", // Vulkan
