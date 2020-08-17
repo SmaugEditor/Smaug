@@ -66,8 +66,13 @@ void CNodeRenderData::UpdateVertexBuf()
 
 void CNodeRenderData::Draw()
 {
+	Draw(m_parentNode->m_origin);
+}
+
+void CNodeRenderData::Draw(glm::vec3 origin)
+{
 	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, m_parentNode->m_origin);
+	mtx = glm::translate(mtx, origin);
 
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_vertexBuf);

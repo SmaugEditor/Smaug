@@ -2,6 +2,7 @@
 #include "baseview.h"
 #include "3dview.h"
 #include "editview.h"
+#include "selectedview.h"
 
 class CUIView : public CBaseView
 {
@@ -14,4 +15,7 @@ public:
 	CEditView m_editView;
 	bool m_drawPreviewView;
 	C3DView m_previewView;
+	bool m_drawSelectedView;
+	CSelectedView m_selectedView;
+
 };
