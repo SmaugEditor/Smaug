@@ -80,7 +80,6 @@ bool CNode::IsPointInAABB(glm::vec2 point)
 	point.x -= m_origin.x;
 	point.y -= m_origin.z;
 
-	printf("point - {%f, %f}\n", point.x, point.y);
 	return point.x <= m_aabb.topRight.x && point.y <= m_aabb.topRight.y && point.x >= m_aabb.bottomLeft.x && point.y >= m_aabb.bottomLeft.y;
 }
 
