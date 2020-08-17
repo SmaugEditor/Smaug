@@ -209,6 +209,12 @@ void nodeVertex_t::Constrain()
 		origin = newOrigin - homeNode->m_origin;
 		return;
 	}
+	case Constraint::VERTEX_VERTEX:
+	{
+		origin = parentVertex->origin + parentVertex->homeNode->m_origin - homeNode->m_origin;
+
+		return;
+	}
 	default:
 		break;
 	}
