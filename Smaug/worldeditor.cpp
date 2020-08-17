@@ -37,9 +37,9 @@ void CNode::Update()
 {
 
 	// Make sure our new position fits our constraints
-	for (int i = 0; i < m_sideCount; i++)
+	for (int i = 0; i < m_constrainedTo.size(); i++)
 	{
-		m_vertexes[i].Constrain();
+		m_constrainedTo[i].Update();
 	}
 
 
@@ -61,18 +61,17 @@ void CNode::Update()
 
 	m_renderData.UpdateVertexBuf();
 
-	// Now that we've updated ourself, we have to update our sides' constraints.
-	for (int i = 0; i < m_sideCount; i++)
+	// Now that we've updated ourself, we have to update our constraints.
+	for (int i = 0; i < m_constraining.size(); i++)
 	{
-		nodeSide_t& side = m_sides[i];
-		for (int j = 0; j < side.children.size(); j++)
-		{
-			side.children[j]->Constrain();
-			side.children[j]->homeNode->Update(); // Update its verts
-		}
-
+		m_constraining[i]->Update();
+		m_constraining[i]->m_childNode->Update();
 	}
 
+}
+
+void CNode::ConstructWalls()
+{
 }
 
 void CNode::LinkSides()
@@ -86,10 +85,6 @@ void CNode::LinkSides()
 	m_sides[m_sideCount - 1].vertex1 = &m_vertexes[m_sideCount - 1];
 	m_sides[m_sideCount - 1].vertex2 = &m_vertexes[0];
 
-	for (int i = 0; i < m_sideCount; i++)
-	{
-		m_vertexes[i].homeNode = this;
-	}
 }
 
 CQuadNode::CQuadNode()
@@ -132,13 +127,12 @@ CTriNode::CTriNode()
 	m_renderData.Setup(this);
 }
 
-void nodeVertex_t::Constrain()
+void CConstraint::Update()
 {
-	switch (constraint)
-	{
-	case Constraint::NONE:
+	if(m_parentType == ConstraintPairType::NONE || m_childType == ConstraintPairType::NONE)
 		return; // No constraint. Let's dip.
-	case Constraint::VERTEX_SIDE:
+
+	if(m_parentType == ConstraintPairType::SIDE && m_childType == ConstraintPairType::VERTEX)
 	{
 		// I'm really tired while writing this, so this is probably going to need some revamping at some point.
 		// But this is how it works. We can solve the vertex to the line using two ways: solving to the line using the vert's X, or solving using the Z.
@@ -146,10 +140,10 @@ void nodeVertex_t::Constrain()
 
 
 		// If we don't add the home node's origin, all of our math will be totally broken since the verts use local positioning
-		glm::vec3 newOrigin = origin + homeNode->m_origin;
+		glm::vec3 newOrigin = m_childVertex->origin + m_childNode->m_origin;
 
-		glm::vec3 parentVert1 = parentSide->vertex1->origin + parentSide->vertex1->homeNode->m_origin;
-		glm::vec3 parentVert2 = parentSide->vertex2->origin + parentSide->vertex2->homeNode->m_origin;
+		glm::vec3 parentVert1 = m_parentSide->vertex1->origin + m_parentNode->m_origin;
+		glm::vec3 parentVert2 = m_parentSide->vertex2->origin + m_parentNode->m_origin;
 
 
 		glm::vec3 line = parentVert2 - parentVert1;
@@ -203,19 +197,17 @@ void nodeVertex_t::Constrain()
 			}
 		}
 
-		printf("origin - (%f, %f)\tnew - (%f, %f)\n", origin.x, origin.z, newOrigin.x, newOrigin.z);
+		printf("origin - (%f, %f)\tnew - (%f, %f)\n", m_childVertex->origin.x, m_childVertex->origin.z, newOrigin.x, newOrigin.z);
 		
 		// Since our origin is local the the home origin, we have to remove it 
-		origin = newOrigin - homeNode->m_origin;
+		m_childVertex->origin = newOrigin - m_childNode->m_origin;
 		return;
 	}
-	case Constraint::VERTEX_VERTEX:
+
+	if (m_parentType == ConstraintPairType::VERTEX && m_childType == ConstraintPairType::VERTEX)
 	{
-		origin = parentVertex->origin + parentVertex->homeNode->m_origin - homeNode->m_origin;
+		m_childVertex->origin = m_parentVertex->origin + m_parentNode->m_origin - m_childNode->m_origin;
 
 		return;
-	}
-	default:
-		break;
 	}
 }

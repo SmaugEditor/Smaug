@@ -193,19 +193,18 @@ void CActionManager::Act(glm::vec3 mousePos)
 
 			quad->Update();
 
-			// The two verts touching the side being extruded have to be constrained to it 
-			attachedSide->vertex1->parentSide = selectedSide;
-			attachedSide->vertex1->constraint = Constraint::VERTEX_SIDE;
-			attachedSide->vertex2->parentSide = selectedSide;
-			attachedSide->vertex2->constraint = Constraint::VERTEX_SIDE;
+			CConstraint vert1Cons;
+			vert1Cons.SetParent(selectedNode, selectedSide);
+			vert1Cons.SetChild(quad, attachedSide->vertex1);
+			quad->m_constrainedTo.push_back(vert1Cons);
+			selectedNode->m_constraining.push_back(&quad->m_constrainedTo.back()); // We're working with a different memory address now
 
-			// The other two dont need to be constrained
-			extrudedSide->vertex1->constraint = Constraint::NONE;
-			extrudedSide->vertex2->constraint = Constraint::NONE;
+			CConstraint vert2Cons;
+			vert2Cons.SetParent(selectedNode, selectedSide);
+			vert2Cons.SetChild(quad, attachedSide->vertex2);
+			quad->m_constrainedTo.push_back(vert2Cons);
+			selectedNode->m_constraining.push_back(&quad->m_constrainedTo.back()); // We're working with a different memory address now
 
-			// Now we have to tell the side that it has some new kids
-			selectedSide->children.push_back(attachedSide->vertex1);
-			selectedSide->children.push_back(attachedSide->vertex2);
 
 			printf("Created New Node\n");
 
