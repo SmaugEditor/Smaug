@@ -37,7 +37,7 @@ void CNode::Update()
 {
 
 	// Make sure our new position fits our constraints
-	for (int i = 0; i < m_constrainedTo.size(); i++)
+	for (int i = 0; i < m_constrainedToCount; i++)
 	{
 		m_constrainedTo[i].Update();
 	}

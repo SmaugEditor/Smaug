@@ -82,7 +82,10 @@ public:
 	CNodeRenderData m_renderData;
 
 	std::vector<CConstraint*> m_constraining; // We parent these constraints
-	std::vector<CConstraint> m_constrainedTo; // We are constrained by these constraints 
+	
+	// Temp Hack!!
+	CConstraint m_constrainedTo[16]; // We are constrained by these constraints 
+	int m_constrainedToCount = 0;
 };
 
 // I've been told hammer only likes triangles and quads. How sad!
