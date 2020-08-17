@@ -27,7 +27,7 @@ void CSelectedView::Draw(float dt)
 	CNode* selectedNode = GetActionManager().selectedNode;
 	if (selectedNode)
 	{
-		selectedNode->m_renderData.Draw(glm::vec3(0,0,0));
+		selectedNode->m_renderData.Draw3D(glm::vec3(0,0,0));
 		bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
 	}
 }

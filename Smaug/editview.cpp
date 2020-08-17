@@ -121,7 +121,7 @@ void CEditView::Draw(float dt)
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
 
-	GetWorldRenderer().Draw(m_viewId, Shader::EDIT_VIEW_SHADER);
+	GetWorldRenderer().Draw2D(m_viewId, Shader::EDIT_VIEW_SHADER);
 
 
 	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)

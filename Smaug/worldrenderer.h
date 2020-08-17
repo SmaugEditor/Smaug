@@ -8,7 +8,8 @@ class CWorldRenderer
 {
 public:
 	void Init();
-	void Draw(bgfx::ViewId viewId, Shader shader);
+	void Draw2D(bgfx::ViewId viewId, Shader shader);
+	void Draw3D(bgfx::ViewId viewId, Shader shader);
 
 };
 
@@ -19,8 +20,13 @@ struct CNodeRenderData
 {
 	void Setup(CNode* node);
 	void UpdateVertexBuf();
-	void Draw();
-	void Draw(glm::vec3 origin);
+
+	void Draw2D();
+	void Draw2D(glm::vec3 origin);
+
+	void Draw3D();
+	void Draw3D(glm::vec3 origin);
+
 	void Shutdown();
 	bgfx::DynamicVertexBufferHandle m_vertexBuf;
 	bgfx::IndexBufferHandle m_indexBuf;

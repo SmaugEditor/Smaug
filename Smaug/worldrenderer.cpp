@@ -30,13 +30,24 @@ void CWorldRenderer::Init()
 	g_triTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_triTriIndexList, sizeof(g_triTriIndexList)));
 }
 
-void CWorldRenderer::Draw(bgfx::ViewId viewId, Shader shader)
+void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 {
 	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
 	for (int i = 0; i < world.m_nodes.size(); i++)
 	{
-		world.m_nodes[i]->m_renderData.Draw();
+		world.m_nodes[i]->m_renderData.Draw2D();
+		bgfx::submit(viewId, shaderProgram);
+	}
+}
+
+void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
+{
+	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
+	CWorldEditor& world = GetWorldEditor();
+	for (int i = 0; i < world.m_nodes.size(); i++)
+	{
+		world.m_nodes[i]->m_renderData.Draw3D();
 		bgfx::submit(viewId, shaderProgram);
 	}
 }
@@ -64,12 +75,29 @@ void CNodeRenderData::UpdateVertexBuf()
 	bgfx::update(m_vertexBuf, 0, bgfx::makeRef(m_parentNode->m_vertexes, sizeof(nodeVertex_t) * m_parentNode->m_sideCount));
 }
 
-void CNodeRenderData::Draw()
+void CNodeRenderData::Draw2D()
 {
-	Draw(m_parentNode->m_origin);
+	Draw2D(m_parentNode->m_origin);
 }
 
-void CNodeRenderData::Draw(glm::vec3 origin)
+void CNodeRenderData::Draw2D(glm::vec3 origin)
+{
+	glm::mat4 mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, origin);
+
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_vertexBuf);
+	bgfx::setIndexBuffer(m_indexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	// This does not bgfx::submit!!
+}
+
+void CNodeRenderData::Draw3D()
+{
+	Draw2D(m_parentNode->m_origin);
+}
+
+void CNodeRenderData::Draw3D(glm::vec3 origin)
 {
 	glm::mat4 mtx = glm::identity<glm::mat4>();
 	mtx = glm::translate(mtx, origin);

@@ -19,5 +19,5 @@ void C3DView::Draw(float dt)
 	glm::mat4 proj = glm::perspective(glm::radians(60.0f), float(m_width) / m_height, 0.1f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
-	GetWorldRenderer().Draw(m_viewId, Shader::WORLD_PREVIEW_SHADER);
+	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 }
