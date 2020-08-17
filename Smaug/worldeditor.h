@@ -98,6 +98,7 @@ public:
 	int m_constrainedToCount = 0;
 
 	boundingBox2D_t m_aabb;
+	float m_aabbLength;
 };
 
 // I've been told hammer only likes triangles and quads. How sad!

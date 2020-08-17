@@ -115,6 +115,8 @@ void CNode::CalculateAABB()
 	m_aabb.bottomLeft = bottomLeft;
 	m_aabb.topRight = topRight;
 
+	m_aabbLength = glm::length(topRight - bottomLeft);
+
 	printf("AABB - TR:{%f, %f} - BL:{%f, %f}\n", m_aabb.topRight.x, m_aabb.topRight.y, m_aabb.bottomLeft.x, m_aabb.bottomLeft.y);
 }
 
