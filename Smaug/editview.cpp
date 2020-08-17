@@ -68,10 +68,12 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	
 
 	CTriNode* tri = GetWorldEditor().CreateTri();
+
 	tri->m_origin = glm::vec3(0, 0, -20);
 
 	for (int i = 0; i < tri->m_sideCount; i++)
 		tri->m_sides[i].vertex1->origin *= 10;
+	tri->Update();
 
 	// Zoom and pan
 	m_viewportHeight = m_viewportWidth = 80;

@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 #include <vector>
 #include "worldrenderer.h"
 
@@ -62,13 +63,22 @@ enum class NodeType
 	TRI,
 };
 
+struct boundingBox2D_t
+{
+	glm::vec2 topRight;
+	glm::vec2 bottomLeft;
+
+};
+
 class CNode
 {
 public:
 	void Update();
 	void ConstructWalls();
+	bool IsPointInAABB(glm::vec2 point);
 protected:
 	void LinkSides();
+	void CalculateAABB();
 public:
 
 	nodeVertex_t* m_vertexes;
@@ -86,6 +96,8 @@ public:
 	// Temp Hack!!
 	CConstraint m_constrainedTo[16]; // We are constrained by these constraints 
 	int m_constrainedToCount = 0;
+
+	boundingBox2D_t m_aabb;
 };
 
 // I've been told hammer only likes triangles and quads. How sad!

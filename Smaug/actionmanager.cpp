@@ -34,6 +34,12 @@ void CActionManager::Act(glm::vec3 mousePos)
 		{
 			CNode* node = GetWorldEditor().m_nodes[i];
 
+			// Check if we're in the AABB
+			// Note: Maybe add a threshold to this?
+
+			if (!node->IsPointInAABB({ mousePos.x, mousePos.z }))
+				continue; // Not in bounds!
+
 			// Corner check
 			for (int j = 0; j < node->m_sideCount; j++)
 			{

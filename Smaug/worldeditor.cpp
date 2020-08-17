@@ -68,10 +68,20 @@ void CNode::Update()
 		m_constraining[i]->m_childNode->Update();
 	}
 
+	CalculateAABB();
 }
 
 void CNode::ConstructWalls()
 {
+}
+
+bool CNode::IsPointInAABB(glm::vec2 point)
+{
+	point.x -= m_origin.x;
+	point.y -= m_origin.z;
+
+	printf("point - {%f, %f}\n", point.x, point.y);
+	return point.x <= m_aabb.topRight.x && point.y <= m_aabb.topRight.y && point.x >= m_aabb.bottomLeft.x && point.y >= m_aabb.bottomLeft.y;
 }
 
 void CNode::LinkSides()
@@ -85,6 +95,28 @@ void CNode::LinkSides()
 	m_sides[m_sideCount - 1].vertex1 = &m_vertexes[m_sideCount - 1];
 	m_sides[m_sideCount - 1].vertex2 = &m_vertexes[0];
 
+}
+
+void CNode::CalculateAABB()
+{
+	glm::vec2 topRight = { FLT_MIN, FLT_MIN };
+	glm::vec2 bottomLeft = { FLT_MAX, FLT_MAX };
+	for (int i = 0; i < m_sideCount; i++)
+	{
+		if (m_vertexes[i].origin.x > topRight.x)
+			topRight.x = m_vertexes[i].origin.x;
+		if (m_vertexes[i].origin.z > topRight.y)
+			topRight.y = m_vertexes[i].origin.z;
+
+		if (m_vertexes[i].origin.x < bottomLeft.x)
+			bottomLeft.x = m_vertexes[i].origin.x;
+		if(m_vertexes[i].origin.z < bottomLeft.y)
+			bottomLeft.y = m_vertexes[i].origin.z;
+	}
+	m_aabb.bottomLeft = bottomLeft;
+	m_aabb.topRight = topRight;
+
+	printf("AABB - TR:{%f, %f} - BL:{%f, %f}\n", m_aabb.topRight.x, m_aabb.topRight.y, m_aabb.bottomLeft.x, m_aabb.bottomLeft.y);
 }
 
 CQuadNode::CQuadNode()
@@ -103,6 +135,8 @@ CQuadNode::CQuadNode()
 	LinkSides();
 
 	m_origin = glm::vec3(0, 0, 0);
+
+	CalculateAABB();
 
 	m_renderData.Setup(this);
 }
@@ -123,6 +157,8 @@ CTriNode::CTriNode()
 	LinkSides();
 
 	m_origin = glm::vec3(0, 0, 0);
+
+	CalculateAABB();
 
 	m_renderData.Setup(this);
 }
