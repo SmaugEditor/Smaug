@@ -76,8 +76,8 @@ void CNodeRenderData::Setup(CNode* node)
 
 	GenerateWallBufs(vertBuf, indexBuf);
 
-	m_vertexBuf3D = bgfx::createDynamicVertexBuffer(vertBuf, g_vertexLayout);
-	m_indexBuf3D = bgfx::createDynamicIndexBuffer(indexBuf);
+	m_vertexBuf3D = bgfx::createDynamicVertexBuffer(vertBuf, g_vertexLayout, BGFX_BUFFER_ALLOW_RESIZE);
+	m_indexBuf3D = bgfx::createDynamicIndexBuffer(indexBuf, BGFX_BUFFER_ALLOW_RESIZE);
 
 }
 
