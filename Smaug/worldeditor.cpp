@@ -1,5 +1,6 @@
 #include "worldeditor.h"
 #include <glm/geometric.hpp>
+#include <glm/common.hpp>
 
 CWorldEditor::CWorldEditor()
 {
@@ -33,6 +34,21 @@ CWorldEditor& GetWorldEditor()
 }
 
 
+void CNode::Init()
+{
+
+	m_sides = new nodeSide_t[m_sideCount];
+	LinkSides();
+
+	m_origin = glm::vec3(0, 0, 0);
+
+	ConstructWalls();
+
+	CalculateAABB();
+
+	m_renderData.Setup(this);
+}
+
 void CNode::Update()
 {
 
@@ -59,6 +75,9 @@ void CNode::Update()
 		m_sides[i].vertex1->origin -= averageOrigin;
 	}
 
+	// Update our walls
+	ConstructWalls();
+
 	m_renderData.UpdateVertexBuf();
 
 	// Now that we've updated ourself, we have to update our constraints.
@@ -71,8 +90,90 @@ void CNode::Update()
 	CalculateAABB();
 }
 
+static float FindMaxConstraintHeight(CNode* otherNode, nodeSide_t* otherSide, CNode* ourNode, nodeSide_t* ourSide)
+{
+	// Highest point on the other side's wall + how high the node is + how high the ceiling is. Absolute Max Y for the other side.
+	float constraintMaxY = glm::max(otherSide->vertex1->origin.y, otherSide->vertex2->origin.y) + otherNode->m_origin.y + otherNode->m_nodeHeight;
+
+	// Now that we have how tall the other side is, we have to make it relative to the lowest point on our side
+	constraintMaxY -= glm::max(ourSide->vertex1->origin.y, ourSide->vertex2->origin.y) + ourNode->m_origin.y;
+
+	return constraintMaxY;
+}
+
 void CNode::ConstructWalls()
 {
+	// We start with discarding our walls and then creating new ones for each side. We then have to cut out of the walls where side->side constraints exist
+	
+	// Figure out how tall our node needs to be based on our connected nodes
+	// Sometimes the user might have a height in mind already.
+	if (m_useCalculatedNodeHeight)
+	{
+		float maxY = FLT_MIN;
+
+		// Check what we're constrained to
+		for (int i = 0; i < m_constrainedToCount; i++)
+		{
+			CConstraint* constraint = &m_constrainedTo[i];
+			
+			float constraintMaxY = FindMaxConstraintHeight(constraint->m_parentNode, constraint->m_parentSide, constraint->m_childNode, constraint->m_childSide);
+
+			if (constraintMaxY > maxY)
+				maxY = constraintMaxY;
+		}
+
+		// Check what we're constraining
+		for (int i = 0; i < m_constraining.size(); i++)
+		{
+			CConstraint* constraint = m_constraining[i];
+
+			float constraintMaxY = FindMaxConstraintHeight(constraint->m_parentNode, constraint->m_parentSide, constraint->m_childNode, constraint->m_childSide);
+
+			if (constraintMaxY > maxY)
+				maxY = constraintMaxY;
+		}
+
+		// Only change the height if we calculated a new one.
+		if (maxY > FLT_MIN)
+		{
+			m_nodeHeight = maxY;
+		}
+
+	}
+
+
+
+	// Create the walls
+	for (int i = 0; i < m_sideCount; i++)
+	{
+		// Out with the old
+		m_sides[i].walls.clear();
+
+		nodeWall_t wall;
+
+		wall.bottomPoints[0] = m_sides[i].vertex1->origin;
+		wall.bottomPoints[1] = m_sides[i].vertex2->origin;
+
+		wall.topPoints[0] = wall.bottomPoints[0];
+		wall.topPoints[1] = wall.bottomPoints[1];
+
+		// Push the top points up
+		wall.topPoints[0].y += m_nodeHeight;
+		wall.topPoints[1].y += m_nodeHeight;
+
+		// In with the new
+		m_sides[i].walls.push_back(wall);
+	}
+
+
+	// Cut the walls owned 
+
+	// Order from Left to right
+	// Punch holes in order
+	// Easy peasy
+
+	// for Constraining
+	// for ConstrainedBy
 }
 
 bool CNode::IsPointInAABB(glm::vec2 point)
@@ -132,14 +233,7 @@ CQuadNode::CQuadNode()
 	m_vertexes[2].origin = glm::vec3( 1,  0,  1); // Top Right
 	m_vertexes[3].origin = glm::vec3( 1,  0, -1); // Bottom Right
 
-	m_sides = new nodeSide_t[m_sideCount];
-	LinkSides();
-
-	m_origin = glm::vec3(0, 0, 0);
-
-	CalculateAABB();
-
-	m_renderData.Setup(this);
+	Init();
 }
 
 CTriNode::CTriNode()
@@ -154,14 +248,7 @@ CTriNode::CTriNode()
 	m_vertexes[1].origin = glm::vec3(-1,  0,  1); // Top Left
 	m_vertexes[2].origin = glm::vec3( 1,  0,  1); // Top Right
 
-	m_sides = new nodeSide_t[m_sideCount];
-	LinkSides();
-
-	m_origin = glm::vec3(0, 0, 0);
-
-	CalculateAABB();
-
-	m_renderData.Setup(this);
+	Init();
 }
 
 void CConstraint::Update()
@@ -247,4 +334,16 @@ void CConstraint::Update()
 
 		return;
 	}
+
+
+	if (m_parentType == ConstraintPairType::SIDE && m_childType == ConstraintPairType::SIDE)
+	{
+		// We have to solve the child side's verts to have the same slope and y-intercept as the parent's side while maintaining the same dist between the verts
+
+
+
+	}
+
+
+
 }

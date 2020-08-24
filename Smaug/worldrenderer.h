@@ -20,6 +20,7 @@ struct CNodeRenderData
 {
 	void Setup(CNode* node);
 	void UpdateVertexBuf();
+	void GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf);
 
 	void Draw2D();
 	void Draw2D(glm::vec3 origin);
@@ -28,8 +29,15 @@ struct CNodeRenderData
 	void Draw3D(glm::vec3 origin);
 
 	void Shutdown();
-	bgfx::DynamicVertexBufferHandle m_vertexBuf;
-	bgfx::IndexBufferHandle m_indexBuf;
+
+
+	bgfx::DynamicVertexBufferHandle m_vertexBuf2D;
+	bgfx::IndexBufferHandle m_indexBuf2D;
+
+	bgfx::DynamicVertexBufferHandle m_vertexBuf3D;
+	bgfx::DynamicIndexBufferHandle m_indexBuf3D;
+
+
 	CNode* m_parentNode;
 };
 

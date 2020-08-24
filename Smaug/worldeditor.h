@@ -50,10 +50,20 @@ struct nodeVertex_t
 	glm::vec3 origin;
 };
 
+
+struct nodeWall_t
+{
+	glm::vec3 bottomPoints[2];
+	glm::vec3 topPoints[2];
+};
+
+
 struct nodeSide_t
 {
 	nodeVertex_t* vertex1;
 	nodeVertex_t* vertex2; // Links to the next side's point 1
+
+	std::vector<nodeWall_t> walls;
 };
 
 enum class NodeType
@@ -70,9 +80,11 @@ struct boundingBox2D_t
 
 };
 
+
 class CNode
 {
 public:
+	void Init();
 	void Update();
 	void ConstructWalls();
 	bool IsPointInAABB(glm::vec2 point);
@@ -99,6 +111,9 @@ public:
 
 	boundingBox2D_t m_aabb;
 	float m_aabbLength;
+
+	bool m_useCalculatedNodeHeight;
+	float m_nodeHeight;
 };
 
 // I've been told hammer only likes triangles and quads. How sad!
