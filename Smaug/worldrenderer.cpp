@@ -22,7 +22,7 @@ static bgfx::IndexBufferHandle g_quadTriIndexBuffer;
 static const uint16_t g_triTriIndexList[] = { 0, 1, 2 };
 static bgfx::IndexBufferHandle g_triTriIndexBuffer;
 
-static const uint16_t g_wallTriIndexList[] = { 0, 1, 3, 3, 2, 0 };
+static const uint16_t g_wallTriIndexList[] = { 0, 2, 3, 3, 1, 0 };
 
 
 void CWorldRenderer::Init()
@@ -126,7 +126,7 @@ void CNodeRenderData::GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx:
 			memcpy(indexBuf->data + indexPos, g_wallTriIndexList, sizeof(g_wallTriIndexList));
 			
 			// Increment the indexes to our current wall
-			for (int k = 0; k < 4; k++)
+			for (int k = 0; k < 6; k++)
 				reinterpret_cast<uint16_t&>(indexBuf->data[indexPos + k * sizeof(uint16_t)]) += currentWallPos * 4;
 
 			currentWallPos++;
