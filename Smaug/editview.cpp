@@ -67,13 +67,13 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 	
 
-	CTriNode* tri = GetWorldEditor().CreateTri();
+	CNode* node = GetWorldEditor().CreateQuad();
 
-	tri->m_origin = glm::vec3(0, 0, -20);
+	node->m_origin = glm::vec3(0, 0, -20);
 
-	for (int i = 0; i < tri->m_sideCount; i++)
-		tri->m_sides[i].vertex1->origin *= 10;
-	tri->Update();
+	for (int i = 0; i < node->m_sideCount; i++)
+		node->m_sides[i].vertex1->origin *= 10;
+	node->Update();
 
 	// Zoom and pan
 	m_viewportHeight = m_viewportWidth = 80;

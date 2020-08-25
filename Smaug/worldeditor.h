@@ -26,10 +26,15 @@ public:
 	void SetChild(CNode* node, nodeSide_t* side) { m_childType = ConstraintPairType::SIDE; m_childNode = node; m_childSide = side; }
 	void SetChild(CNode* node, nodeVertex_t* vertex) { m_childType = ConstraintPairType::VERTEX; m_childNode = node; m_childVertex = vertex; }
 	
+	void SwapParentAndChild();
+
+	void SideVertConstrain();
+
 	ConstraintPairType m_parentType;
 	CNode* m_parentNode;
 	union
 	{
+		void* m_parent;
 		nodeSide_t* m_parentSide;
 		nodeVertex_t* m_parentVertex;
 	};
@@ -38,6 +43,7 @@ public:
 	CNode* m_childNode;
 	union
 	{
+		void* m_child;
 		nodeSide_t* m_childSide;
 		nodeVertex_t* m_childVertex;
 	};
@@ -49,7 +55,6 @@ struct nodeVertex_t
 {
 	glm::vec3 origin;
 };
-
 
 struct nodeWall_t
 {

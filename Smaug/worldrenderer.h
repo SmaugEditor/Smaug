@@ -19,7 +19,9 @@ class CNode;
 struct CNodeRenderData
 {
 	void Setup(CNode* node);
-	void UpdateVertexBuf();
+	void UpdateBufs();
+	void Update3DBufs();
+	void Update2DBufs();
 	void GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf);
 
 	void Draw2D();

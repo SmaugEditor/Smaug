@@ -81,11 +81,14 @@ void CNodeRenderData::Setup(CNode* node)
 
 }
 
-void CNodeRenderData::UpdateVertexBuf()
+void CNodeRenderData::UpdateBufs()
 {
-	bgfx::update(m_vertexBuf2D, 0, bgfx::makeRef(m_parentNode->m_vertexes, sizeof(nodeVertex_t) * m_parentNode->m_sideCount));
+	Update2DBufs();
+	Update3DBufs();
+}
 
-
+void CNodeRenderData::Update3DBufs()
+{
 	const bgfx::Memory* vertBuf;
 	const bgfx::Memory* indexBuf;
 
@@ -93,6 +96,12 @@ void CNodeRenderData::UpdateVertexBuf()
 
 	bgfx::update(m_vertexBuf3D, 0, vertBuf);
 	bgfx::update(m_indexBuf3D, 0, indexBuf);
+
+}
+
+void CNodeRenderData::Update2DBufs()
+{
+	bgfx::update(m_vertexBuf2D, 0, bgfx::makeRef(m_parentNode->m_vertexes, sizeof(nodeVertex_t) * m_parentNode->m_sideCount));
 }
 
 void CNodeRenderData::GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf)
@@ -115,6 +124,10 @@ void CNodeRenderData::GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx:
 	for (int i = 0; i < m_parentNode->m_sideCount; i++)
 	{
 		nodeSide_t* side = &m_parentNode->m_sides[i];
+
+		// If there's no walls, skip
+		if (side->walls.size() == 0)
+			continue;
 
 		// Fill vert data
 		memcpy(vertBuf->data + vertPos, side->walls.data(), side->walls.size() * sizeof(nodeWall_t));

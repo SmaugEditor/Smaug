@@ -197,22 +197,14 @@ void CActionManager::Act(glm::vec3 mousePos)
 			extrudedSide->vertex1->origin = selectedSide->vertex1->origin + mouseDelta;
 			extrudedSide->vertex2->origin = selectedSide->vertex2->origin + mouseDelta;
 
+			CConstraint sideConstraint;
+			sideConstraint.SetParent(selectedNode, selectedSide);
+			sideConstraint.SetChild(quad, attachedSide);
+			quad->m_constrainedTo[quad->m_constrainedToCount] = sideConstraint;
+			selectedNode->m_constraining.push_back(&quad->m_constrainedTo[quad->m_constrainedToCount]);
+			quad->m_constrainedToCount++;
+
 			quad->Update();
-
-			CConstraint vert1Cons;
-			vert1Cons.SetParent(selectedNode, selectedSide);
-			vert1Cons.SetChild(quad, attachedSide->vertex1);
-			quad->m_constrainedTo[quad->m_constrainedToCount] = vert1Cons;
-			selectedNode->m_constraining.push_back(&quad->m_constrainedTo[quad->m_constrainedToCount]);
-			quad->m_constrainedToCount++;
-
-			CConstraint vert2Cons;
-			vert2Cons.SetParent(selectedNode, selectedSide);
-			vert2Cons.SetChild(quad, attachedSide->vertex2);
-			quad->m_constrainedTo[quad->m_constrainedToCount] = vert2Cons;
-			selectedNode->m_constraining.push_back(&quad->m_constrainedTo[quad->m_constrainedToCount]);
-			quad->m_constrainedToCount++;
-
 
 			printf("Created New Node\n");
 
