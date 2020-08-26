@@ -109,16 +109,20 @@ static float FindMaxConstraintHeight(CNode* otherNode, nodeSide_t* otherSide, CN
 	return constraintMaxY;
 }
 
+// COMPARED ITEMS MUST HAVE THE SAME PARENT!
 int SortSideSideConstraints(const void* a, const void* b)
 {
-	const CConstraint** arg1 = (const CConstraint**)a;
-	const CConstraint** arg2 = (const CConstraint**)b;
+	const CConstraint* arg1 = *(const CConstraint**)a;
+	const CConstraint* arg2 = *(const CConstraint**)b;
 	
-	// This has to be slow
+	// This is probably slow...
+
+	// If we're not comparing with the same parents, what are we even doing...
+	glm::vec3 parentVert = arg1->m_parentSide->vertex1->origin + arg1->m_parentNode->m_origin;
 
 	// Check our distance from the left side of our parent
-	float arg1Dist = glm::length((*arg1)->m_parentSide->vertex1->origin - (*arg1)->m_childSide->vertex2->origin);
-	float arg2Dist = glm::length((*arg2)->m_parentSide->vertex1->origin - (*arg2)->m_childSide->vertex2->origin);
+	float arg1Dist = glm::length(parentVert - (arg1->m_childSide->vertex2->origin + arg1->m_childNode->m_origin));
+	float arg2Dist = glm::length(parentVert - (arg2->m_childSide->vertex2->origin + arg2->m_childNode->m_origin));
 
 	if (arg1Dist < arg2Dist) return -1;
 	if (arg1Dist > arg2Dist) return 1;
