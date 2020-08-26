@@ -1,6 +1,7 @@
 #include "uiview.h"
 #include "imgui_internal.h"
 #include "objexporter.h"
+#include "filesystem.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -39,7 +40,7 @@ void CUIView::Update(float dt, float mx, float my)
 
 	ImGui::Begin("2D Editor");
 	m_drawEditView = ImGui::IsWindowCollapsed();
-	bool exportObj = ImGui::Button("Export to OBJ", ImVec2(20, 20));
+	bool exportObj = ImGui::Button("Export to OBJ");
 	ImGui::Image(m_editView.GetImTextureID(), ImVec2(400, 400));
 	ImVec2 mv = ImGui::GetMousePos();
 	ImVec2 inv = ImGui::GetItemRectMin();
@@ -74,7 +75,7 @@ void CUIView::Update(float dt, float mx, float my)
 	{
 		COBJExporter o;
 		char* str = o.Export(&GetWorldEditor());
-		printf(str);
+		filesystem::SaveFileWithDialog(str);
 		delete[] str;
 	}
 }
