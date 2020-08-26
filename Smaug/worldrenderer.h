@@ -38,7 +38,7 @@ struct CNodeRenderData
 
 	bgfx::DynamicVertexBufferHandle m_vertexBuf3D;
 	bgfx::DynamicIndexBufferHandle m_indexBuf3D;
-
+	int m_indexCount3D;
 
 	CNode* m_parentNode;
 };

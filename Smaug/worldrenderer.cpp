@@ -118,7 +118,7 @@ void CNodeRenderData::GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx:
 	indexBuf = bgfx::alloc(wallCount * sizeof(g_wallTriIndexList)); // Each wall is a quad
 
 	size_t vertPos = 0;
-	size_t indexPos = 0;
+	m_indexCount3D = 0;
 	int currentWallPos = 0;
 	// Copy in our data
 	for (int i = 0; i < m_parentNode->m_sideCount; i++)
@@ -136,18 +136,19 @@ void CNodeRenderData::GenerateWallBufs(const bgfx::Memory*& vertBuf, const bgfx:
 		// Fill the index data
 		for (int j = 0; j < side->walls.size(); j++)
 		{
-			memcpy(indexBuf->data + indexPos, g_wallTriIndexList, sizeof(g_wallTriIndexList));
+			memcpy(indexBuf->data + m_indexCount3D, g_wallTriIndexList, sizeof(g_wallTriIndexList));
 			
 			// Increment the indexes to our current wall
 			for (int k = 0; k < 6; k++)
-				reinterpret_cast<uint16_t&>(indexBuf->data[indexPos + k * sizeof(uint16_t)]) += currentWallPos * 4;
+				reinterpret_cast<uint16_t&>(indexBuf->data[m_indexCount3D + k * sizeof(uint16_t)]) += currentWallPos * 4;
 
 			currentWallPos++;
-			indexPos += sizeof(g_wallTriIndexList);
+			m_indexCount3D += sizeof(g_wallTriIndexList);
 		}
 
 	}
 
+	m_indexCount3D /= sizeof(uint16_t);
 }
 
 void CNodeRenderData::Draw2D()
@@ -179,7 +180,7 @@ void CNodeRenderData::Draw3D(glm::vec3 origin)
 
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_vertexBuf3D);
-	bgfx::setIndexBuffer(m_indexBuf3D);
+	bgfx::setIndexBuffer(m_indexBuf3D, 0, m_indexCount3D);
 	bgfx::setState(BGFX_STATE_DEFAULT);
 	// This does not bgfx::submit!!
 }
