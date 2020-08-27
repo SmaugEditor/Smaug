@@ -233,6 +233,11 @@ void CActionManager::Act(glm::vec3 mousePos)
 
 			quad->Update();
 
+
+			// HACK HACK
+			// For some reason we have to update the parent... Even though we just updated them...
+			selectedNode->Update();
+
 			printf("Created New Node\n");
 
 			selectedNode = nullptr;
