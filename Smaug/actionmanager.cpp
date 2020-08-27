@@ -23,6 +23,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 			return;
 		}
 
+		selectedWall = nullptr;
 		selectedSide = nullptr;
 		selectedVertex = nullptr;
 		selectedNode = nullptr;
@@ -63,22 +64,38 @@ void CActionManager::Act(glm::vec3 mousePos)
 				break;
 
 
-			// Side check
+			// Side's walls check
 			for (int j = 0; j < node->m_sideCount; j++)
 			{
-				if (IsPointOnLine2D(node->m_sides[j].vertex1->origin + node->m_origin, node->m_sides[j].vertex2->origin + node->m_origin, mousePos, 2))
+				nodeSide_t* side = &node->m_sides[j];
+
+				// Are we on the side?
+				if (IsPointOnLine2D(side->vertex1->origin + node->m_origin, side->vertex2->origin + node->m_origin, mousePos, 2))
 				{
-					// Spin the cursor backwards if we're selecting something
-					GetApp().m_uiView.m_editView.m_cursorSpin = -1;
+					// Which wall are we selecting?
+					for (int k = 0; k < side->walls.size(); k++)
+					{
+						nodeWall_t wall = side->walls[k];
+						if (IsPointOnLine2D(wall.bottomPoints[0] + node->m_origin, wall.bottomPoints[1] + node->m_origin, mousePos, 2))
+						{
+							// Spin the cursor backwards if we're selecting something
+							GetApp().m_uiView.m_editView.m_cursorSpin = -1;
 
-					selectedSide = &node->m_sides[j];
-					selectedNode = node;
+							selectedWall = &side->walls[k];
+							selectedSide = &node->m_sides[j];
+							selectedNode = node;
 
-					cursorPos = (selectedSide->vertex1->origin + selectedSide->vertex2->origin) / 2.0f + node->m_origin;
+							cursorPos = (wall.bottomPoints[0] + wall.bottomPoints[1] + wall.topPoints[0] + wall.topPoints[1]) / 4.0f + node->m_origin;
 
-					hasFoundItem = true;
+							hasFoundItem = true;
+							printf("SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
 
-					break;
+							break;
+						}
+					}
+
+					if (hasFoundItem)
+						break;
 				}
 			}
 
@@ -86,35 +103,44 @@ void CActionManager::Act(glm::vec3 mousePos)
 				break;
 		}
 
-
-		// Did we find a side?
-		if (selectedSide)
+		if (hasFoundItem)
 		{
-			// Should we extrude the selected side?
-			if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
+			// Did we find a side?
+			if (selectedWall)
 			{
-				mouseStartPos = mousePos;
-				actionMode = ActionMode::EXTRUDE_SIDE;
-			}
-			// Should we extend the selected side?
-			else if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-			{
-				mouseStartPos = mousePos;
-				actionMode = ActionMode::DRAG_SIDE;
-			}
 
+				// Should we extrude the selected side?
+				if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
+				{
+					printf("!SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
+					mouseStartPos = mousePos;
+					actionMode = ActionMode::EXTRUDE_SIDE;
+					return;
+				}
+			}
+			if (selectedSide)
+			{
+				// Should we extend the selected side?
+				if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+				{
+					mouseStartPos = mousePos;
+					actionMode = ActionMode::DRAG_SIDE;
+					cursorPos = (selectedSide->vertex1->origin + selectedSide->vertex2->origin) / 2.0f + selectedNode->m_origin;
+					return;
+				}
+			}
+			if (selectedVertex)
+			{
+
+				// Should we drag the selected side?
+				if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+				{
+					mouseStartPos = mousePos;
+					actionMode = ActionMode::DRAG_VERTEX;
+					return;
+				}
+			}
 		}
-		else if (selectedVertex)
-		{
-
-			// Should we drag the selected side?
-			if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
-			{
-				mouseStartPos = mousePos;
-				actionMode = ActionMode::DRAG_VERTEX;
-			}
-		}
-
 	}
 	else if (actionMode == ActionMode::PAN_VIEW)
 	{
@@ -175,6 +201,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 		}
 		else
 		{
+			printf("SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
 			glm::vec3 mouseDelta = mousePos - mouseStartPos;
 
 			CQuadNode* quad = GetWorldEditor().CreateQuad();
@@ -191,11 +218,11 @@ void CActionManager::Act(glm::vec3 mousePos)
 			nodeSide_t* attachedSide = &quad->m_sides[0];
 			nodeSide_t* extrudedSide = &quad->m_sides[2];
 
-			attachedSide->vertex1->origin = selectedSide->vertex2->origin;
-			attachedSide->vertex2->origin = selectedSide->vertex1->origin;
+			attachedSide->vertex1->origin = selectedWall->bottomPoints[1];
+			attachedSide->vertex2->origin = selectedWall->bottomPoints[0];
 
-			extrudedSide->vertex1->origin = selectedSide->vertex1->origin + mouseDelta;
-			extrudedSide->vertex2->origin = selectedSide->vertex2->origin + mouseDelta;
+			extrudedSide->vertex1->origin = selectedWall->bottomPoints[0] + mouseDelta;
+			extrudedSide->vertex2->origin = selectedWall->bottomPoints[1] + mouseDelta;
 
 			CConstraint sideConstraint;
 			sideConstraint.SetParent(selectedNode, selectedSide);
