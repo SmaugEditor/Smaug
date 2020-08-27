@@ -417,30 +417,47 @@ void CConstraint::SideVertConstrain()
 
 	glm::vec3 line = parentVert2 - parentVert1;
 
-	// Solving for Z, keeping X
-	float slope = line.z / line.x;
-	float zDelta = (newOrigin.x - parentVert1.x) * slope + parentVert1.z - newOrigin.z;
-
-	// Solving for X, keeping Z
-	slope = line.x / line.z;
-	float xDelta = (newOrigin.z - parentVert1.z) * slope + parentVert1.x - newOrigin.x;
-
-	if (abs(xDelta) < abs(zDelta))
+	// Straight line checking
+	if (line.x == 0)
 	{
-		// Shortest path to snap is X
-		newOrigin.x += xDelta;
-		printf("solved for X\n");
+		// Line is straight. Take a shortcut
+		newOrigin.x = parentVert1.x;
+	}
+	else if (line.z == 0)
+	{
+		// Line is straight. Take a shortcut
+		newOrigin.z = parentVert1.z;
 	}
 	else
 	{
-		// Shortest path to snap is Z
-		newOrigin.z += zDelta;
-		printf("solved for Z\n");
-	}
+		// The line is not straight. Solve for the new position using the slope
 
-	// Find the y for our new X Z
-	slope = line.y / line.x;
-	//newOrigin.y = (newOrigin.x - parentVert1.x) * slope + parentVert1.y;
+		// Solving for Z, keeping X
+		float slope = line.z / line.x;
+		float zDelta = (newOrigin.x - parentVert1.x) * slope + parentVert1.z - newOrigin.z;
+
+		// Solving for X, keeping Z
+		slope = line.x / line.z;
+		float xDelta = (newOrigin.z - parentVert1.z) * slope + parentVert1.x - newOrigin.x;
+
+		if (abs(xDelta) < abs(zDelta))
+		{
+			// Shortest path to snap is X
+			newOrigin.x += xDelta;
+			printf("solved for X\n");
+		}
+		else
+		{
+			// Shortest path to snap is Z
+			newOrigin.z += zDelta;
+			printf("solved for Z\n");
+		}
+
+		// Find the y for our new X Z
+		//slope = line.y / line.x;
+		//newOrigin.y = (newOrigin.x - parentVert1.x) * slope + parentVert1.y;
+
+	}
 
 	// Lock the vertex to the side
 	// This is probably terrible. Revisit when not tired.
