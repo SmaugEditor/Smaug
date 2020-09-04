@@ -42,6 +42,7 @@ void CUIView::Update(float dt, float mx, float my)
 	m_drawEditView = ImGui::IsWindowCollapsed();
 	bool exportObj = ImGui::Button("Export to OBJ");
 	ImGui::Image(m_editView.GetImTextureID(), ImVec2(400, 400));
+	bool hoveredOn2DEditor = ImGui::IsItemHovered();
 	ImVec2 mv = ImGui::GetMousePos();
 	ImVec2 inv = ImGui::GetItemRectMin();
 	ImVec2 ixv = ImGui::GetItemRectMax();
@@ -50,16 +51,18 @@ void CUIView::Update(float dt, float mx, float my)
 	ImGui::Begin("3D Preview");
 	m_drawPreviewView = ImGui::IsWindowCollapsed();
 	ImGui::Image(m_previewView.GetImTextureID(), ImVec2(400, 400));
+	bool hoveredOn3DEditor = ImGui::IsItemFocused();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
 	ImGui::Begin("Object Editor");
 	m_drawSelectedView = ImGui::IsWindowCollapsed();
 	ImGui::Image(m_selectedView.GetImTextureID(), ImVec2(400, 400));
+	bool hoveredOnSelectionEditor = ImGui::IsItemFocused();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
-	if (!m_drawEditView)
+	if (!m_drawEditView && hoveredOn2DEditor)
 	{
 		float x = (mv.x - inv.x) / (ixv.x - inv.x);
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
