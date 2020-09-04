@@ -75,7 +75,7 @@ void CUIView::Update(float dt, float mx, float my)
 	{
 		COBJExporter o;
 		char* str = o.Export(&GetWorldEditor());
-		filesystem::SaveFileWithDialog(str);
+		filesystem::SaveFileWithDialog(str, "*.obj");
 		delete[] str;
 	}
 }
