@@ -11,12 +11,13 @@ CActionManager& GetActionManager()
 
 void CActionManager::Act(glm::vec3 mousePos)
 {
-	CSmaugApp& app = GetApp();
+	// Move io out of here?
+	ImGuiIO& io = ImGui::GetIO();
 
 	if (actionMode == ActionMode::NONE)
 	{
 		// Should we pan the view?
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
 		{
 			mouseStartPos = mousePos;
 			actionMode = ActionMode::PAN_VIEW;
@@ -110,7 +111,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 			{
 
 				// Should we extrude the selected side?
-				if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && app.isKeyDown(GLFW_KEY_LEFT_CONTROL))
+				if (io.MouseDown[GLFW_MOUSE_BUTTON_1] && io.KeysDown[GLFW_KEY_LEFT_CONTROL])
 				{
 					printf("!SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
 					mouseStartPos = mousePos;
@@ -121,7 +122,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 			if (selectedSide)
 			{
 				// Should we extend the selected side?
-				if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+				if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 				{
 					mouseStartPos = mousePos;
 					actionMode = ActionMode::DRAG_SIDE;
@@ -133,7 +134,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 			{
 
 				// Should we drag the selected side?
-				if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+				if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 				{
 					mouseStartPos = mousePos;
 					actionMode = ActionMode::DRAG_VERTEX;
@@ -144,7 +145,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 	}
 	else if (actionMode == ActionMode::PAN_VIEW)
 	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_3))
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
 		{
 		}
 		else
@@ -156,7 +157,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 	}
 	else if (actionMode == ActionMode::DRAG_SIDE)
 	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 		{
 		}
 		else
@@ -176,7 +177,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 	}
 	else if (actionMode == ActionMode::DRAG_VERTEX)
 	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 		{
 		}
 		else
@@ -196,7 +197,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 	}
 	else if (actionMode == ActionMode::EXTRUDE_SIDE)
 	{
-		if (app.isMouseButtonDown(GLFW_MOUSE_BUTTON_1))
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 		{
 		}
 		else

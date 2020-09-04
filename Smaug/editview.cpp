@@ -102,8 +102,6 @@ void CEditView::Update(float dt, float mx, float my)
 
 	m_cursorSpin = 1;
 
-	CSmaugApp& app = GetApp();
-
 	GetActionManager().Act(m_mousePos);
 
 
