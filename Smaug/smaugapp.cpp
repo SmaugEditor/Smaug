@@ -6,7 +6,10 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 {
 	ShaderManager::Init();
 
-	ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigWindowsMoveFromTitleBarOnly = true;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
 	GetWorldRenderer().Init();
 
 	m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
