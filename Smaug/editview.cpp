@@ -23,7 +23,7 @@
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
-static struct PosColorVertex
+struct PosColorVertex
 {
 	float x;
 	float y;
@@ -90,14 +90,10 @@ void CEditView::Update(float dt, float mx, float my)
 	float scrollDelta = ImGui::GetIO().MouseWheel * SCROLL_SPEED;
 	m_viewZoom -= scrollDelta;
 
-	// Offset the cam with the scrollDelta!
-
 	// Put the mouse pos into the world
 	mx = (mx * 2 - 1) * m_viewZoom - m_cameraPos.x;
 	my = (my * 2 - 1) * (m_viewZoom * m_aspectRatio) - m_cameraPos.z;
 
-	glm::mat4 mtx;
- 
 	m_mousePos = glm::vec3(mx, 5, my);
 
 	m_cursorSpin = 1;
