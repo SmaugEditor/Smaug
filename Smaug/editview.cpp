@@ -76,7 +76,7 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	node->Update();
 
 	// Zoom and pan
-	m_viewportHeight = m_viewportWidth = 80;
+	m_viewZoom = 80;
 	m_cameraPos = glm::vec3(0, 10, 0);
 
 	m_cursorSpin = 1;
@@ -88,13 +88,13 @@ float t = 0;
 void CEditView::Update(float dt, float mx, float my)
 {
 	float scrollDelta = ImGui::GetIO().MouseWheel * SCROLL_SPEED;
-	m_viewportWidth  -= scrollDelta;
-	m_viewportHeight -= scrollDelta;
+	m_viewZoom -= scrollDelta;
+
 	// Offset the cam with the scrollDelta!
 
 	// Put the mouse pos into the world
-	mx = (mx * 2 - 1) * m_viewportWidth - m_cameraPos.x;
-	my = (my * 2 - 1) * m_viewportHeight - m_cameraPos.z;
+	mx = (mx * 2 - 1) * m_viewZoom - m_cameraPos.x;
+	my = (my * 2 - 1) * (m_viewZoom * m_aspectRatio) - m_cameraPos.z;
 
 	glm::mat4 mtx;
  
@@ -109,6 +109,10 @@ void CEditView::Update(float dt, float mx, float my)
 
 void CEditView::Draw(float dt)
 {
+
+	float width = m_viewZoom;
+	float height = m_viewZoom * m_aspectRatio;
+
 	t += dt * m_cursorSpin;
 	CBaseView::Draw(dt);
 
@@ -117,7 +121,7 @@ void CEditView::Draw(float dt)
 	glm::mat4 view = glm::mat4(1.0f);
 	view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1, 0, 0)); // Look down
 	view = glm::translate(view, m_cameraPos); // Set our pos to be 10 units up
-	glm::mat4 proj = glm::ortho(-m_viewportWidth, m_viewportWidth, -m_viewportHeight, m_viewportHeight, -900.0f, 800.0f);
+	glm::mat4 proj = glm::ortho(-(float)width, (float)width, -(float)height, (float)height, -900.0f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
 

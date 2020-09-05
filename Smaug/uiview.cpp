@@ -62,14 +62,22 @@ void CUIView::Update(float dt, float mx, float my)
 
 	ImGui::ShowDemoWindow();
 
-	ImGui::Begin("2D Editor");
-	m_drawEditView = ImGui::IsWindowCollapsed();
-	ImGui::Image(m_editView.GetImTextureID(), ImVec2(400, 400));
-	bool hoveredOn2DEditor = ImGui::IsItemHovered();
-	ImVec2 mv = ImGui::GetMousePos();
-	ImVec2 inv = ImGui::GetItemRectMin();
-	ImVec2 ixv = ImGui::GetItemRectMax();
-	ImGui::End();
+	bool hoveredOn2DEditor = false;
+	ImVec2 mv, inv, ixv;
+	if(ImGui::Begin("2D Editor"))
+	{
+		m_drawEditView = ImGui::IsWindowCollapsed();
+	
+		ImVec2 imageSize = ImGui::GetContentRegionAvail();
+		m_editView.m_aspectRatio = imageSize.y / imageSize.x;
+		ImGui::Image(m_editView.GetImTextureID(), ImGui::GetContentRegionAvail());
+
+		hoveredOn2DEditor = ImGui::IsItemHovered();
+		mv = ImGui::GetMousePos();
+		inv = ImGui::GetItemRectMin();
+		ixv = ImGui::GetItemRectMax();
+		ImGui::End();
+	}
 
 	ImGui::Begin("3D Preview");
 	m_drawPreviewView = ImGui::IsWindowCollapsed();
