@@ -24,11 +24,11 @@ void CUIView::Draw(float dt)
 
 
 
-	if (!m_drawEditView)
+	if (m_drawEditView)
 		m_editView.Draw(dt);
-	if(!m_drawPreviewView)
+	if (m_drawPreviewView)
 		m_previewView.Draw(dt);
-	if (!m_drawSelectedView)
+	if (m_drawSelectedView)
 		m_selectedView.Draw(dt);
 
 
@@ -66,7 +66,7 @@ void CUIView::Update(float dt, float mx, float my)
 	ImVec2 mv, inv, ixv;
 	if(ImGui::Begin("2D Editor"))
 	{
-		m_drawEditView = ImGui::IsWindowCollapsed();
+		m_drawEditView = !ImGui::IsWindowCollapsed();
 	
 		ImVec2 imageSize = ImGui::GetContentRegionAvail();
 		m_editView.m_aspectRatio = imageSize.y / imageSize.x;
@@ -80,24 +80,29 @@ void CUIView::Update(float dt, float mx, float my)
 	}
 
 	ImGui::Begin("3D Preview");
-	m_drawPreviewView = ImGui::IsWindowCollapsed();
+	m_drawPreviewView = !ImGui::IsWindowCollapsed();
 	ImGui::Image(m_previewView.GetImTextureID(), ImVec2(400, 400));
-	bool hoveredOn3DEditor = ImGui::IsItemFocused();
+	bool hoveredOn3DEditor = ImGui::IsItemHovered();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
-
+	
 	ImGui::Begin("Object Editor");
-	m_drawSelectedView = ImGui::IsWindowCollapsed();
+	m_drawSelectedView = !ImGui::IsWindowCollapsed();
 	ImGui::Image(m_selectedView.GetImTextureID(), ImVec2(400, 400));
-	bool hoveredOnSelectionEditor = ImGui::IsItemFocused();
+	bool hoveredOnSelectionEditor = ImGui::IsItemHovered();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
-	if (!m_drawEditView && hoveredOn2DEditor)
+	if (m_drawEditView && hoveredOn2DEditor)
 	{
 		float x = (mv.x - inv.x) / (ixv.x - inv.x);
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
 
 		m_editView.Update(dt, x, y);
+	}
+
+	if (m_drawPreviewView && (hoveredOn3DEditor || m_previewView.m_controllingCamera))
+	{
+		m_previewView.Update(dt, 0, 0);
 	}
 }

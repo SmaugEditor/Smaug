@@ -15,8 +15,12 @@ public:
 	void update(float dt);
 	void onReset();
 
-	CUIView m_uiView;
+	void SetMouseLock(bool state);
+	void ToggleMouseLock();
 
+
+	CUIView m_uiView;
+	bool m_mouseLocked;
 };
 
 CSmaugApp& GetApp();
