@@ -36,11 +36,34 @@ void CUIView::Draw(float dt)
 
 void CUIView::Update(float dt, float mx, float my)
 {
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::BeginMenu("Export"))
+			{
+				if (ImGui::MenuItem("Export to OBJ"))
+				{
+					COBJExporter o;
+					char* str = o.Export(&GetWorldEditor());
+					filesystem::SaveFileWithDialog(str, "*.obj");
+					delete[] str;
+				}
+
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenu();
+
+		}
+
+		ImGui::EndMainMenuBar();
+	}
+
 	ImGui::ShowDemoWindow();
 
 	ImGui::Begin("2D Editor");
 	m_drawEditView = ImGui::IsWindowCollapsed();
-	bool exportObj = ImGui::Button("Export to OBJ");
 	ImGui::Image(m_editView.GetImTextureID(), ImVec2(400, 400));
 	bool hoveredOn2DEditor = ImGui::IsItemHovered();
 	ImVec2 mv = ImGui::GetMousePos();
@@ -68,12 +91,5 @@ void CUIView::Update(float dt, float mx, float my)
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
 
 		m_editView.Update(dt, x, y);
-	}
-	if (exportObj)
-	{
-		COBJExporter o;
-		char* str = o.Export(&GetWorldEditor());
-		filesystem::SaveFileWithDialog(str, "*.obj");
-		delete[] str;
 	}
 }
