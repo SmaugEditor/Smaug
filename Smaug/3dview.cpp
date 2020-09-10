@@ -96,16 +96,13 @@ void C3DView::Update(float dt, float mx, float my)
 	// If our magnitude is 0, we're not moving forward or right
 	if (magnitude != 0)
 	{
-
 		// We need to make sure we maintain a magnitude of 1
-		forward /= magnitude;
-		right /= magnitude;
-
-		moveDelta += forwardDir * forward;
-		moveDelta += rightDir * right;
+		moveDelta += forwardDir * forward / magnitude;
+		moveDelta += rightDir * right / magnitude;
 	}
 
-	moveDelta.y += up; // Why is this upside down?
+	moveDelta.y += up;
+
 	moveDelta *= PREVIEW_MOVE_SPEED * dt;
 	
 	// TODO: Make the move based on where we're looking!
