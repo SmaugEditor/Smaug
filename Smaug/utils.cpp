@@ -126,3 +126,47 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 
 	return bigg::loadProgram(vsPath, fsPath);
 }
+
+static const float s_MathPI = acos(-1);
+
+void Directions(glm::vec3 angles, glm::vec3* forward, glm::vec3* right, glm::vec3* up)
+{
+	const float pitch = angles.x;
+	const float yaw = angles.y;
+	const float roll = angles.z;
+
+	glm::vec3 _forward;
+	_forward.x = cos(roll) * cos(yaw);
+	_forward.y = -sin(yaw);
+	_forward.z = sin(roll) * cos(yaw);
+	_forward = glm::normalize(_forward);
+
+	if (forward)
+		*forward = _forward;
+
+
+	glm::vec3 _right;
+	_right.x = cos(pitch) * sin(roll + s_MathPI);
+	_right.y = sin(pitch);
+	_right.z = -cos(pitch) * cos(roll + s_MathPI);
+	_right = glm::normalize(_right);
+
+	if (right)
+		*right = _right;
+
+	if (up)
+		*up = glm::normalize(glm::cross(_right, _forward));
+
+/*
+	if (up)
+	{
+		glm::vec3 _up;
+		_up.x = cos(-(pitch + roll)) * sin(yaw);
+		_up.y = cos(-pitch) * cos(yaw);
+		_up.z = sin(-pitch) * cos(roll) * ((sin(yaw) + 1)/2);
+		_up = glm::normalize(_up);
+
+		*up = _up;
+	}
+	*/
+}
