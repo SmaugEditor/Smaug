@@ -9,7 +9,7 @@ set(BIGG_ASSET_GEN ON)
 
 add_subdirectory( thirdparty/bigg )
 add_subdirectory( thirdparty/portable-file-dialogs )
-
+add_subdirectory( thirdparty/keyvalues )
 
 include_directories( thirdparty )
 add_subdirectory( Smaug )
