@@ -60,8 +60,6 @@ void CUIView::Update(float dt, float mx, float my)
 		ImGui::EndMainMenuBar();
 	}
 
-	ImGui::ShowDemoWindow();
-
 	bool hoveredOn2DEditor = false;
 	ImVec2 mv, inv, ixv;
 	if(ImGui::Begin("2D Editor"))
@@ -93,7 +91,14 @@ void CUIView::Update(float dt, float mx, float my)
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
-	if (m_drawEditView && hoveredOn2DEditor)
+
+	ImGui::Begin("Tools");
+	ImGui::Button("Drag");
+	ImGui::Button("Extrude");
+	ImGui::Button("Draw");
+	ImGui::End();
+
+	if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
 	{
 		float x = (mv.x - inv.x) / (ixv.x - inv.x);
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
