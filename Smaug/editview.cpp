@@ -91,8 +91,8 @@ void CEditView::Update(float dt, float mx, float my)
 	m_viewZoom -= scrollDelta;
 
 	// Put the mouse pos into the world
-	mx = (mx * 2 - 1) * m_viewZoom - m_cameraPos.x;
-	my = (my * 2 - 1) * (m_viewZoom * m_aspectRatio) - m_cameraPos.z;
+	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio)- m_cameraPos.x;
+	my = (my * 2 - 1) * (m_viewZoom) - m_cameraPos.z;
 
 	m_mousePos = glm::vec3(mx, 5, my);
 
@@ -106,8 +106,8 @@ void CEditView::Update(float dt, float mx, float my)
 void CEditView::Draw(float dt)
 {
 
-	float width = m_viewZoom;
-	float height = m_viewZoom * m_aspectRatio;
+	float width = m_viewZoom * m_aspectRatio;
+	float height = m_viewZoom;
 
 	t += dt * m_cursorSpin;
 	CBaseView::Draw(dt);
@@ -143,6 +143,48 @@ void CEditView::Draw(float dt)
 	mtx = glm::translate(mtx, GetActionManager().cursorPos);
 	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
 	mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_hVertexBuf);
+	bgfx::setIndexBuffer(m_hIndexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	bgfx::submit(m_viewId, m_hShaderProgram);
+
+
+	// Camera Icon
+	glm::vec3 camAngle = GetApp().m_uiView.m_previewView.m_cameraAngle;
+	glm::vec3 camPos = GetApp().m_uiView.m_previewView.m_cameraPos;
+
+	// Our movement directions
+	glm::vec3 forwardDir;
+	glm::vec3 rightDir;
+	glm::vec3 upDir;
+
+	Directions(camAngle, &forwardDir, &rightDir, &upDir);
+
+	// Up
+	mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, camPos + upDir * 5.0f);
+	mtx = glm::scale(mtx, glm::vec3(1.5f, 1.5f, 1.5f));
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_hVertexBuf);
+	bgfx::setIndexBuffer(m_hIndexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	bgfx::submit(m_viewId, m_hShaderProgram);
+
+	// Forward
+	mtx = glm::identity<glm::mat4>();	
+	mtx = glm::translate(mtx, camPos + forwardDir * 5.0f);
+	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_hVertexBuf);
+	bgfx::setIndexBuffer(m_hIndexBuf);
+	bgfx::setState(BGFX_STATE_DEFAULT);
+	bgfx::submit(m_viewId, m_hShaderProgram);
+
+	// Right
+	mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, camPos + rightDir * 5.0f);
+	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_hVertexBuf);
 	bgfx::setIndexBuffer(m_hIndexBuf);

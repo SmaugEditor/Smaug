@@ -18,7 +18,6 @@ public:
 	bgfx::VertexBufferHandle m_hVertexBuf;
 	bgfx::IndexBufferHandle m_hIndexBuf;
 
-	float m_aspectRatio;
 	float m_viewZoom;
 
 	glm::vec3 m_cameraPos;

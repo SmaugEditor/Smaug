@@ -18,4 +18,7 @@ public:
 	int m_width;
 	int m_height;
 	uint32_t m_clearColor;
+
+	// Width/Height
+	float m_aspectRatio;
 };

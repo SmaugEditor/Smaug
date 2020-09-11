@@ -11,7 +11,6 @@ public:
 	virtual void Update(float dt, float mx, float my);
 
 	bool m_controllingCamera;
-private:
 
 	glm::vec3 m_cameraAngle;
 	glm::vec3 m_cameraPos;

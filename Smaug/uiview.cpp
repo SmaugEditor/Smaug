@@ -67,8 +67,8 @@ void CUIView::Update(float dt, float mx, float my)
 		m_drawEditView = !ImGui::IsWindowCollapsed();
 	
 		ImVec2 imageSize = ImGui::GetContentRegionAvail();
-		m_editView.m_aspectRatio = imageSize.y / imageSize.x;
-		ImGui::Image(m_editView.GetImTextureID(), ImGui::GetContentRegionAvail());
+		m_editView.m_aspectRatio = imageSize.x / imageSize.y;
+		ImGui::Image(m_editView.GetImTextureID(), imageSize);
 
 		hoveredOn2DEditor = ImGui::IsItemHovered();
 		mv = ImGui::GetMousePos();
@@ -77,19 +77,28 @@ void CUIView::Update(float dt, float mx, float my)
 		ImGui::End();
 	}
 
-	ImGui::Begin("3D Preview");
-	m_drawPreviewView = !ImGui::IsWindowCollapsed();
-	ImGui::Image(m_previewView.GetImTextureID(), ImVec2(400, 400));
-	bool hoveredOn3DEditor = ImGui::IsItemHovered();
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::End();
-	
-	ImGui::Begin("Object Editor");
-	m_drawSelectedView = !ImGui::IsWindowCollapsed();
-	ImGui::Image(m_selectedView.GetImTextureID(), ImVec2(400, 400));
-	bool hoveredOnSelectionEditor = ImGui::IsItemHovered();
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::End();
+	bool hoveredOn3DPreview = false;
+	if(ImGui::Begin("3D Preview"))
+	{
+		m_drawPreviewView = !ImGui::IsWindowCollapsed();
+		
+		ImVec2 imageSize = ImGui::GetContentRegionAvail();
+		m_previewView.m_aspectRatio = imageSize.x / imageSize.y;
+		ImGui::Image(m_previewView.GetImTextureID(), imageSize);
+		
+		hoveredOn3DPreview = ImGui::IsItemHovered();
+		ImGui::End();
+	}
+
+	if (ImGui::Begin("Object Editor"))
+	{
+		m_drawSelectedView = !ImGui::IsWindowCollapsed();
+		ImVec2 imageSize = ImGui::GetContentRegionAvail();
+		m_selectedView.m_aspectRatio = imageSize.x / imageSize.y;
+		ImGui::Image(m_selectedView.GetImTextureID(), imageSize);
+		bool hoveredOnSelectionEditor = ImGui::IsItemHovered();
+		ImGui::End();
+	}
 
 
 	ImGui::Begin("Tools");
@@ -106,7 +115,7 @@ void CUIView::Update(float dt, float mx, float my)
 		m_editView.Update(dt, x, y);
 	}
 
-	if (m_drawPreviewView && (hoveredOn3DEditor || m_previewView.m_controllingCamera))
+	if (m_drawPreviewView && (hoveredOn3DPreview || m_previewView.m_controllingCamera))
 	{
 		m_previewView.Update(dt, 0, 0);
 	}

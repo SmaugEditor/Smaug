@@ -27,7 +27,6 @@ void C3DView::Draw(float dt)
 {
 	CBaseView::Draw(dt);
 
-
 	glm::mat4 view = glm::identity<glm::mat4>();
 	//view = glm::orientate4(m_cameraAngle); not sure why but this doesn't work...
 	//view *= glm::eulerAngleX(-m_cameraAngle.x);
@@ -41,7 +40,7 @@ void C3DView::Draw(float dt)
 	view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, glm::vec3(0.0f, 1.0f, 0.0f));
 	//view = glm::translate(view, m_cameraPos * -1.0f);
 
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), float(m_width) / m_height, 0.1f, 800.0f);
+	glm::mat4 proj = glm::perspective(glm::radians(60.0f), m_aspectRatio, 0.1f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
