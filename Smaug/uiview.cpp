@@ -1,6 +1,7 @@
 #include "uiview.h"
 #include "imgui_internal.h"
 #include "objexporter.h"
+#include "vmfexporter.h"
 #include "filesystem.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
@@ -43,6 +44,14 @@ void CUIView::Update(float dt, float mx, float my)
 		{
 			if (ImGui::BeginMenu("Export"))
 			{
+				if (ImGui::MenuItem("Export to VMF"))
+				{
+					CVMFExporter o;
+					char* str = o.Export(&GetWorldEditor());
+					filesystem::SaveFileWithDialog(str, "*.vmf");
+					delete[] str;
+				}
+
 				if (ImGui::MenuItem("Export to OBJ"))
 				{
 					COBJExporter o;
