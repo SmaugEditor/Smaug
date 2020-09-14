@@ -62,7 +62,7 @@ void C3DView::Update(float dt, float mx, float my)
 	{
 		glm::vec3 angleDelta = glm::vec3(0, io.MouseDelta.y, io.MouseDelta.x);
 
-		angleDelta *= dt * PREVIEW_MOUSE_SENSETIVITY;
+		angleDelta *= PREVIEW_MOUSE_SENSETIVITY / 1000.0f;
 		m_cameraAngle += angleDelta;
 
 		// Lock the view to prevent having upsidedown eyes
