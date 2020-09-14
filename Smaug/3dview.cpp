@@ -104,10 +104,8 @@ void C3DView::Update(float dt, float mx, float my)
 
 	moveDelta *= PREVIEW_MOVE_SPEED * dt;
 	
-	// TODO: Make the move based on where we're looking!
 
 	m_cameraPos += moveDelta;
-
 
 
 #ifdef _DEBUG
