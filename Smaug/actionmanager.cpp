@@ -2,6 +2,7 @@
 #include "smaugapp.h"
 #include "utils.h"
 
+
 CActionManager& GetActionManager()
 {
 	static CActionManager actionManager;
@@ -9,10 +10,29 @@ CActionManager& GetActionManager()
 	return actionManager;
 }
 
+static glm::vec3 GetCursorPos(selectionInfo_t info)
+{
+	// Smallest to largest
+	if(info.selected |= ACT_SELECT_VERT)
+		return info.vertex->origin + info.node->m_origin;
+
+	if (info.selected |= ACT_SELECT_WALL)
+		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[0]) / 2.0f;
+	
+	if (info.selected |= ACT_SELECT_WALL)
+		return info.node->m_origin + (info.side->vertex1->origin + info.side->vertex2->origin) / 2.0f;
+		
+	if (info.selected |= ACT_SELECT_NODE)
+		return info.node->m_origin;
+
+	return glm::vec3(0.0f, 0.0f, 0.0f);
+}
+
 void CActionManager::Act(glm::vec3 mousePos)
 {
 	// Move io out of here?
 	ImGuiIO& io = ImGui::GetIO();
+
 
 	if (actionMode == ActionMode::NONE)
 	{
@@ -24,124 +44,30 @@ void CActionManager::Act(glm::vec3 mousePos)
 			return;
 		}
 
-		selectedWall = nullptr;
-		selectedSide = nullptr;
-		selectedVertex = nullptr;
-		selectedNode = nullptr;
-		bool hasFoundItem = false;
-		cursorPos = mousePos;
-
-		// Find the selected item
-		for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
+		if (m_selectedAction)
 		{
-			CNode* node = GetWorldEditor().m_nodes[i];
-
-			// Check if we're in the AABB
-			// Note: Maybe add a threshold to this?
-
-			if (!node->IsPointInAABB({ mousePos.x, mousePos.z }))
-				continue; // Not in bounds!
-
-			// Corner check
-			for (int j = 0; j < node->m_sideCount; j++)
+			selectionInfo_t selectionInfo;
+			bool success = FindFlags(mousePos, selectionInfo, m_selectedAction->GetSelectionType());
+			
+			if (success)
 			{
-				if (IsPointNearPoint2D(node->m_vertexes[j].origin + node->m_origin, mousePos, 4))
-				{
-					// Spin the cursor backwards if we're selecting something
-					GetApp().m_uiView.m_editView.m_cursorSpin = -1;
+				cursorPos = GetCursorPos(selectionInfo);
+				// Spin the cursor backwards if we're selecting something
+				GetApp().m_uiView.m_editView.m_cursorSpin = -1;
 
-					selectedVertex = &node->m_vertexes[j];
-					selectedNode = node;
-
-					cursorPos = selectedVertex->origin + node->m_origin;
-
-					hasFoundItem = true;
-
-					break;
-				}
-			}
-
-			if (hasFoundItem)
-				break;
-
-
-			// Side's walls check
-			for (int j = 0; j < node->m_sideCount; j++)
-			{
-				nodeSide_t* side = &node->m_sides[j];
-
-				// Are we on the side?
-				if (IsPointOnLine2D(side->vertex1->origin + node->m_origin, side->vertex2->origin + node->m_origin, mousePos, 2))
-				{
-					// Which wall are we selecting?
-					for (int k = 0; k < side->walls.size(); k++)
-					{
-						nodeWall_t wall = side->walls[k];
-						if (IsPointOnLine2D(wall.bottomPoints[0] + node->m_origin, wall.bottomPoints[1] + node->m_origin, mousePos, 2))
-						{
-							// Spin the cursor backwards if we're selecting something
-							GetApp().m_uiView.m_editView.m_cursorSpin = -1;
-
-							selectedWall = &side->walls[k];
-							selectedSide = &node->m_sides[j];
-							selectedNode = node;
-
-							cursorPos = (wall.bottomPoints[0] + wall.bottomPoints[1] + wall.topPoints[0] + wall.topPoints[1]) / 4.0f + node->m_origin;
-
-							hasFoundItem = true;
-							printf("SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
-
-							break;
-						}
-					}
-
-					if (hasFoundItem)
-						break;
-				}
-			}
-
-			if (hasFoundItem)
-				break;
-		}
-
-		if (hasFoundItem)
-		{
-			// Did we find a side?
-			if (selectedWall)
-			{
-
-				// Should we extrude the selected side?
-				if (io.MouseDown[GLFW_MOUSE_BUTTON_1] && io.KeysDown[GLFW_KEY_LEFT_CONTROL])
-				{
-					printf("!SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
-					mouseStartPos = mousePos;
-					actionMode = ActionMode::EXTRUDE_SIDE;
-					return;
-				}
-			}
-			if (selectedSide)
-			{
-				// Should we extend the selected side?
 				if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 				{
-					mouseStartPos = mousePos;
-					actionMode = ActionMode::DRAG_SIDE;
-					cursorPos = (selectedSide->vertex1->origin + selectedSide->vertex2->origin) / 2.0f + selectedNode->m_origin;
-					return;
+					m_selectedAction->Select(selectionInfo);
+					actionMode = ActionMode::IN_ACTION;
 				}
 			}
-			if (selectedVertex)
+			else
 			{
-
-				// Should we drag the selected side?
-				if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
-				{
-					mouseStartPos = mousePos;
-					actionMode = ActionMode::DRAG_VERTEX;
-					return;
-				}
+				cursorPos = mousePos;
 			}
 		}
+
+
 	}
 	else if (actionMode == ActionMode::PAN_VIEW)
 	{
@@ -155,96 +81,122 @@ void CActionManager::Act(glm::vec3 mousePos)
 			actionMode = ActionMode::NONE;
 		}
 	}
-	else if (actionMode == ActionMode::DRAG_SIDE)
+	else if (actionMode == ActionMode::IN_ACTION)
 	{
 		if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 		{
 		}
 		else
 		{
-			glm::vec3 mouseDelta = mousePos - mouseStartPos;
-
-			selectedSide->vertex1->origin += mouseDelta;
-			selectedSide->vertex2->origin += mouseDelta;
-			selectedNode->Update();
-
-			printf("Stretched Node - Side\n");
-
-			selectedNode = nullptr;
-			selectedSide = nullptr;
-			actionMode = ActionMode::NONE;
+			m_selectedAction->Act(mousePos - mouseStartPos);
 		}
 	}
-	else if (actionMode == ActionMode::DRAG_VERTEX)
+}
+
+
+
+bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags)
+{
+	// If this isn't 0, ACT_SELECT_NONE, we might have issues down the line
+	info.selected = ACT_SELECT_NONE;
+	
+	// We successfully found nothing! Woo!
+	if (findFlags == ACT_SELECT_NONE)
+		return true;
+
+	// Find the selected item
+	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 	{
-		if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
+		CNode* node = GetWorldEditor().m_nodes[i];
+
+		// Check if we're in the AABB
+		// Note: Maybe add a threshold to this?
+
+		if (!node->IsPointInAABB({ mousePos.x, mousePos.z }))
+			continue; // Not in bounds!
+
+
+		// Do we want vertex selecting?
+		if (findFlags & ACT_SELECT_VERT)
 		{
+			// Corner check
+			for (int j = 0; j < node->m_sideCount; j++)
+			{
+				if (IsPointNearPoint2D(node->m_vertexes[j].origin + node->m_origin, mousePos, 4))
+				{
+					// Got a point. Add the flag and break the loop.
+					info.selected |= ACT_SELECT_VERT;
+					info.vertex = &node->m_vertexes[j];
+					break;
+				}
+			}
 		}
-		else
+
+		if (findFlags & ACT_SELECT_WALL || findFlags & ACT_SELECT_SIDE)
 		{
-			glm::vec3 mouseDelta = mousePos - mouseStartPos;
+			bool foundSomething = false;
+			// Side's walls check
+			for (int j = 0; j < node->m_sideCount; j++)
+			{
+				nodeSide_t* side = &node->m_sides[j];
 
-			selectedVertex->origin += mouseDelta;
+				// Are we on the side?
+				if (IsPointOnLine2D(side->vertex1->origin + node->m_origin, side->vertex2->origin + node->m_origin, mousePos, 2))
+				{
+					if (findFlags & ACT_SELECT_SIDE)
+					{
+						info.selected |= ACT_SELECT_SIDE;
+						info.side = &node->m_sides[j];
+						
+						foundSomething = true;
+					}
 
-			selectedNode->Update();
 
-			printf("Stretched Node - Vertex\n");
+					if (findFlags & ACT_SELECT_WALL)
+					{
+						// Which wall are we selecting?
+						for (int k = 0; k < side->walls.size(); k++)
+						{
+							nodeWall_t wall = side->walls[k];
+							if (IsPointOnLine2D(wall.bottomPoints[0] + node->m_origin, wall.bottomPoints[1] + node->m_origin, mousePos, 2))
+							{
+								info.selected |= ACT_SELECT_WALL;
+								info.wall = &side->walls[k];
+								
+								foundSomething = true;
+								break;
+							}
+						}
+					}
 
-			selectedNode = nullptr;
-			selectedVertex = nullptr;
-			actionMode = ActionMode::NONE;
+					if (foundSomething)
+						break;
+
+				}
+
+			}
+		}
+
+		// Did we find something?
+		if (info.selected != ACT_SELECT_NONE)
+		{
+			// We almost always need the node anyway
+			info.selected |= ACT_SELECT_NODE;
+			info.node = node;
+
+			// We got our selected item(s). Let's dip
+			return true;
+		}
+		else if (findFlags & ACT_SELECT_NODE)
+		{
+			// They just want a node
+
+			info.selected |= ACT_SELECT_NODE;
+			info.node = node;
+
+			return true;
 		}
 	}
-	else if (actionMode == ActionMode::EXTRUDE_SIDE)
-	{
-		if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
-		{
-		}
-		else
-		{
-			printf("SELECTED WALL %f\n", selectedWall->bottomPoints[0].x);
-			glm::vec3 mouseDelta = mousePos - mouseStartPos;
 
-			CQuadNode* quad = GetWorldEditor().CreateQuad();
-			quad->m_origin = selectedNode->m_origin;
-
-			// If we don't flip vertex 1 and 2 here, the tri gets messed up and wont render.
-
-			// 2 to 1 and 1 to 2
-			// 
-			// 2-----1
-			// |     |
-			// 1 --- 2
-
-			nodeSide_t* attachedSide = &quad->m_sides[0];
-			nodeSide_t* extrudedSide = &quad->m_sides[2];
-
-			attachedSide->vertex1->origin = selectedWall->bottomPoints[1];
-			attachedSide->vertex2->origin = selectedWall->bottomPoints[0];
-
-			extrudedSide->vertex1->origin = selectedWall->bottomPoints[0] + mouseDelta;
-			extrudedSide->vertex2->origin = selectedWall->bottomPoints[1] + mouseDelta;
-
-			CConstraint sideConstraint;
-			sideConstraint.SetParent(selectedNode, selectedSide);
-			sideConstraint.SetChild(quad, attachedSide);
-			quad->m_constrainedTo[quad->m_constrainedToCount] = sideConstraint;
-			selectedNode->m_constraining.push_back(&quad->m_constrainedTo[quad->m_constrainedToCount]);
-			quad->m_constrainedToCount++;
-
-			quad->Update();
-
-
-			// HACK HACK
-			// For some reason we have to update the parent... Even though we just updated them...
-			selectedNode->Update();
-
-			printf("Created New Node\n");
-
-			selectedNode = nullptr;
-			selectedSide = nullptr;
-			actionMode = ActionMode::NONE;
-
-		}
-	}
+	return false;
 }
