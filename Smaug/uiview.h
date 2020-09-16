@@ -3,6 +3,7 @@
 #include "3dview.h"
 #include "editview.h"
 #include "selectedview.h"
+#include "toolbox.h"
 
 class CUIView : public CBaseView
 {
@@ -17,5 +18,5 @@ public:
 	C3DView m_previewView;
 	bool m_drawSelectedView;
 	CSelectedView m_selectedView;
-
+	CToolBox m_toolBox;
 };

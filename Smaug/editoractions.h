@@ -6,7 +6,7 @@ class CVertDragAction : public CBaseAction
 public:
 	virtual void Select(selectionInfo_t selectInfo)
 	{
-		//CBaseAction::Select(selectInfo);
+		CBaseAction::Select(selectInfo);
 		m_originalPos = m_selectInfo.vertex->origin;
 	}
 
@@ -18,7 +18,7 @@ public:
 
 	virtual void Act(glm::vec3 moveDelta)
 	{
-		m_selectInfo.vertex->origin = m_originalPos + moveDelta;
+		m_selectInfo.vertex->origin += moveDelta;
 		m_node->Update();
 		m_finalMoveDelta = moveDelta;
 	}
@@ -40,23 +40,29 @@ public:
 		m_selectInfo.vertex->origin = m_originalPos;
 		m_node->Update();
 	}
+
 private:
 	glm::vec3 m_originalPos;
 	glm::vec3 m_finalMoveDelta;
 
-	// Inherited via CBaseAction
 	virtual int GetSelectionType() override;
 };
 
 
 class CWallExtrudeAction : public CBaseAction
 {
-	// Inherited via CBaseAction
+public:
 	virtual void Preview(glm::vec3 moveDelta);
 	virtual void Act(glm::vec3 moveDelta);
 	virtual void Cancel();
 	virtual void Undo();
 	virtual void Redo();
+
+	virtual int GetSelectionType()
+	{
+		return ACT_SELECT_WALL | ACT_SELECT_SIDE;
+	}
+
 };
 
 class CSideDragAction : public CBaseAction

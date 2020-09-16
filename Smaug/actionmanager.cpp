@@ -13,16 +13,16 @@ CActionManager& GetActionManager()
 static glm::vec3 GetCursorPos(selectionInfo_t info)
 {
 	// Smallest to largest
-	if(info.selected |= ACT_SELECT_VERT)
+	if(info.selected & ACT_SELECT_VERT)
 		return info.vertex->origin + info.node->m_origin;
 
-	if (info.selected |= ACT_SELECT_WALL)
-		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[0]) / 2.0f;
+	if (info.selected & ACT_SELECT_WALL)
+		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[1]) / 2.0f;
 	
-	if (info.selected |= ACT_SELECT_WALL)
+	if (info.selected & ACT_SELECT_SIDE)
 		return info.node->m_origin + (info.side->vertex1->origin + info.side->vertex2->origin) / 2.0f;
 		
-	if (info.selected |= ACT_SELECT_NODE)
+	if (info.selected & ACT_SELECT_NODE)
 		return info.node->m_origin;
 
 	return glm::vec3(0.0f, 0.0f, 0.0f);
@@ -48,7 +48,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 		{
 			selectionInfo_t selectionInfo;
 			bool success = FindFlags(mousePos, selectionInfo, m_selectedAction->GetSelectionType());
-			
+
 			if (success)
 			{
 				cursorPos = GetCursorPos(selectionInfo);
@@ -59,6 +59,8 @@ void CActionManager::Act(glm::vec3 mousePos)
 				{
 					m_selectedAction->Select(selectionInfo);
 					actionMode = ActionMode::IN_ACTION;
+
+					mouseStartPos = mousePos;
 				}
 			}
 			else
@@ -89,6 +91,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 		else
 		{
 			m_selectedAction->Act(mousePos - mouseStartPos);
+			actionMode = ActionMode::NONE;
 		}
 	}
 }
@@ -190,7 +193,6 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		else if (findFlags & ACT_SELECT_NODE)
 		{
 			// They just want a node
-
 			info.selected |= ACT_SELECT_NODE;
 			info.node = node;
 

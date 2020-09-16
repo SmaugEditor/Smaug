@@ -83,7 +83,6 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_cursorSpin = 1;
 	GetActionManager().actionMode = ActionMode::NONE;
 
-	GetActionManager().m_selectedAction = (IAction*)new CVertDragAction;
 }
 
 float t = 0;

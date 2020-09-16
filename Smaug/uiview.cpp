@@ -3,6 +3,7 @@
 #include "objexporter.h"
 #include "vmfexporter.h"
 #include "filesystem.h"
+#include "basetool.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -17,6 +18,9 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_drawPreviewView = true;
 	m_drawEditView = true;
 	m_drawSelectedView = true;
+
+	m_toolBox.m_tools.push_back(new CDragTool());
+	m_toolBox.m_tools.push_back(new CExtrudeTool());
 }
 
 void CUIView::Draw(float dt)
@@ -37,6 +41,7 @@ void CUIView::Draw(float dt)
 
 void CUIView::Update(float dt, float mx, float my)
 {
+	ImGui::ShowDemoWindow();
 
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -109,12 +114,9 @@ void CUIView::Update(float dt, float mx, float my)
 		ImGui::End();
 	}
 
+	 
+	m_toolBox.Update();
 
-	ImGui::Begin("Tools");
-	ImGui::Button("Drag");
-	ImGui::Button("Extrude");
-	ImGui::Button("Draw");
-	ImGui::End();
 
 	if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
 	{
