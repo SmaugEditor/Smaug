@@ -17,6 +17,8 @@ public:
 
 	void SetMouseLock(bool state);
 	void ToggleMouseLock();
+	
+	GLFWwindow* GetWindow() { return mWindow; };
 
 
 	CUIView m_uiView;
