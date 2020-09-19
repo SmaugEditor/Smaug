@@ -12,11 +12,6 @@ CToolBox::CToolBox()
 
 void CToolBox::ShowToolBox()
 {
-	
-}
-
-void CToolBox::Update()
-{
 	// UI
 	if (ImGui::Begin("Tool Box"))
 	{
@@ -46,7 +41,6 @@ void CToolBox::Update()
 		ImGui::End();
 	}
 
-
 	// I could use GetApp()->isKeyDown, but then I'm at the whims of ImGui stealing control...
 	// Find a better solution for this!
 
@@ -66,12 +60,12 @@ void CToolBox::Update()
 					m_currentTool->Disable();
 
 					m_currentTool = m_pocketedTool;
-					if(m_currentTool)
+					if (m_currentTool)
 						m_currentTool->Enable();
 
 					m_pocketedTool = nullptr;
 					m_holdingTool = false;
-	
+
 					break;
 				}
 			}
@@ -81,7 +75,7 @@ void CToolBox::Update()
 				if (glfwGetKey(GetApp().GetWindow(), tool->GetHoldKey()) == GLFW_PRESS && glfwGetKey)
 				{
 					// Put our current tool in our pocket
-					if(m_currentTool)
+					if (m_currentTool)
 						m_currentTool->Disable();
 					m_pocketedTool = m_currentTool;
 
@@ -116,10 +110,14 @@ void CToolBox::Update()
 			}
 		}
 	}
+}
+
+void CToolBox::Update(float dt, glm::vec3 mousePos)
+{
 
 	// If we have a current tool selected, update it
 	if (m_currentTool)
-		m_currentTool->Update();
+		m_currentTool->Update(dt, mousePos);
 }
 
 void CToolBox::SetTool(CBaseTool* tool)

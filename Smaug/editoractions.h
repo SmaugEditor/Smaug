@@ -91,4 +91,10 @@ public:
 	virtual void Cancel()
 	{
 	}
+
+	// Inherited via CBaseAction
+	virtual int GetSelectionType()
+	{
+		return ACT_SELECT_SIDE;
+	}
 };

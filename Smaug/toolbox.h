@@ -9,7 +9,7 @@ public:
 	CToolBox();
 
 	void ShowToolBox();
-	void Update();
+	void Update(float dt, glm::vec3 mousePos);
 
 	void SetTool(CBaseTool* tool);
 	void SwitchToLast();

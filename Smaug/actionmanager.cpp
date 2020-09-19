@@ -27,6 +27,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 			return;
 		}
 
+		/*
 		if (m_selectedAction)
 		{
 			selectionInfo_t selectionInfo;
@@ -50,7 +51,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 				GetCursor().SetPosition(mousePos);
 			}
 		}
-
+		*/
 
 	}
 	else if (actionMode == ActionMode::PAN_VIEW)

@@ -44,7 +44,7 @@ public:
 };
 
 
-class CBaseAction : IAction
+class CBaseAction : public IAction
 {
 public:
 
@@ -54,7 +54,7 @@ public:
 		m_node = selectionInfo.node;
 	}
 
-protected:
+//protected:
 	selectionInfo_t m_selectInfo;
 	CNode* m_node;
 	

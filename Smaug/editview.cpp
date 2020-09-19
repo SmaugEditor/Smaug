@@ -46,11 +46,7 @@ void CEditView::Update(float dt, float mx, float my)
 	float scrollDelta = ImGui::GetIO().MouseWheel * SCROLL_SPEED;
 	m_viewZoom -= scrollDelta;
 
-	// Put the mouse pos into the world
-	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio)- m_cameraPos.x;
-	my = (my * 2 - 1) * (m_viewZoom) - m_cameraPos.z;
-
-	GetActionManager().Act(glm::vec3(mx, 5, my));
+	GetActionManager().Act(TransformMousePos(mx, my));
 
 }
 
@@ -124,4 +120,13 @@ void CEditView::Draw(float dt)
 	BasicDraw().Cube(mtx);
 	bgfx::submit(m_viewId, m_shaderProgram);
 
+}
+
+glm::vec3 CEditView::TransformMousePos(float mx, float my)
+{
+	// Put the mouse pos into the world
+	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - m_cameraPos.x;
+	my = (my * 2 - 1) * (m_viewZoom)-m_cameraPos.z;
+
+	return glm::vec3(mx, 5, my);
 }

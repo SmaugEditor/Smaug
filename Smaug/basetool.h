@@ -1,6 +1,8 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include "actionmanager.h"
+#include <glm/vec3.hpp>
+
 
 class CBaseTool
 {
@@ -14,47 +16,35 @@ public:
 	// While this key is held, this tool is active
 	virtual int GetHoldKey() = 0;
 
-	virtual void Enable() = 0;
-	virtual void Update() = 0;
-	virtual void Disable() = 0;
+	virtual void Enable() {};
+	virtual void Update(float dt, glm::vec3 mousePos) {};
+	virtual void Disable() {};
 
 };
 
-class CDragTool : public CBaseTool
+
+// This base tool implements basic element selection
+class CBaseSelectionTool : public CBaseTool
 {
 public:
 
-	virtual const char* GetName() { return "Drag"; }
-	
-	// When this key is pressed, this tool becomes active
-	virtual int GetToggleKey() { return GLFW_KEY_G; }
-
-	// While this key is held, this tool is active
-	virtual int GetHoldKey() { return 0; }
-	virtual int GetToggleKey() { return GLFW_KEY_G; }
-
-	// While this key is held, this tool is active
-	virtual int GetHoldKey() { return 0; }
-
-	virtual void Enable();
-	virtual void Update() {  }
-	virtual void Disable();
-
+	// Override this with your ACT_SELECT_ to request types for selection
+	virtual int GetSelectionType() = 0;
 };
 
-class CExtrudeTool : public CBaseTool
+// This base tool implements basic mouse dragging
+class CBaseDragTool : public CBaseSelectionTool
 {
 public:
 
-	virtual const char* GetName() { return "Extrude"; }
-	virtual int GetToggleKey() { return 0; }
-	virtual int GetHoldKey() { return GLFW_KEY_LEFT_SHIFT; }
-
 	virtual void Enable();
-	virtual void Update()
-	{
+	virtual void Update(float dt, glm::vec3 mousePos);
 
-	}
-	virtual void Disable();
+	virtual void StartDrag() = 0;
+	virtual void EndDrag() = 0;
 
+	bool m_inDrag;
+	glm::vec3 m_mouseStartDragPos;
+	glm::vec3 m_mouseDragDelta;
+	selectionInfo_t m_selectionInfo;
 };

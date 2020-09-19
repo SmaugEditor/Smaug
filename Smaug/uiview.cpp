@@ -5,6 +5,7 @@
 #include "filesystem.h"
 #include "basetool.h"
 #include "cursor.h"
+#include "nodetools.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -120,14 +121,14 @@ void CUIView::Update(float dt, float mx, float my)
 	}
 
 	 
-	m_toolBox.Update();
-
+	m_toolBox.ShowToolBox();
 
 	if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
 	{
 		float x = (mv.x - inv.x) / (ixv.x - inv.x);
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
-
+		
+		m_toolBox.Update(dt, m_editView.TransformMousePos(x,y));
 		m_editView.Update(dt, x, y);
 	}
 
