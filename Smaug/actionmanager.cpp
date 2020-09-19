@@ -1,7 +1,7 @@
 #include "actionmanager.h"
 #include "smaugapp.h"
 #include "utils.h"
-
+#include "cursor.h"
 
 CActionManager& GetActionManager()
 {
@@ -10,23 +10,6 @@ CActionManager& GetActionManager()
 	return actionManager;
 }
 
-static glm::vec3 GetCursorPos(selectionInfo_t info)
-{
-	// Smallest to largest
-	if(info.selected & ACT_SELECT_VERT)
-		return info.vertex->origin + info.node->m_origin;
-
-	if (info.selected & ACT_SELECT_WALL)
-		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[1]) / 2.0f;
-	
-	if (info.selected & ACT_SELECT_SIDE)
-		return info.node->m_origin + (info.side->vertex1->origin + info.side->vertex2->origin) / 2.0f;
-		
-	if (info.selected & ACT_SELECT_NODE)
-		return info.node->m_origin;
-
-	return glm::vec3(0.0f, 0.0f, 0.0f);
-}
 
 void CActionManager::Act(glm::vec3 mousePos)
 {
@@ -51,9 +34,8 @@ void CActionManager::Act(glm::vec3 mousePos)
 
 			if (success)
 			{
-				cursorPos = GetCursorPos(selectionInfo);
-				// Spin the cursor backwards if we're selecting something
-				GetApp().m_uiView.m_editView.m_cursorSpin = -1;
+				
+				GetCursor().SetSelection(selectionInfo);
 
 				if (io.MouseDown[GLFW_MOUSE_BUTTON_1])
 				{
@@ -65,7 +47,7 @@ void CActionManager::Act(glm::vec3 mousePos)
 			}
 			else
 			{
-				cursorPos = mousePos;
+				GetCursor().SetPosition(mousePos);
 			}
 		}
 

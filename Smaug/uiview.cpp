@@ -4,6 +4,7 @@
 #include "vmfexporter.h"
 #include "filesystem.h"
 #include "basetool.h"
+#include "cursor.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -41,6 +42,10 @@ void CUIView::Draw(float dt)
 
 void CUIView::Update(float dt, float mx, float my)
 {
+	GetCursor().Update(dt);
+
+	// UI
+
 	ImGui::ShowDemoWindow();
 
 	if (ImGui::BeginMainMenuBar())

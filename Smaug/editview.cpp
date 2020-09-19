@@ -12,48 +12,8 @@
 #include "utils.h"
 #include "shadermanager.h"
 #include "editoractions.h"
-
-/*
- * Snagged from Bigg's examples
- *
- * Simple rotating cubes example, based off bgfx's example-01-cubes.
- * Does not mimic the original example completely because we're in a
- * different coordinate system.
- *
- * Copyright 2011-2017 Branimir Karadzic. All rights reserved.
- * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
- */
-
-struct PosColorVertex
-{
-	float x;
-	float y;
-	float z;
-	uint32_t abgr;
-	static void init()
-	{
-		ms_layout
-			.begin()
-			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-			.end();
-	}
-	static bgfx::VertexLayout ms_layout;
-};
-bgfx::VertexLayout PosColorVertex::ms_layout;
-
-static PosColorVertex s_cubeVertices[] =
-{
-	{-1.0f,  1.0f,  1.0f, 0xff000000 },
-	{ 1.0f,  1.0f,  1.0f, 0xff0000ff },
-	{-1.0f, -1.0f,  1.0f, 0xff00ff00 },
-	{ 1.0f, -1.0f,  1.0f, 0xff00ffff },
-	{-1.0f,  1.0f, -1.0f, 0xffff0000 },
-	{ 1.0f,  1.0f, -1.0f, 0xffff00ff },
-	{-1.0f, -1.0f, -1.0f, 0xffffff00 },
-	{ 1.0f, -1.0f, -1.0f, 0xffffffff },
-};
-static const uint16_t s_cubeTriList[] = { 2, 1, 0, 2, 3, 1, 5, 6, 4, 7, 6, 5, 4, 2, 0, 6, 2, 4, 3, 5, 1, 3, 7, 5, 1, 4, 0, 1, 5, 4, 6, 3, 2, 7, 3, 6 };
+#include "basicdraw.h"
+#include "cursor.h"
 
 #define SCROLL_SPEED 5
 
@@ -61,12 +21,9 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
-	PosColorVertex::init();
 
-	m_hShaderProgram = ShaderManager::GetShaderProgram(Shader::EDIT_VIEW_SHADER);
-	m_hVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
-	m_hIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
-	
+	m_shaderProgram = ShaderManager::GetShaderProgram(Shader::EDIT_VIEW_SHADER);
+
 
 	CNode* node = GetWorldEditor().CreateQuad();
 
@@ -79,13 +36,10 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	// Zoom and pan
 	m_viewZoom = 80;
 	m_cameraPos = glm::vec3(0, 10, 0);
-
-	m_cursorSpin = 1;
+	
 	GetActionManager().actionMode = ActionMode::NONE;
-
 }
 
-float t = 0;
 
 void CEditView::Update(float dt, float mx, float my)
 {
@@ -96,23 +50,16 @@ void CEditView::Update(float dt, float mx, float my)
 	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio)- m_cameraPos.x;
 	my = (my * 2 - 1) * (m_viewZoom) - m_cameraPos.z;
 
-	m_mousePos = glm::vec3(mx, 5, my);
-
-	m_cursorSpin = 1;
-
-	GetActionManager().Act(m_mousePos);
-
+	GetActionManager().Act(glm::vec3(mx, 5, my));
 
 }
 
 void CEditView::Draw(float dt)
 {
+	CBaseView::Draw(dt);
 
 	float width = m_viewZoom * m_aspectRatio;
 	float height = m_viewZoom;
-
-	t += dt * m_cursorSpin;
-	CBaseView::Draw(dt);
 
 
 	// Camera
@@ -126,30 +73,21 @@ void CEditView::Draw(float dt)
 	GetWorldRenderer().Draw2D(m_viewId, Shader::EDIT_VIEW_SHADER);
 
 
+	float t = glfwGetTime();
+
 	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 	{
 		glm::mat4 mtx = glm::identity<glm::mat4>();
 		mtx = glm::translate(mtx, GetWorldEditor().m_nodes[i]->m_origin);
 		mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
-		bgfx::setTransform(&mtx[0][0]);
-		bgfx::setVertexBuffer(0, m_hVertexBuf);
-		bgfx::setIndexBuffer(m_hIndexBuf);
-		bgfx::setState(BGFX_STATE_DEFAULT);
-		bgfx::submit(m_viewId, m_hShaderProgram);
+		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);	
+		BasicDraw().Cube(mtx);
+		bgfx::submit(m_viewId, m_shaderProgram);
 	}
 
-
 	// Cursor
-	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, GetActionManager().cursorPos);
-	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-	mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_hVertexBuf);
-	bgfx::setIndexBuffer(m_hIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-	bgfx::submit(m_viewId, m_hShaderProgram);
+	GetCursor().Draw();
+	bgfx::submit(m_viewId, m_shaderProgram);
 
 
 	// Camera Icon
@@ -163,34 +101,27 @@ void CEditView::Draw(float dt)
 
 	Directions(camAngle, &forwardDir, &rightDir, &upDir);
 
+	glm::mat4 mtx;
+
 	// Up
 	mtx = glm::identity<glm::mat4>();
 	mtx = glm::translate(mtx, camPos + upDir * 5.0f);
 	mtx = glm::scale(mtx, glm::vec3(1.5f, 1.5f, 1.5f));
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_hVertexBuf);
-	bgfx::setIndexBuffer(m_hIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-	bgfx::submit(m_viewId, m_hShaderProgram);
+	BasicDraw().Cube(mtx);
+	bgfx::submit(m_viewId, m_shaderProgram);
 
 	// Forward
 	mtx = glm::identity<glm::mat4>();	
 	mtx = glm::translate(mtx, camPos + forwardDir * 5.0f);
 	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_hVertexBuf);
-	bgfx::setIndexBuffer(m_hIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-	bgfx::submit(m_viewId, m_hShaderProgram);
+	BasicDraw().Cube(mtx);
+	bgfx::submit(m_viewId, m_shaderProgram);
 
 	// Right
 	mtx = glm::identity<glm::mat4>();
 	mtx = glm::translate(mtx, camPos + rightDir * 5.0f);
 	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_hVertexBuf);
-	bgfx::setIndexBuffer(m_hIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
-	bgfx::submit(m_viewId, m_hShaderProgram);
+	BasicDraw().Cube(mtx);
+	bgfx::submit(m_viewId, m_shaderProgram);
 
 }

@@ -69,8 +69,6 @@ public:
 	
 	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags);
 
-	glm::vec3 cursorPos;
-
 	glm::vec3 mouseStartPos;
 
 

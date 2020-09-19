@@ -3,12 +3,13 @@
 #include "worldrenderer.h"
 #include "shadermanager.h"
 #include "smaugapp.h"
+#include "utils.h"
+#include "cursor.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
 #include <GLFW/glfw3.h>
-#include "utils.h"
 
 #define PREVIEW_MOUSE_SENSETIVITY 2
 #define PREVIEW_MOVE_SPEED 10
@@ -45,6 +46,11 @@ void C3DView::Draw(float dt)
 
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
+
+	// Draw the Cursor
+	GetCursor().Draw();
+	bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
+
 
 }
 

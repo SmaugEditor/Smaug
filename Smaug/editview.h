@@ -14,15 +14,12 @@ public:
 	virtual void Draw(float dt);
 //private:
 
-	bgfx::ProgramHandle m_hShaderProgram;
-	bgfx::VertexBufferHandle m_hVertexBuf;
-	bgfx::IndexBufferHandle m_hIndexBuf;
+	bgfx::ProgramHandle m_shaderProgram;
 
 	float m_viewZoom;
 
 	glm::vec3 m_cameraPos;
+	
 
-	glm::vec3 m_mousePos;
-	int m_cursorSpin;
 };
 
