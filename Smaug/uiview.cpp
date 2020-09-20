@@ -139,8 +139,9 @@ void CUIView::Update(float dt, float mx, float my)
 		float x = (mv.x - inv.x) / (ixv.x - inv.x);
 		float y = (mv.y - inv.y) / (ixv.y - inv.y);
 		
-		m_toolBox.Update(dt, m_editView.TransformMousePos(x,y));
 		m_editView.Update(dt, x, y);
+		m_toolBox.Update(dt, m_editView.TransformMousePos(x, y));
+
 	}
 
 	if (m_drawPreviewView && (hoveredOn3DPreview || m_previewView.m_controllingCamera))
