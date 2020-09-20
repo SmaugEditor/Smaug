@@ -36,12 +36,15 @@ public:
 
 	virtual void EndDrag()
 	{
-		m_action->Act(m_mouseDragDelta);
+		m_action->SetMoveDelta(m_mouseDragDelta);
+		GetActionManager().CommitAction(m_action);
 
-		delete m_action;
+		// We don't need to delete the action
+		// The manager is taking care of it for us now
+		m_action = nullptr;
 	};
 
-	IAction* m_action;
+	CBaseDragAction* m_action;
 };
 
 
@@ -62,13 +65,19 @@ public:
 
 	virtual void StartDrag()
 	{
-		m_wallExtrudeAction.Select(m_selectionInfo);
 	}
 
 	virtual void EndDrag()
 	{
-		m_wallExtrudeAction.Act(m_mouseDragDelta);
+		m_wallExtrudeAction = new CWallExtrudeAction;
+		m_wallExtrudeAction->Select(m_selectionInfo);
+		m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
+		GetActionManager().CommitAction(m_wallExtrudeAction);
+
+		// We don't need to delete the action
+		// The manager is taking care of it for us now
+		m_wallExtrudeAction = nullptr;
 	};
 
-	CWallExtrudeAction m_wallExtrudeAction;
+	CWallExtrudeAction* m_wallExtrudeAction;
 };

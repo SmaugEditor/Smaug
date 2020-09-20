@@ -11,6 +11,12 @@ CActionManager& GetActionManager()
 }
 
 
+void CActionManager::CommitAction(IAction* action)
+{
+	action->Act();
+	m_actionHistory.push_back(action);
+}
+
 bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags)
 {
 	// If this isn't 0, ACT_SELECT_NONE, we might have issues down the line

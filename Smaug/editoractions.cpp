@@ -1,10 +1,10 @@
 #include "editoractions.h"
 
-void CWallExtrudeAction::Preview(glm::vec3 moveDelta)
+void CWallExtrudeAction::Preview()
 {
 }
 
-void CWallExtrudeAction::Act(glm::vec3 moveDelta)
+void CWallExtrudeAction::Act()
 {
 
 	printf("SELECTED WALL %f\n", m_selectInfo.wall->bottomPoints[0].x);
@@ -26,8 +26,8 @@ void CWallExtrudeAction::Act(glm::vec3 moveDelta)
 	attachedSide->vertex1->origin = m_selectInfo.wall->bottomPoints[1];
 	attachedSide->vertex2->origin = m_selectInfo.wall->bottomPoints[0];
 
-	extrudedSide->vertex1->origin = m_selectInfo.wall->bottomPoints[0] + moveDelta;
-	extrudedSide->vertex2->origin = m_selectInfo.wall->bottomPoints[1] + moveDelta;
+	extrudedSide->vertex1->origin = m_selectInfo.wall->bottomPoints[0] + m_moveDelta;
+	extrudedSide->vertex2->origin = m_selectInfo.wall->bottomPoints[1] + m_moveDelta;
 
 	CConstraint sideConstraint;
 	sideConstraint.SetParent(m_node, m_selectInfo.side);
@@ -44,10 +44,6 @@ void CWallExtrudeAction::Act(glm::vec3 moveDelta)
 	m_node->Update();
 
 	printf("Created New Node\n");
-}
-
-void CWallExtrudeAction::Cancel()
-{
 }
 
 void CWallExtrudeAction::Undo()

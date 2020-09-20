@@ -1,26 +1,29 @@
 #pragma once
 #include "actionmanager.h"
 
-class CVertDragAction : public CBaseAction
+
+class CVertDragAction : public CBaseDragAction
 {
 public:
+	virtual const char* GetName() { return "Drag Vertex"; }
+
 	virtual void Select(selectionInfo_t selectInfo)
 	{
-		CBaseAction::Select(selectInfo);
+		CBaseDragAction::Select(selectInfo);
 		m_originalPos = m_selectInfo.vertex->origin;
 	}
 
-	virtual void Preview(glm::vec3 moveDelta)
+	virtual void Preview()
 	{
-		m_selectInfo.vertex->origin = m_originalPos + moveDelta;
+		m_selectInfo.vertex->origin = m_originalPos + m_moveDelta;
 		m_node->Update();
 	}
 
-	virtual void Act(glm::vec3 moveDelta)
+	virtual void Act()
 	{
-		m_selectInfo.vertex->origin += moveDelta;
+		m_selectInfo.vertex->origin += m_moveDelta;
 		m_node->Update();
-		m_finalMoveDelta = moveDelta;
+		m_finalMoveDelta = m_moveDelta;
 	}
 
 	virtual void Undo()
@@ -49,12 +52,13 @@ private:
 };
 
 
-class CWallExtrudeAction : public CBaseAction
+class CWallExtrudeAction : public CBaseDragAction
 {
 public:
-	virtual void Preview(glm::vec3 moveDelta);
-	virtual void Act(glm::vec3 moveDelta);
-	virtual void Cancel();
+	virtual const char* GetName() { return "Extrude Wall"; }
+
+	virtual void Preview();
+	virtual void Act();
 	virtual void Undo();
 	virtual void Redo();
 
@@ -65,18 +69,20 @@ public:
 
 };
 
-class CSideDragAction : public CBaseAction
+class CSideDragAction : public CBaseDragAction
 {
 public:
 
-	virtual void Preview(glm::vec3 moveDelta)
+	virtual const char* GetName() { return "Drag Side"; }
+
+	virtual void Preview()
 	{
 	}
 
-	virtual void Act(glm::vec3 moveDelta)
+	virtual void Act()
 	{
-		m_selectInfo.side->vertex1->origin += moveDelta;
-		m_selectInfo.side->vertex2->origin += moveDelta;
+		m_selectInfo.side->vertex1->origin += m_moveDelta;
+		m_selectInfo.side->vertex2->origin += m_moveDelta;
 		m_node->Update();
 	}
 
@@ -92,7 +98,6 @@ public:
 	{
 	}
 
-	// Inherited via CBaseAction
 	virtual int GetSelectionType()
 	{
 		return ACT_SELECT_SIDE;
