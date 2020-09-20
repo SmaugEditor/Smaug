@@ -58,7 +58,7 @@ public:
 	virtual int GetHoldKey() { return GLFW_KEY_LEFT_SHIFT; }
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_WALL | ACT_SELECT_SIDE; }
+	virtual int GetSelectionType() { return ACT_SELECT_WALL; }
 
 	virtual void StartDrag()
 	{

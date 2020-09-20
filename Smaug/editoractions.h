@@ -60,7 +60,7 @@ public:
 
 	virtual int GetSelectionType()
 	{
-		return ACT_SELECT_WALL | ACT_SELECT_SIDE;
+		return ACT_SELECT_WALL;
 	}
 
 };

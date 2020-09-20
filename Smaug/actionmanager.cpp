@@ -148,7 +148,10 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 							{
 								info.selected |= ACT_SELECT_WALL;
 								info.wall = &side->walls[k];
-								
+
+								// If they're asking for a wall, they're going to want a side too
+								info.side = &node->m_sides[j];
+
 								foundSomething = true;
 								break;
 							}
