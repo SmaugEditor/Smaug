@@ -37,17 +37,45 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_viewZoom = 80;
 	m_cameraPos = glm::vec3(0, 10, 0);
 	
-	GetActionManager().actionMode = ActionMode::NONE;
+	m_panView.panning = false;
 }
 
 
 void CEditView::Update(float dt, float mx, float my)
 {
-	float scrollDelta = ImGui::GetIO().MouseWheel * SCROLL_SPEED;
+	
+	ImGuiIO& io = ImGui::GetIO();
+
+	// View zooming
+	float scrollDelta = io.MouseWheel * SCROLL_SPEED;
 	m_viewZoom -= scrollDelta;
 
-	GetActionManager().Act(TransformMousePos(mx, my));
 
+	// View panning
+	if (!m_panView.panning)
+	{
+		// Should we pan the view?
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		{
+			m_panView.mouseStartPos = TransformMousePos(mx,my);
+			m_panView.cameraStartPos = m_cameraPos;
+			m_panView.panning = true;
+		}
+	}
+	else
+	{
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		{
+			// Preview the pan
+			m_cameraPos = m_panView.cameraStartPos + (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);
+		}
+		else
+		{
+			// Apply the pan
+			m_cameraPos = m_panView.cameraStartPos + (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);
+			m_panView.panning = false;
+		}
+	}
 }
 
 void CEditView::Draw(float dt)
@@ -124,9 +152,15 @@ void CEditView::Draw(float dt)
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)
 {
+	return TransformMousePos(mx, my, m_cameraPos);
+}
+
+
+glm::vec3 CEditView::TransformMousePos(float mx, float my, glm::vec3 cameraPos)
+{
 	// Put the mouse pos into the world
-	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - m_cameraPos.x;
-	my = (my * 2 - 1) * (m_viewZoom)-m_cameraPos.z;
+	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - cameraPos.x;
+	my = (my * 2 - 1) * (m_viewZoom)-cameraPos.z;
 
 	return glm::vec3(mx, 5, my);
 }

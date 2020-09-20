@@ -14,7 +14,10 @@ public:
 	virtual void Draw(float dt);
 
 	glm::vec3 TransformMousePos(float mx, float my);
-//private:
+
+private:
+
+	glm::vec3 TransformMousePos(float mx, float my, glm::vec3 cameraPos);
 
 	bgfx::ProgramHandle m_shaderProgram;
 
@@ -22,6 +25,12 @@ public:
 
 	glm::vec3 m_cameraPos;
 	
+	struct
+	{
+		bool panning;
+		glm::vec3 mouseStartPos;
+		glm::vec3 cameraStartPos;
+	} m_panView;
 
 };
 

@@ -4,13 +4,6 @@
 #include "worldeditor.h"
 #include <typeinfo>
 
-enum class ActionMode
-{
-	NONE,
-	IN_ACTION,
-	PAN_VIEW,
-};
-
 #define ACT_SELECT_NONE 0
 #define ACT_SELECT_NODE	1
 #define ACT_SELECT_VERT 2
@@ -65,14 +58,9 @@ class CActionManager
 {
 public:
 
-	void Act(glm::vec3 mousePos);
 	
 	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags);
 
-	glm::vec3 mouseStartPos;
-
-
-	ActionMode actionMode;
 
 	IAction* m_selectedAction;
 };
