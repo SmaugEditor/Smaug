@@ -3,8 +3,10 @@
 #include "editoractions.h"
 #include "smaugapp.h"
 #include "cursor.h"
+#include "texturemanager.h"
 
 #include <GLFW/glfw3.h>
+
 
 void CBaseDragTool::Enable()
 {
@@ -60,4 +62,9 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePos)
 		}
 
 	}
+}
+
+void CBaseTool::Init()
+{
+	m_iconHandle = GetTextureManager().LoadTexture(GetIconPath());
 }

@@ -7,8 +7,14 @@
 class CBaseTool
 {
 public:
+	virtual void Init();
+
+	// Things are abstract here to force the programmer to set them later.
 
 	virtual const char* GetName() = 0;
+	virtual const char* GetIconPath() = 0;
+	
+	bgfx::TextureHandle GetIconTexture() { return m_iconHandle; }
 
 	// When this key is pressed, this tool becomes active
 	virtual int GetToggleKey() = 0;
@@ -20,6 +26,8 @@ public:
 	virtual void Update(float dt, glm::vec3 mousePos) {};
 	virtual void Disable() {};
 
+private:
+	bgfx::TextureHandle m_iconHandle;
 };
 
 

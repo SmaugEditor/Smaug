@@ -14,6 +14,9 @@ public:
 	void SetTool(CBaseTool* tool);
 	void SwitchToLast();
 
+	// This should always be used instead of directly adding a tool to m_tools. It insures the tool is properly initialized and etc
+	void RegisterTool(CBaseTool* tool);
+
 	std::vector<CBaseTool*> m_tools;
 	CBaseTool* m_currentTool;
 	CBaseTool* m_lastTool;

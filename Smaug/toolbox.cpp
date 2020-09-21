@@ -10,32 +10,63 @@ CToolBox::CToolBox()
 	m_holdingTool = false;
 }
 
+void CToolBox::RegisterTool(CBaseTool* tool)
+{
+	tool->Init();
+	
+	m_tools.push_back(tool);
+}
+
 void CToolBox::ShowToolBox()
 {
 	// UI
-	if (ImGui::Begin("Tool Box"))
+	if (ImGui::Begin("Tool Box", nullptr, ImGuiWindowFlags_NoScrollbar))
 	{
-		bool colorChange = false;
+		ImVec2 contentRegion = ImGui::GetContentRegionAvail();
+		
+		// We want to take up as much space as we can with the buttons
+		ImVec2 buttonSize = ImVec2(fmin(contentRegion.x, contentRegion.y), 0);
+		buttonSize.y = buttonSize.x;
+
+
+		// If we're wider than we are tall, we want to same line all of our buttons
+		bool sameLine = contentRegion.y < contentRegion.x;
+
+
 		for (int i = 0; i < m_tools.size(); i++)
 		{
+			CBaseTool* tool = m_tools[i];
+			
+			ImVec4 tint(1,1,1,1);
+
 			// If this tool is selected, it gets to have a fancy new color!
-			if (m_tools[i] == m_currentTool)
+			if (tool == m_currentTool)
 			{
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(255, 0, 0, 255));
-				colorChange = true;
+				tint.y = 0.75f;
+				tint.z = 0.75f;
 			}
-			if (ImGui::Button(m_tools[i]->GetName()))
+
+			// Add the button
+			if (ImGui::ImageButton((ImTextureID)tool->GetIconTexture().idx, buttonSize, ImVec2(0,0), ImVec2(1,1), 0, ImVec4(0,0,0,0), tint))
 			{
-				if (m_currentTool == m_tools[i])
+				// If it's our current tool, deselect it
+				if (m_currentTool == tool)
 					SetTool(nullptr);
 				else
-					SetTool(m_tools[i]);
+					SetTool(tool);
 			}
-			if (colorChange)
+
+			if (ImGui::IsItemHovered())
 			{
-				ImGui::PopStyleColor();
-				colorChange = false;
+				// We want to say the tool's name when we hover
+				ImGui::BeginTooltip();
+				ImGui::SetTooltip(tool->GetName());
+				ImGui::EndTooltip();
 			}
+
+
+			if (sameLine)
+				ImGui::SameLine();
 
 		}
 		ImGui::End();

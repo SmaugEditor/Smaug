@@ -21,8 +21,9 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_drawEditView = true;
 	m_drawSelectedView = true;
 
-	m_toolBox.m_tools.push_back(new CDragTool());
-	m_toolBox.m_tools.push_back(new CExtrudeTool());
+	m_toolBox.RegisterTool(new CDragTool());
+	m_toolBox.RegisterTool(new CExtrudeTool());
+	
 }
 
 void CUIView::Draw(float dt)

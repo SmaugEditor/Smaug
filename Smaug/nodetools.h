@@ -10,6 +10,7 @@ class CDragTool : public CBaseDragTool
 public:
 
 	virtual const char* GetName() { return "Drag"; }
+	virtual const char* GetIconPath() { return "drag.png"; }
 
 	// When this key is pressed, this tool becomes active
 	virtual int GetToggleKey() { return GLFW_KEY_G; }
@@ -53,6 +54,7 @@ class CExtrudeTool : public CBaseDragTool
 public:
 
 	virtual const char* GetName() { return "Extrude"; }
+	virtual const char* GetIconPath() { return "extrude.png"; }
 
 	// When this key is pressed, this tool becomes active
 	virtual int GetToggleKey() { return 0; }
