@@ -410,3 +410,4 @@ MigrationBackup/
 
 *.vcxproj*
 *.sln*
+build/

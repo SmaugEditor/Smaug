@@ -116,11 +116,11 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 		return BGFX_INVALID_HANDLE;
 	}
 
-	char vsPath[32];
+	char vsPath[128];
 	strcpy(vsPath, shaderPath);
 	strcat(vsPath, vertex);
 
-	char fsPath[32];
+	char fsPath[128];
 	strcpy(fsPath, shaderPath);
 	strcat(fsPath, fragment);
 

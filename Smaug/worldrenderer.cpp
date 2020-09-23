@@ -164,7 +164,7 @@ void CNodeRenderData::Draw2D(glm::vec3 origin)
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_vertexBuf2D);
 	bgfx::setIndexBuffer(m_indexBuf2D);
-	bgfx::setState(BGFX_STATE_DEFAULT);
+	//bgfx::setState(BGFX_STATE_DEFAULT);
 	// This does not bgfx::submit!!
 }
 
@@ -181,7 +181,7 @@ void CNodeRenderData::Draw3D(glm::vec3 origin)
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_vertexBuf3D);
 	bgfx::setIndexBuffer(m_indexBuf3D, 0, m_indexCount3D);
-	bgfx::setState(BGFX_STATE_DEFAULT);
+	//bgfx::setState(BGFX_STATE_DEFAULT);
 	// This does not bgfx::submit!!
 }
 

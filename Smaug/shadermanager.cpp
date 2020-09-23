@@ -10,7 +10,7 @@ static struct
 s_programInfo[] = {
 	{nullptr, nullptr}, // Shader::NONE
 
-	{"fs_cubes.bin", "vs_cubes.bin"}, // Shader::WORLD_PREVIEW_SHADER
+	{"fs_preview_view.bin", "vs_preview_view.bin"}, // Shader::WORLD_PREVIEW_SHADER
 	{"fs_cubes.bin", "vs_cubes.bin"}, // Shader::EDIT_VIEW_SHADER
 	{"fs_cubes.bin", "vs_cubes.bin"}, // Shader::CURSOR_SHADER
 	

@@ -13,6 +13,17 @@ public:
 	virtual ImTextureID GetImTextureID();
 
 	bgfx::ViewId m_viewId;
+	
+	union
+	{
+		struct
+		{
+			bgfx::TextureHandle m_fbColorTexture;
+			bgfx::TextureHandle m_fbDepthTexture;
+		};
+		bgfx::TextureHandle m_fbTextures[2];
+	};
+
 	bgfx::FrameBufferHandle m_framebuffer;
 
 	int m_width;

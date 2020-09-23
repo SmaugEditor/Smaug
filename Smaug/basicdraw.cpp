@@ -58,7 +58,7 @@ void CBasicDraw::Cube(glm::mat4 mtx)
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_cubeVertexBuf);
 	bgfx::setIndexBuffer(m_cubeIndexBuf);
-	bgfx::setState(BGFX_STATE_DEFAULT);
+	//bgfx::setState(BGFX_STATE_DEFAULT);
 }
 
 
