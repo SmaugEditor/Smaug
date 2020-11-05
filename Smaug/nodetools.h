@@ -13,10 +13,10 @@ public:
 	virtual const char* GetIconPath() { return "drag.png"; }
 
 	// When this key is pressed, this tool becomes active
-	virtual int GetToggleKey() { return GLFW_KEY_G; }
+	virtual int GetToggleKey();
 
 	// While this key is held, this tool is active
-	virtual int GetHoldKey() { return 0; }
+	virtual int GetHoldKey();
 
 
 	virtual int GetSelectionType() { return ACT_SELECT_SIDE | ACT_SELECT_VERT; }
@@ -57,10 +57,10 @@ public:
 	virtual const char* GetIconPath() { return "extrude.png"; }
 
 	// When this key is pressed, this tool becomes active
-	virtual int GetToggleKey() { return 0; }
+	virtual int GetToggleKey();
 
 	// While this key is held, this tool is active
-	virtual int GetHoldKey() { return GLFW_KEY_LEFT_SHIFT; }
+	virtual int GetHoldKey();
 
 
 	virtual int GetSelectionType() { return ACT_SELECT_WALL; }

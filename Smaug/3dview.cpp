@@ -28,7 +28,8 @@ BEGIN_SVAR_TABLE(C3DViewSettings)
 END_SVAR_TABLE()
 
 static C3DViewSettings s_3dViewSettings;
-DEFINE_SETTINGS_MENU("3D View Settings", s_3dViewSettings);
+DEFINE_SETTINGS_MENU("3D View", s_3dViewSettings);
+
 
 void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
