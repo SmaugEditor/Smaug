@@ -32,6 +32,8 @@ set( SOURCES
 	objexporter.cpp 
 	vmfexporter.cpp 
 
+	svar.cpp
+
 )
 
 set( VERTEX_SHADERS shaders/vs_preview_view.sc )
