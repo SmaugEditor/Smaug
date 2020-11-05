@@ -80,6 +80,14 @@ void CUIView::Update(float dt, float mx, float my)
 			ImGui::EndMenu();
 
 		}
+		if (ImGui::BeginMenu("Options"))
+		{
+			if (ImGui::MenuItem("Settings"))
+			{
+				m_settingsMenu.Enable();
+			}
+			ImGui::EndMenu();
+		}
 
 		ImGui::EndMainMenuBar();
 	}

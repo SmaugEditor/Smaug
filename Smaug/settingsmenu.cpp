@@ -15,6 +15,9 @@ CSettingsRegister& GetSettingsRegister()
 
 void CSettingsMenu::DrawMenu()
 {
+    if (!m_shouldShow)
+        return;
+
     if (ImGui::Begin("Settings"))
     {
         std::vector<CSettingsLink*>& linkList = GetSettingsRegister().m_linkList;
