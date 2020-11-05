@@ -13,7 +13,9 @@
 class name : public CSVarTable        \
 {                                     \
 public:                               \
-	name(){ m_tableName = #name; }
+	name(){ m_tableName = #name; }    \
+	virtual CSVarTable* New() { return new name(); }
+
 
 #define END_SVAR_TABLE() };
 
@@ -64,6 +66,8 @@ public:
 	void FromString(char* str);
 	void AddToKV(KeyValue* kv);
 	void FromKV(KeyValue* kv);
+	virtual CSVarTable* MakeCopy();
+	virtual CSVarTable* New() { return new CSVarTable(); }
 
 	std::vector<ISVar*> m_varTable;
 	const char* m_tableName = 0;
@@ -71,22 +75,26 @@ public:
 
 
 
-//
-// All below is just for making SVars work. Ignore unless you need to edit SVar.
-//
-
 class ISVar
 {
 public:
 	virtual void SetName(const char* name) = 0;
 	virtual const char* GetName() = 0;
 	virtual void* GetData() = 0;
+	virtual void  SetData(void* data) = 0;
 
 	virtual char* ToString() = 0;
 	virtual void  FromString(char* str) = 0;
 
 	virtual const type_info& GetTypeInfo() = 0;
+
+	virtual ISVar* MakeCopy() = 0;
 };
+
+
+//
+// All below is just for making SVars work. Ignore unless you need to edit SVar.
+//
 
 template<typename T>
 class internal_SVar : public ISVar
@@ -104,6 +112,8 @@ public:
 	T     GetValue()         { return m_data; }
 
 	virtual const type_info& GetTypeInfo() { return typeid(T); }
+
+	virtual ISVar* MakeCopy() { return new CSVar<T>{ m_name,m_data }; }
 protected:
 	const char* m_name = 0;
 	T m_data;
@@ -113,13 +123,19 @@ protected:
 // Type Implementation below
 //
 
-#define BEGIN_SVAR_TYPE_IMPLEMENT(type)                                                       \
-template<>                                                                                    \
-class CSVar<type> : public internal_SVar<type>                                                \
-{                                                                                             \
-public:                                                                                       \
-CSVar(const char* name, type value)                    { Init(name, value); }                 \
-CSVar(const char* name, type value, CSVarTable* table) { Init(name, value, table); }
+#define BEGIN_SVAR_TYPE_IMPLEMENT(type)                                                    \
+template<>                                                                                 \
+class CSVar<type> : public internal_SVar<type>                                             \
+{                                                                                          \
+public:                                                                                    \
+	using VarType = type;                                                                  \
+	CSVar(const char* name, type value)                    { Init(name, value); }          \
+	CSVar(const char* name, type value, CSVarTable* table) { Init(name, value, table); }   \
+	virtual void SetData(void* data)													   \
+	{                                 													   \
+		SetValue(*(VarType*)data);    													   \
+	}
+
 
 #define END_SVAR_TYPE_IMPLEMENT() };
 
@@ -144,8 +160,7 @@ virtual char* ToString()                              \
 virtual void FromString(char* str)                    \
 {                                                     \
 	m_data = __VA_ARGS__;                             \
-}        
-
+}  
 
 //
 // Type implementation
@@ -233,15 +248,17 @@ BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 
 		// In with the new
 		m_data = new char[m_length + 1];
-		strcpy(m_data, str);
+		strncpy(m_data, str, m_length + 1);
 	}
 
 	virtual char* ToString()
 	{
 		char* str = new char[m_length + 1];
-		strcpy(str, m_data);
+		strncpy(str, m_data, m_length + 1);
 		return str;
 	}
+	
+	virtual 
 
 	size_t GetLength() { return m_length; }
 private:

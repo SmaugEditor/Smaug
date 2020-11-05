@@ -49,3 +49,13 @@ void CSVarTable::FromKV(KeyValue* kv)
 			m_varTable[i]->FromString(kvref.value.string);
 	}
 }
+
+CSVarTable* CSVarTable::MakeCopy()
+{
+	CSVarTable* table = New();
+	for (int i = 0; i < m_varTable.size(); i++)
+	{
+		table->m_varTable[i]->SetData(m_varTable[i]->GetData());
+	}
+	return table;
+}
