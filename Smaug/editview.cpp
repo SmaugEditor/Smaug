@@ -48,7 +48,17 @@ void CEditView::Update(float dt, float mx, float my)
 
 	// View zooming
 	float scrollDelta = io.MouseWheel * SCROLL_SPEED;
-	m_viewZoom -= scrollDelta;
+	if (scrollDelta != 0)
+	{
+		// Scroll and solve mouse to stay in the same pos
+		glm::vec3 startMouseStartPos = TransformMousePos(mx, my);
+		m_viewZoom -= scrollDelta;
+
+		// Run TransformMousePos backwards to keep our mouse pos stable
+		m_cameraPos.x = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - startMouseStartPos.x;
+		m_cameraPos.z = (my * 2 - 1) * (m_viewZoom) - startMouseStartPos.z;
+
+	}
 
 
 	// View panning
