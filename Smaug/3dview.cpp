@@ -8,7 +8,6 @@
 
 #include "svar.h"
 #include "svarex.h"
-#include "filesystem.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -29,7 +28,7 @@ BEGIN_SVAR_TABLE(C3DViewSettings)
 END_SVAR_TABLE()
 
 static C3DViewSettings s_3dViewSettings;
-LINK_SVAR_TABLE("3D View Settings", s_3dViewSettings);
+DEFINE_SETTINGS_MENU("3D View Settings", s_3dViewSettings);
 
 void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -38,10 +37,6 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_cameraPos = glm::vec3(0, 0, 0);
 	m_controllingCamera = false;
 
-	size_t length = 0;
-	char* str = filesystem::LoadFile("3dview.kv", length);
-	if(str)
-		s_3dViewSettings.FromString(str);
 }
 
 void C3DView::Draw(float dt)
@@ -70,20 +65,6 @@ void C3DView::Draw(float dt)
 	// Draw the Cursor
 	GetCursor().Draw();
 	bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
-
-#ifdef _DEBUG
-
-	if (ImGui::Begin("Save Debug"))
-	{
-		if (ImGui::Button("Save"))
-		{
-			char* str = s_3dViewSettings.ToString();
-			if (str)
-				filesystem::SaveFile("3dview.kv", str);
-		}
-		ImGui::End();
-	}
-#endif
 
 }
 

@@ -9,12 +9,14 @@ class CSettingsRegister
 {
 public:
 	void Register(CSettingsLink* link) { m_linkList.push_back(link); }
+	void LoadSettings();
+	void SaveSettings();
 	std::vector<CSettingsLink*> m_linkList;
 };
 
 CSettingsRegister& GetSettingsRegister();
 
-#define LINK_SVAR_TABLE(displayName, table) static CSettingsLink s_##table##TableLink{&table, displayName};
+#define DEFINE_SETTINGS_MENU(displayName, table) static CSettingsLink s_##table##TableLink{&table, displayName};
 // Maps up CSVarTables up to the CSettingsRegister
 class CSettingsLink
 {
@@ -28,7 +30,9 @@ public:
 class CSettingsMenu
 {
 public:
+	
 	void DrawMenu();
+
 	size_t m_selectedTabIndex = 0;
 
 };

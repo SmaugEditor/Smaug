@@ -13,6 +13,9 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 
 	//ImGui::CreateNewWindow
 
+	// Move this?
+	GetSettingsRegister().LoadSettings();
+
 	m_editView.Init(ViewID::EDIT_VIEW, 1024, 1024, 0x00FFFFFF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x00FFFFFF);
 	m_selectedView.Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x00FFFFFF);
@@ -23,7 +26,7 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 
 	m_toolBox.RegisterTool(new CDragTool());
 	m_toolBox.RegisterTool(new CExtrudeTool());
-	
+
 }
 
 void CUIView::Draw(float dt)

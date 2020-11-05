@@ -1,6 +1,11 @@
 #include "settingsmenu.h"
 #include "imgui.h"
 #include "svarex.h"
+#include "filesystem.h"
+#include "KeyValue.h"
+
+
+#define SETTINGS_FILE_NAME "settings.cfg"
 
 CSettingsRegister& GetSettingsRegister()
 {
@@ -67,8 +72,42 @@ void CSettingsMenu::DrawMenu()
             if (ImGui::Button("Apply Settings"))
             {
                 // Save File
+                GetSettingsRegister().SaveSettings();
             }
         }
         ImGui::End();
+    }
+}
+
+void CSettingsRegister::LoadSettings()
+{
+    // Load Settings file into a KV
+    size_t length = 0;
+    char* str = filesystem::LoadFile(SETTINGS_FILE_NAME, length);
+    // Was the load a success?
+    if (str)
+    {
+        KeyValueRoot kvr(str);
+        delete[] str;
+        for (int i = 0; i < m_linkList.size(); i++)
+            m_linkList[i]->m_table->FromKV(&kvr);
+    }
+    else
+    {
+        // It wasn't... Let's save a settings file for next time!
+        SaveSettings();
+    }
+}
+
+void CSettingsRegister::SaveSettings()
+{
+    KeyValueRoot kvr;
+    for (int i = 0; i < m_linkList.size(); i++)
+        m_linkList[i]->m_table->AddToKV(&kvr);
+    char* str = kvr.ToString();
+    if (str)
+    {
+        filesystem::SaveFile(SETTINGS_FILE_NAME, str);
+        delete[] str;
     }
 }
