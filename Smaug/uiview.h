@@ -4,6 +4,7 @@
 #include "editview.h"
 #include "selectedview.h"
 #include "toolbox.h"
+#include "settingsmenu.h"
 
 class CUIView : public CBaseView
 {
@@ -19,4 +20,5 @@ public:
 	bool m_drawSelectedView;
 	CSelectedView m_selectedView;
 	CToolBox m_toolBox;
+	CSettingsMenu m_settingsMenu;
 };

@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <vector>
+#include <typeinfo>
 
 // CSVars are used for storing settings and saved info.
 // These can be easily saved to and loaded from files.
@@ -83,6 +84,8 @@ public:
 
 	virtual char* ToString() = 0;
 	virtual void  FromString(char* str) = 0;
+
+	virtual const type_info& GetTypeInfo() = 0;
 };
 
 template<typename T>
@@ -100,6 +103,7 @@ public:
 	virtual void SetValue(T value)  { m_data = value; }
 	T     GetValue()         { return m_data; }
 
+	virtual const type_info& GetTypeInfo() { return typeid(T); }
 protected:
 	const char* m_name = 0;
 	T m_data;

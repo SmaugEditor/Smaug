@@ -33,7 +33,7 @@ set( SOURCES
 	vmfexporter.cpp 
 
 	svar.cpp
-
+	settingsmenu.cpp
 )
 
 set( VERTEX_SHADERS shaders/vs_preview_view.sc )

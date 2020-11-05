@@ -134,6 +134,7 @@ void CUIView::Update(float dt, float mx, float my)
 
 	 
 	m_toolBox.ShowToolBox();
+	m_settingsMenu.DrawMenu();
 
 	if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
 	{
