@@ -36,3 +36,27 @@ bool filesystem::SaveFileWithDialog(char* data, const char* fileType)
 
     return false;
 }
+
+char* filesystem::LoadFile(const char* path, size_t& length)
+{
+
+    FILE* file = fopen(path, "r");
+    if (!file)
+    {
+        printf("Failed to read file: %s\n", path);
+        return nullptr;
+    }
+
+    fseek(file, 0L, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0L, SEEK_SET);
+
+    char* data = (char*)calloc(length+1,1);
+
+    fread(data, 1, length, file);
+    fclose(file);
+
+    data[length] = 0;
+
+    return data;
+}
