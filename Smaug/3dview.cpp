@@ -6,6 +6,10 @@
 #include "utils.h"
 #include "cursor.h"
 
+#include "svar.h"
+#include "svarex.h"
+#include "filesystem.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
@@ -14,7 +18,17 @@
 #define PREVIEW_MOUSE_SENSETIVITY 2
 #define PREVIEW_MOVE_SPEED 10
 
+BEGIN_SVAR_TABLE(C3DViewSettings)
+	DEFINE_TABLE_SVAR(forward,  GLFW_KEY_W)
+	DEFINE_TABLE_SVAR(backward, GLFW_KEY_S)
+	DEFINE_TABLE_SVAR(left,     GLFW_KEY_A)
+	DEFINE_TABLE_SVAR(right,    GLFW_KEY_D)
+	DEFINE_TABLE_SVAR(up,       GLFW_KEY_SPACE)
+	DEFINE_TABLE_SVAR(down,     GLFW_KEY_LEFT_CONTROL)
+	DEFINE_TABLE_SVAR(enable,   GLFW_KEY_Z)
+END_SVAR_TABLE()
 
+static C3DViewSettings s_3dViewSettings;
 
 void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -22,6 +36,11 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_cameraAngle = glm::vec3(0, 0, 0);
 	m_cameraPos = glm::vec3(0, 0, 0);
 	m_controllingCamera = false;
+
+	size_t length = 0;
+	char* str = filesystem::LoadFile("3dview.kv", length);
+	if(str)
+		s_3dViewSettings.FromString(str);
 }
 
 void C3DView::Draw(float dt)
@@ -51,6 +70,19 @@ void C3DView::Draw(float dt)
 	GetCursor().Draw();
 	bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 
+#ifdef _DEBUG
+
+	if (ImGui::Begin("Save Debug"))
+	{
+		if (ImGui::Button("Save"))
+		{
+			char* str = s_3dViewSettings.ToString();
+			if (str)
+				filesystem::SaveFile("3dview.kv", str);
+		}
+		ImGui::End();
+	}
+#endif
 
 }
 
@@ -58,7 +90,7 @@ void C3DView::Update(float dt, float mx, float my)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	
-	if (io.KeysDown[GLFW_KEY_Z] && io.KeysDownDuration[GLFW_KEY_Z] == 0)
+	if (io.KeysDown[s_3dViewSettings.enable.GetValue()] && io.KeysDownDuration[s_3dViewSettings.enable.GetValue()] == 0)
 	{
 		m_controllingCamera = !m_controllingCamera;
 		GetApp().SetMouseLock(m_controllingCamera);
@@ -90,9 +122,9 @@ void C3DView::Update(float dt, float mx, float my)
 
 	Directions(m_cameraAngle, &forwardDir, &rightDir);
 
-	float forward = io.KeysDown[GLFW_KEY_W] - (int)io.KeysDown[GLFW_KEY_S];
-	float right = io.KeysDown[GLFW_KEY_D] - (int)io.KeysDown[GLFW_KEY_A];
-	float up = io.KeysDown[GLFW_KEY_SPACE] - (int)io.KeysDown[GLFW_KEY_LEFT_CONTROL];
+	float forward = io.KeysDown[s_3dViewSettings.forward.GetValue()] - (int)io.KeysDown[s_3dViewSettings.backward.GetValue()];
+	float right = io.KeysDown[s_3dViewSettings.right.GetValue()] - (int)io.KeysDown[s_3dViewSettings.left.GetValue()];
+	float up = io.KeysDown[s_3dViewSettings.up.GetValue()] - (int)io.KeysDown[s_3dViewSettings.down.GetValue()];
 
 	glm::vec3 moveDelta(0, 0, 0);
 
@@ -123,6 +155,7 @@ void C3DView::Update(float dt, float mx, float my)
 		ImGui::InputFloat3("MoveDelta", (float*)&moveDelta);
 		ImGui::End();
 	}
+
 #endif
 
 }

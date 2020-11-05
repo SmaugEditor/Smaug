@@ -102,7 +102,7 @@ public:
 
 protected:
 	const char* m_name = 0;
-	T m_data = 0;
+	T m_data;
 };
 
 //
