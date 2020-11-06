@@ -3,7 +3,9 @@
 #include "svarex.h"
 #include "filesystem.h"
 #include "KeyValue.h"
+#include "smaugapp.h"
 
+#include "GLFW/glfw3.h"
 
 #define SETTINGS_FILE_NAME "settings.cfg"
 
@@ -17,7 +19,7 @@ void CSettingsMenu::DrawMenu()
 {
     if (!m_shouldShow)
         return;
-
+    
     if (ImGui::Begin("Settings"))
     {
         std::vector<CSettingsLink*>& linkList = GetSettingsRegister().m_linkList;
@@ -71,10 +73,12 @@ void CSettingsMenu::DrawMenu()
                     if (ImGui::Button(buttonText))
                     {
                         // So awful
-                        for(int i = 0; i < 512; i++)
-                            if (ImGui::GetIO().KeysDown[i])
+                        size_t len;
+                        keyName_t* keys = GetAllKeys(&len);
+                        for(int i = 0; i < len; i++)
+                            if (glfwGetKey(GetApp().GetWindow(), keys[i].id) == GLFW_PRESS)
                             {
-                                key_t key{ i };
+                                key_t key{ keys[i].id };
                                 var->SetData(&key);
                                 break;
                             }

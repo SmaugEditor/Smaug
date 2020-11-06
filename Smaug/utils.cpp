@@ -171,11 +171,7 @@ void Directions(glm::vec3 angles, glm::vec3* forward, glm::vec3* right, glm::vec
 	*/
 }
 
-struct keyName_t
-{
-	int id;
-	const char* name;
-};
+
 
 #define KEY(name) {GLFW_KEY_##name, #name},
 static keyName_t s_keyNameUnknown = { GLFW_KEY_UNKNOWN, "UNKNOWN" };
@@ -305,6 +301,15 @@ static keyName_t s_keyNames[] =
 	KEY(MENU)
 };
 #undef KEY
+
+keyName_t* GetAllKeys(size_t* length)
+{
+	if (length)
+	{
+		*length = sizeof(s_keyNames) / sizeof(keyName_t);
+	}
+	return s_keyNames;
+}
 
 key_t KeyFromName(const char* name)
 {

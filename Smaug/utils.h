@@ -21,6 +21,13 @@ public:
 	int key;
 };
 
+struct keyName_t
+{
+	int id;
+	const char* name;
+};
+
+keyName_t* GetAllKeys(size_t* length);
 key_t KeyFromName(const char* name);
 const char* KeyToName(key_t key);
 
