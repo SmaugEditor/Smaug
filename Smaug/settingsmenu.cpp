@@ -64,6 +64,25 @@ void CSettingsMenu::DrawMenu()
                 {
                     ImGui::InputFloat3(var->GetName(), (float*)var->GetData());
                 }
+                else if (info == typeid(key_t))
+                {
+                    // Crusty. Improve this.
+                    char* buttonText = var->ToString();
+                    if (ImGui::Button(buttonText))
+                    {
+                        // So awful
+                        for(int i = 0; i < 512; i++)
+                            if (ImGui::GetIO().KeysDown[i])
+                            {
+                                key_t key{ i };
+                                var->SetData(&key);
+                                break;
+                            }
+                    }
+                    ImGui::SameLine();
+                    ImGui::Text(var->GetName());
+                    delete[] buttonText;
+                }
                 else
                 {
                     // Failed to figure it out. Default to a string edit.
@@ -80,6 +99,16 @@ void CSettingsMenu::DrawMenu()
         }
         ImGui::End();
     }
+}
+
+void CSettingsMenu::Enable()
+{
+    ImGui::SetNextWindowFocus();
+    if (ImGui::Begin("Settings"))
+    {
+        ImGui::End();
+    }
+    m_shouldShow = true;
 }
 
 void CSettingsRegister::LoadSettings()

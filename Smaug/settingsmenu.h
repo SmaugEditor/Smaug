@@ -32,7 +32,7 @@ class CSettingsMenu
 public:
 	
 	void DrawMenu();
-	void Enable() { m_shouldShow = true; }
+	void Enable();
 	size_t m_selectedTabIndex = 0;
 	bool m_shouldShow = false;
 };
