@@ -12,3 +12,15 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex);
 
 
 void Directions(glm::vec3 angles, glm::vec3* forward = nullptr, glm::vec3* right = nullptr, glm::vec3* up = nullptr);
+
+
+struct key_t
+{
+public:
+	
+	int key;
+};
+
+key_t KeyFromName(const char* name);
+const char* KeyToName(key_t key);
+
