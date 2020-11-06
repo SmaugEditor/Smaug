@@ -14,17 +14,18 @@
 #include <glm/geometric.hpp>
 #include <GLFW/glfw3.h>
 
-#define PREVIEW_MOUSE_SENSETIVITY 2
-#define PREVIEW_MOVE_SPEED 10
 
 BEGIN_SVAR_TABLE(C3DViewSettings)
-	DEFINE_TABLE_SVAR(forward,  GLFW_KEY_W)
-	DEFINE_TABLE_SVAR(backward, GLFW_KEY_S)
-	DEFINE_TABLE_SVAR(left,     GLFW_KEY_A)
-	DEFINE_TABLE_SVAR(right,    GLFW_KEY_D)
-	DEFINE_TABLE_SVAR(up,       GLFW_KEY_SPACE)
-	DEFINE_TABLE_SVAR(down,     GLFW_KEY_LEFT_CONTROL)
-	DEFINE_TABLE_SVAR(enable,   GLFW_KEY_Z)
+	DEFINE_TABLE_SVAR(viewFOV,          60.0f)
+	DEFINE_TABLE_SVAR(moveSpeed,        10.0f)
+	DEFINE_TABLE_SVAR(mouseSensitivity, 2.0f)
+	DEFINE_TABLE_SVAR_KEY(forward,      GLFW_KEY_W)
+	DEFINE_TABLE_SVAR_KEY(backward,     GLFW_KEY_S)
+	DEFINE_TABLE_SVAR_KEY(left,         GLFW_KEY_A)
+	DEFINE_TABLE_SVAR_KEY(right,        GLFW_KEY_D)
+	DEFINE_TABLE_SVAR_KEY(up,           GLFW_KEY_SPACE)
+	DEFINE_TABLE_SVAR_KEY(down,         GLFW_KEY_LEFT_CONTROL)
+	DEFINE_TABLE_SVAR_KEY(enable,       GLFW_KEY_Z)
 END_SVAR_TABLE()
 
 static C3DViewSettings s_3dViewSettings;
@@ -57,7 +58,7 @@ void C3DView::Draw(float dt)
 	view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, glm::vec3(0.0f, 1.0f, 0.0f));
 	//view = glm::translate(view, m_cameraPos * -1.0f);
 
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), m_aspectRatio, 0.1f, 800.0f);
+	glm::mat4 proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
@@ -73,7 +74,7 @@ void C3DView::Update(float dt, float mx, float my)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	
-	if (io.KeysDown[s_3dViewSettings.enable.GetValue()] && io.KeysDownDuration[s_3dViewSettings.enable.GetValue()] == 0)
+	if (io.KeysDown[s_3dViewSettings.enable.GetValue().key] && io.KeysDownDuration[s_3dViewSettings.enable.GetValue().key] == 0)
 	{
 		m_controllingCamera = !m_controllingCamera;
 		GetApp().SetMouseLock(m_controllingCamera);
@@ -83,7 +84,7 @@ void C3DView::Update(float dt, float mx, float my)
 	{
 		glm::vec3 angleDelta = glm::vec3(0, io.MouseDelta.y, io.MouseDelta.x);
 
-		angleDelta *= PREVIEW_MOUSE_SENSETIVITY / 1000.0f;
+		angleDelta *= s_3dViewSettings.mouseSensitivity.GetValue() / 1000.0f;
 		m_cameraAngle += angleDelta;
 
 		// Lock the view to prevent having upsidedown eyes
@@ -105,9 +106,9 @@ void C3DView::Update(float dt, float mx, float my)
 
 	Directions(m_cameraAngle, &forwardDir, &rightDir);
 
-	float forward = io.KeysDown[s_3dViewSettings.forward.GetValue()] - (int)io.KeysDown[s_3dViewSettings.backward.GetValue()];
-	float right = io.KeysDown[s_3dViewSettings.right.GetValue()] - (int)io.KeysDown[s_3dViewSettings.left.GetValue()];
-	float up = io.KeysDown[s_3dViewSettings.up.GetValue()] - (int)io.KeysDown[s_3dViewSettings.down.GetValue()];
+	float forward = io.KeysDown[s_3dViewSettings.forward.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.backward.GetValue().key];
+	float right = io.KeysDown[s_3dViewSettings.right.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.left.GetValue().key];
+	float up = io.KeysDown[s_3dViewSettings.up.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.down.GetValue().key];
 
 	glm::vec3 moveDelta(0, 0, 0);
 
@@ -123,7 +124,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 	moveDelta.y += up;
 
-	moveDelta *= PREVIEW_MOVE_SPEED * dt;
+	moveDelta *= s_3dViewSettings.moveSpeed.GetValue() * dt;
 	
 
 	m_cameraPos += moveDelta;

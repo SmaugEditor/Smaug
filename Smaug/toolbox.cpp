@@ -81,7 +81,7 @@ void CToolBox::ShowToolBox()
 		CBaseTool* tool = m_tools[i];
 
 		// Does this tool have a hold key?
-		if (tool->GetHoldKey())
+		if (tool->GetHoldKey() != GLFW_KEY_UNKNOWN)
 		{
 			if (m_holdingTool && m_currentTool == tool)
 			{
@@ -124,7 +124,7 @@ void CToolBox::ShowToolBox()
 		}
 
 		// Does this tool have a toggle key?
-		if (tool->GetToggleKey())
+		if (tool->GetToggleKey() != GLFW_KEY_UNKNOWN)
 		{
 			if (glfwGetKey(GetApp().GetWindow(), tool->GetToggleKey()) == GLFW_PRESS)
 			{
