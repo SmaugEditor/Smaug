@@ -26,7 +26,6 @@ END_SVAR_TABLE()
 static CEditViewSettings s_editViewSettings;
 DEFINE_SETTINGS_MENU("Edit View", s_editViewSettings);
 
-#define SCROLL_SPEED 5
 
 void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
