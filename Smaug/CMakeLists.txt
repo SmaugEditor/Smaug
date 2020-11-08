@@ -33,6 +33,7 @@ set( SOURCES
 	vmfexporter.cpp 
 
 	svar.cpp
+	svarex.h
 	settingsmenu.cpp
 )
 

@@ -14,6 +14,17 @@
 #include "editoractions.h"
 #include "basicdraw.h"
 #include "cursor.h"
+#include "svarex.h"
+
+BEGIN_SVAR_TABLE(CEditViewSettings)
+	DEFINE_TABLE_SVAR(scrollSpeed,              5.0f)
+	DEFINE_TABLE_SVAR(proportionalScroll,       true)
+	DEFINE_TABLE_SVAR(proportionalScrollScale,  100.0f)
+	// Add Pan Button option!
+END_SVAR_TABLE()
+
+static CEditViewSettings s_editViewSettings;
+DEFINE_SETTINGS_MENU("Edit View", s_editViewSettings);
 
 #define SCROLL_SPEED 5
 
@@ -47,18 +58,26 @@ void CEditView::Update(float dt, float mx, float my)
 	ImGuiIO& io = ImGui::GetIO();
 
 	// View zooming
-	float scrollDelta = io.MouseWheel * SCROLL_SPEED;
+	float scrollDelta = io.MouseWheel * s_editViewSettings.scrollSpeed.GetValue();
 	if (scrollDelta != 0)
 	{
 		// Scroll and solve mouse to stay in the same pos
 		glm::vec3 startMouseStartPos = TransformMousePos(mx, my);
-		m_viewZoom -= scrollDelta;
+
+		if(s_editViewSettings.proportionalScroll.GetValue())
+			m_viewZoom -= m_viewZoom / s_editViewSettings.proportionalScrollScale.GetValue() * scrollDelta;
+		else
+			m_viewZoom -= scrollDelta;
+
 
 		// Run TransformMousePos backwards to keep our mouse pos stable
 		m_cameraPos.x = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - startMouseStartPos.x;
 		m_cameraPos.z = (my * 2 - 1) * (m_viewZoom) - startMouseStartPos.z;
 
 	}
+
+	if (m_viewZoom <= 0)
+		m_viewZoom = 0.01;
 
 
 	// View panning
