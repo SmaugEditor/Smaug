@@ -32,7 +32,19 @@ bool filesystem::SaveFileWithDialog(char* data, const char* fileType)
         { fileType, fileType,
           "All Files", "*" });
     
-    SaveFile(f.result().c_str(), data);
+    std::string path = f.result();
+
+    if (path.find_last_of('.') == std::string::npos)
+    {
+        // No extension... Add one on
+        
+        // We have a * infront of fileType. Skip over it.
+        const char* ext = strchr(fileType, '.');
+        if (ext)
+            path.append(ext);
+    }
+
+    SaveFile(path.c_str(), data);
 
     return false;
 }
