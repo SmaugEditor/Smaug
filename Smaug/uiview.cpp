@@ -16,9 +16,9 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	// Move this?
 	GetSettingsRegister().LoadSettings();
 
-	m_editView.Init(ViewID::EDIT_VIEW, 1024, 1024, 0x00FFFFFF);
-	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x00FFFFFF);
-	m_selectedView.Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x00FFFFFF);
+	m_editView.Init(ViewID::EDIT_VIEW, 1024, 1024, 0x383838FF);
+	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
+	m_selectedView.Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
 
 	m_drawPreviewView = true;
 	m_drawEditView = true;
@@ -50,8 +50,9 @@ void CUIView::Update(float dt, float mx, float my)
 	GetCursor().Update(dt);
 
 	// UI
-
+#ifdef _DEBUG
 	ImGui::ShowDemoWindow();
+#endif
 
 	if (ImGui::BeginMainMenuBar())
 	{
