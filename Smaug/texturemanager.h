@@ -13,4 +13,4 @@ private:
 	std::map<std::string, bgfx::TextureHandle> m_textureMap;
 };
 
-CTextureManager& GetTextureManager();
+CTextureManager& TextureManager();

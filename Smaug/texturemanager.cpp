@@ -63,7 +63,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	return BGFX_INVALID_HANDLE;
 }
 
-CTextureManager& GetTextureManager()
+CTextureManager& TextureManager()
 {
 	static CTextureManager s_textureManager;
 	return s_textureManager;

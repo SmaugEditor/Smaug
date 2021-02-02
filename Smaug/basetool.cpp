@@ -66,5 +66,5 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePos)
 
 void CBaseTool::Init()
 {
-	m_iconHandle = GetTextureManager().LoadTexture(GetIconPath());
+	m_iconHandle = TextureManager().LoadTexture(GetIconPath());
 }
