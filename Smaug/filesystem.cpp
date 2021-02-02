@@ -52,7 +52,7 @@ bool filesystem::SaveFileWithDialog(char* data, const char* fileType)
 char* filesystem::LoadFile(const char* path, size_t& length)
 {
 
-    FILE* file = fopen(path, "r");
+    FILE* file = fopen(path, "rb");
     if (!file)
     {
         printf("Failed to read file: %s\n", path);
