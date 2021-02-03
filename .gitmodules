@@ -7,3 +7,6 @@
 [submodule "thirdparty/keyvalues"]
 	path = thirdparty/keyvalues
 	url = https://github.com/ozxybox/SpeedyKeyV.git
+[submodule "thirdparty/assimp"]
+	path = thirdparty/assimp
+	url = https://github.com/assimp/assimp.git
