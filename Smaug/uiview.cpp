@@ -6,6 +6,7 @@
 #include "basetool.h"
 #include "cursor.h"
 #include "nodetools.h"
+#include "texturebrowser.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -162,4 +163,5 @@ void CUIView::Update(float dt, float mx, float my)
 	{
 		m_previewView.Update(dt, 0, 0);
 	}
+	TextureBrowser().Show();
 }

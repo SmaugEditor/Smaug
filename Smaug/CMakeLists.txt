@@ -35,6 +35,8 @@ set( SOURCES
 	svar.cpp
 	svarex.h
 	settingsmenu.cpp
+
+	texturebrowser.cpp
 )
 
 set( VERTEX_SHADERS shaders/vs_preview_view.sc )

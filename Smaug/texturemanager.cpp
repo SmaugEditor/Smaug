@@ -55,6 +55,8 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 		// Put this in our map so we can grab it later instead of loading it again.
 		m_textureMap.insert({ path, textureHandle });
 
+
+		printf("[Texture Manager] Loaded image %s\n", path);
 		return textureHandle;
 	}
 
