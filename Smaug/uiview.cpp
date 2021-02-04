@@ -49,6 +49,7 @@ void CUIView::Draw(float dt)
 void CUIView::Update(float dt, float mx, float my)
 {
 	GetCursor().Update(dt);
+	ImVec2 mv = ImGui::GetMousePos();
 
 	// UI
 #ifdef _DEBUG
@@ -94,8 +95,6 @@ void CUIView::Update(float dt, float mx, float my)
 		ImGui::EndMainMenuBar();
 	}
 
-	bool hoveredOn2DEditor = false;
-	ImVec2 mv, inv, ixv;
 	if(ImGui::Begin("2D Editor"))
 	{
 		m_drawEditView = !ImGui::IsWindowCollapsed();
@@ -104,14 +103,23 @@ void CUIView::Update(float dt, float mx, float my)
 		m_editView.m_aspectRatio = imageSize.x / imageSize.y;
 		ImGui::Image(m_editView.GetImTextureID(), imageSize);
 
-		hoveredOn2DEditor = ImGui::IsItemHovered();
-		mv = ImGui::GetMousePos();
-		inv = ImGui::GetItemRectMin();
-		ixv = ImGui::GetItemRectMax();
+		bool hoveredOn2DEditor = ImGui::IsItemHovered();
+		ImVec2 inv = ImGui::GetItemRectMin();
+		ImVec2 ixv = ImGui::GetItemRectMax();
+		
 		ImGui::End();
+
+		if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
+		{
+			float x = (mv.x - inv.x) / (ixv.x - inv.x);
+			float y = (mv.y - inv.y) / (ixv.y - inv.y);
+
+			m_editView.Update(dt, x, y);
+			m_toolBox.Update(dt, m_editView.TransformMousePos(x, y));
+
+		}
 	}
 
-	bool hoveredOn3DPreview = false;
 	if(ImGui::Begin("3D Preview"))
 	{
 		m_drawPreviewView = !ImGui::IsWindowCollapsed();
@@ -120,8 +128,19 @@ void CUIView::Update(float dt, float mx, float my)
 		m_previewView.m_aspectRatio = imageSize.x / imageSize.y;
 		ImGui::Image(m_previewView.GetImTextureID(), imageSize);
 		
-		hoveredOn3DPreview = ImGui::IsItemHovered();
+		bool hoveredOn3DPreview = ImGui::IsItemHovered();
+		ImVec2 inv = ImGui::GetItemRectMin();
+		ImVec2 ixv = ImGui::GetItemRectMax();
+		
 		ImGui::End();
+
+		if (m_drawPreviewView && (hoveredOn3DPreview || m_previewView.m_controllingCamera))
+		{
+			float x = (mv.x - inv.x) / (ixv.x - inv.x);
+			float y = (mv.y - inv.y) / (ixv.y - inv.y);
+
+			m_previewView.Update(dt, x, y);
+		}
 	}
 
 	if (ImGui::Begin("Object Editor"))
@@ -148,20 +167,5 @@ void CUIView::Update(float dt, float mx, float my)
 	 
 	m_toolBox.ShowToolBox();
 	m_settingsMenu.DrawMenu();
-
-	if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
-	{
-		float x = (mv.x - inv.x) / (ixv.x - inv.x);
-		float y = (mv.y - inv.y) / (ixv.y - inv.y);
-		
-		m_editView.Update(dt, x, y);
-		m_toolBox.Update(dt, m_editView.TransformMousePos(x, y));
-
-	}
-
-	if (m_drawPreviewView && (hoveredOn3DPreview || m_previewView.m_controllingCamera))
-	{
-		m_previewView.Update(dt, 0, 0);
-	}
 	TextureBrowser().Show();
 }

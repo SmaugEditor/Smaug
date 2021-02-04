@@ -16,9 +16,11 @@
 
 
 BEGIN_SVAR_TABLE(C3DViewSettings)
-	DEFINE_TABLE_SVAR(viewFOV,          60.0f)
-	DEFINE_TABLE_SVAR(moveSpeed,        10.0f)
-	DEFINE_TABLE_SVAR(mouseSensitivity, 2.0f)
+	DEFINE_TABLE_SVAR(viewFOV,           60.0f)
+	DEFINE_TABLE_SVAR(moveSpeed,         10.0f)
+	DEFINE_TABLE_SVAR(mouseSensitivity,  2.0f)
+	DEFINE_TABLE_SVAR(panningMultiplier, 20.0f)
+	DEFINE_TABLE_SVAR(scrollSpeed,       60.0f)
 	DEFINE_TABLE_SVAR_KEY(forward,      GLFW_KEY_W)
 	DEFINE_TABLE_SVAR_KEY(backward,     GLFW_KEY_S)
 	DEFINE_TABLE_SVAR_KEY(left,         GLFW_KEY_A)
@@ -101,34 +103,75 @@ void C3DView::Update(float dt, float mx, float my)
 	// We can always control the position
 
 	// Our movement directions
-	glm::vec3 forwardDir;
-	glm::vec3 rightDir;
-
-	Directions(m_cameraAngle, &forwardDir, &rightDir);
-
-	float forward = io.KeysDown[s_3dViewSettings.forward.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.backward.GetValue().key];
-	float right = io.KeysDown[s_3dViewSettings.right.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.left.GetValue().key];
-	float up = io.KeysDown[s_3dViewSettings.up.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.down.GetValue().key];
-
+	glm::vec3 forwardDir, rightDir, upDir;
 	glm::vec3 moveDelta(0, 0, 0);
+	Directions(m_cameraAngle, &forwardDir, &rightDir, &upDir);
 
-	float magnitude = sqrt(forward * forward + right * right);
-
-	// If our magnitude is 0, we're not moving forward or right
-	if (magnitude != 0)
+	// View panning
+	if (!m_panView.panning)
 	{
-		// We need to make sure we maintain a magnitude of 1
-		moveDelta += forwardDir * forward / magnitude;
-		moveDelta += rightDir * right / magnitude;
+		// Should we pan the view?
+		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		{
+			m_panView.mouseStartPos = { mx, my };
+			m_panView.cameraStartPos = m_cameraPos;
+			m_panView.panning = true;
+		}
+	}
+	else
+	{
+		moveDelta -= (mx - m_panView.mouseStartPos.x) * rightDir;
+		moveDelta += (my - m_panView.mouseStartPos.y) * upDir;
+		moveDelta *= s_3dViewSettings.panningMultiplier.GetValue();
+
+		// Preview the pan
+		m_cameraPos = m_panView.cameraStartPos + moveDelta;
+
+		if (!io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		{
+			// Apply the pan
+			m_panView.panning = false;
+		}
 	}
 
-	moveDelta.y += up;
+	// Yes, we want this if twice. Otherwise, there would be a nested mess in here.
 
-	moveDelta *= s_3dViewSettings.moveSpeed.GetValue() * dt;
-	
+	if (!m_panView.panning)
+	{
+		float scrollDelta = io.MouseWheel * s_3dViewSettings.scrollSpeed.GetValue();
+		if (scrollDelta != 0)
+		{
 
-	m_cameraPos += moveDelta;
+			// Run TransformMousePos backwards to keep our mouse pos stable
+			moveDelta += ((mx * 2 - 1) * (scrollDelta * m_aspectRatio) - mx) * rightDir;
+			moveDelta -= ((my * 2 - 1) * (scrollDelta)-my) * upDir;
+			moveDelta += scrollDelta * forwardDir;
+		}
 
+
+
+
+		float forward = io.KeysDown[s_3dViewSettings.forward.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.backward.GetValue().key];
+		float right = io.KeysDown[s_3dViewSettings.right.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.left.GetValue().key];
+		float up = io.KeysDown[s_3dViewSettings.up.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.down.GetValue().key];
+
+
+		float magnitude = sqrt(forward * forward + right * right);
+
+		// If our magnitude is 0, we're not moving forward or right
+		if (magnitude != 0)
+		{
+			// We need to make sure we maintain a magnitude of 1
+			moveDelta += forwardDir * forward / magnitude;
+			moveDelta += rightDir * right / magnitude;
+		}
+
+		moveDelta.y += up;
+
+		moveDelta *= s_3dViewSettings.moveSpeed.GetValue() * dt;
+
+		m_cameraPos += moveDelta;
+	}
 
 #ifdef _DEBUG
 	// Nice little debug view for testing
