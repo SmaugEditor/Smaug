@@ -38,18 +38,18 @@ public:
 	/*
 	These are all defined later on.
 
-	CSVar(const char* name, T value) : internal_SVar(name, value) {};
-	CSVar(const char* name, T value, CSVarTable* table) : internal_SVar(name, value, table) {};
+	CSVar(const char* name, T value);
+	CSVar(const char* name, T value, CSVarTable* table);
 
-	void SetName(const char* name)
-	const char* GetName()
-	void* GetData()
+	void SetName(const char* name);
+	const char* GetName();
+	void* GetData();
 
-	void  SetValue(T value)
-	T     GetValue()
+	void  SetValue(T value);
+	T     GetValue();
 
-	char* ToString() { char inv[] = "invalid type"; return (char*)memcpy(new char[sizeof(inv)], inv, sizeof(inv)); }
-	void  FromString(char* str) {}
+	char* ToString();
+	void  FromString(char* str);
 	
 	*/
 };
