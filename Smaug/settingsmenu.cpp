@@ -101,8 +101,8 @@ void CSettingsMenu::DrawMenu()
                 GetSettingsRegister().SaveSettings();
             }
         }
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 void CSettingsMenu::Enable()
@@ -110,8 +110,8 @@ void CSettingsMenu::Enable()
     ImGui::SetNextWindowFocus();
     if (ImGui::Begin("Settings"))
     {
-        ImGui::End();
     }
+    ImGui::End();
     m_shouldShow = true;
 }
 

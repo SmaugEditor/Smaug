@@ -81,8 +81,8 @@ void CUIView::Update(float dt, float mx, float my)
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenu();
-
 		}
+
 		if (ImGui::BeginMenu("Options"))
 		{
 			if (ImGui::MenuItem("Settings"))
@@ -107,7 +107,6 @@ void CUIView::Update(float dt, float mx, float my)
 		ImVec2 inv = ImGui::GetItemRectMin();
 		ImVec2 ixv = ImGui::GetItemRectMax();
 		
-		ImGui::End();
 
 		if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
 		{
@@ -119,6 +118,7 @@ void CUIView::Update(float dt, float mx, float my)
 
 		}
 	}
+	ImGui::End();
 
 	if(ImGui::Begin("3D Preview"))
 	{
@@ -132,8 +132,6 @@ void CUIView::Update(float dt, float mx, float my)
 		ImVec2 inv = ImGui::GetItemRectMin();
 		ImVec2 ixv = ImGui::GetItemRectMax();
 		
-		ImGui::End();
-
 		if (m_drawPreviewView && (hoveredOn3DPreview || m_previewView.m_controllingCamera))
 		{
 			float x = (mv.x - inv.x) / (ixv.x - inv.x);
@@ -142,6 +140,7 @@ void CUIView::Update(float dt, float mx, float my)
 			m_previewView.Update(dt, x, y);
 		}
 	}
+	ImGui::End();
 
 	if (ImGui::Begin("Object Editor"))
 	{
@@ -150,8 +149,8 @@ void CUIView::Update(float dt, float mx, float my)
 		m_selectedView.m_aspectRatio = imageSize.x / imageSize.y;
 		ImGui::Image(m_selectedView.GetImTextureID(), imageSize);
 		bool hoveredOnSelectionEditor = ImGui::IsItemHovered();
-		ImGui::End();
 	}
+	ImGui::End();
 
 	if (ImGui::Begin("Edit History"))
 	{
@@ -161,8 +160,8 @@ void CUIView::Update(float dt, float mx, float my)
 		{
 			ImGui::Text(actionHistory[i]->GetName());
 		}
-		ImGui::End();
 	}
+	ImGui::End();
 
 	 
 	m_toolBox.ShowToolBox();

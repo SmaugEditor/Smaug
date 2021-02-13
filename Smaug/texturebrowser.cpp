@@ -19,7 +19,7 @@ CTextureBrowser::CTextureBrowser()
 void CTextureBrowser::Show()
 {
 	static bool open = true;
-	if (open && ImGui::Begin("Texture Browser", &open))
+	if (ImGui::Begin("Texture Browser", &open))
 	{
 		ImVec2 contentRegion = ImGui::GetContentRegionAvail();
 		
@@ -48,8 +48,8 @@ void CTextureBrowser::Show()
 				ImGui::SameLine();
 
 		}
-		ImGui::End();
 	}
+	ImGui::End();
 }
 
 CTextureBrowser& TextureBrowser()

@@ -180,8 +180,8 @@ void C3DView::Update(float dt, float mx, float my)
 		ImGui::InputFloat3("Angle", (float*)&m_cameraAngle);
 		ImGui::InputFloat3("Position", (float*)&m_cameraPos);
 		ImGui::InputFloat3("MoveDelta", (float*)&moveDelta);
-		ImGui::End();
 	}
+	ImGui::End();
 
 #endif
 
