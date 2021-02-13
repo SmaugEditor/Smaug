@@ -17,6 +17,7 @@ set( SOURCES
 	cursor.cpp 
 
 	utils.cpp 
+	raytest.cpp
 
 	worldeditor.cpp 
 	worldrenderer.cpp 
