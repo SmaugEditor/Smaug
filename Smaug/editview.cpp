@@ -138,7 +138,7 @@ void CEditView::Draw(float dt)
 
 
 	// Cursor
-	GetCursor().Draw();
+	GetCursor().Draw(m_viewZoom / 16.0f);
 
 
 	// Camera Icon

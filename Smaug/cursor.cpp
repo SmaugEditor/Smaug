@@ -43,7 +43,7 @@ void CCursor::Update(float dt)
 	m_cursorSpinTime += dt * ( m_selectedObject ? 1 : -1 );
 }
 
-void CCursor::Draw()
+void CCursor::Draw(float scale)
 {
 	/*
 	glm::mat4 mtx = glm::identity<glm::mat4>();
@@ -53,7 +53,7 @@ void CCursor::Draw()
 	BasicDraw().Cube(mtx);
 	*/
 	
-	m_model->Render(m_position, { m_cursorSpinTime * 1.75f, m_cursorSpinTime * 0.5f, 0.0f }, glm::vec3(2.5f, 2.5f, 2.5f));
+	m_model->Render(m_position, { m_cursorSpinTime * 1.75f, m_cursorSpinTime * 0.5f, 0.0f }, glm::vec3(scale));
 }
 
 void CCursor::SetPosition(glm::vec3 pos)

@@ -11,7 +11,7 @@ public:
 
 	void Update(float dt);
 
-	void Draw();
+	void Draw(float scale = 2.5f);
 
 	void SetPosition(glm::vec3 pos);
 	void SetSelection(selectionInfo_t info);
