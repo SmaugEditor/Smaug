@@ -13,6 +13,7 @@ public:
 
 	virtual const char* GetName() = 0;
 	virtual const char* GetIconPath() = 0;
+	virtual const char* GetCursorPath() = 0;
 	
 	bgfx::TextureHandle GetIconTexture() { return m_iconHandle; }
 
@@ -22,7 +23,7 @@ public:
 	// While this key is held, this tool is active
 	virtual int GetHoldKey() = 0;
 
-	virtual void Enable() {};
+	virtual void Enable();
 	virtual void Update(float dt, glm::vec3 mousePos) {};
 	virtual void Disable() {};
 

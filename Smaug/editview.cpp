@@ -137,9 +137,9 @@ void CEditView::Draw(float dt)
 		bgfx::submit(m_viewId, m_shaderProgram);
 	}
 
+
 	// Cursor
 	GetCursor().Draw();
-	bgfx::submit(m_viewId, m_shaderProgram);
 
 
 	// Camera Icon

@@ -1,6 +1,10 @@
 #include "toolbox.h"
-#include "imgui.h"
 #include "smaugapp.h"
+#include "cursor.h"
+
+#include <imgui.h>
+
+#define EMPTY_TOOL_MODEL "assets/gizmo.obj"
 
 CToolBox::CToolBox()
 {
@@ -149,6 +153,8 @@ void CToolBox::Update(float dt, glm::vec3 mousePos)
 	// If we have a current tool selected, update it
 	if (m_currentTool)
 		m_currentTool->Update(dt, mousePos);
+	else
+		GetCursor().SetPosition(mousePos);
 }
 
 void CToolBox::SetTool(CBaseTool* tool)
@@ -160,6 +166,8 @@ void CToolBox::SetTool(CBaseTool* tool)
 	m_currentTool = tool;
 	if (m_currentTool)
 		m_currentTool->Enable();
+	else
+		GetCursor().SetModel(EMPTY_TOOL_MODEL);
 }
 
 void CToolBox::SwitchToLast()

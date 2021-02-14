@@ -9,6 +9,7 @@
 #include "svar.h"
 #include "svarex.h"
 
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
@@ -37,8 +38,8 @@ DEFINE_SETTINGS_MENU("3D View", s_3dViewSettings);
 void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
-	m_cameraAngle = glm::vec3(0, 0, 0);
-	m_cameraPos = glm::vec3(0, 0, 0);
+	m_cameraAngle = glm::vec3(0, 0.25, -1.57);
+	m_cameraPos = glm::vec3(0, 15, 15);
 	m_controllingCamera = false;
 
 }
@@ -66,9 +67,9 @@ void C3DView::Draw(float dt)
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 
+	//bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 	// Draw the Cursor
 	GetCursor().Draw();
-	bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 
 }
 

@@ -10,6 +10,7 @@
 
 void CBaseDragTool::Enable()
 {
+	CBaseTool::Enable();
 	m_inDrag = false;
 
 }
@@ -67,4 +68,9 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePos)
 void CBaseTool::Init()
 {
 	m_iconHandle = TextureManager().LoadTexture(GetIconPath());
+}
+
+void CBaseTool::Enable()
+{
+	GetCursor().SetModel(GetCursorPath());
 }
