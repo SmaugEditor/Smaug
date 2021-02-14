@@ -14,6 +14,7 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
 #include <GLFW/glfw3.h>
+#include <grid.h>
 
 
 BEGIN_SVAR_TABLE(C3DViewSettings)
@@ -70,6 +71,8 @@ void C3DView::Draw(float dt)
 	//bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 	// Draw the Cursor
 	GetCursor().Draw();
+
+	Grid().Draw();
 
 }
 

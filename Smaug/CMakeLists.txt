@@ -44,10 +44,12 @@ set( SOURCES
 	settingsmenu.cpp
 
 	texturebrowser.cpp
+
+	grid.cpp
 )
 
-set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc )
-set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc )
+set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc shaders/vs_grid.sc )
+set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc shaders/fs_grid.sc )
 
 set( SHADER_OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders" )
 set( GLSL_VERSION 430 )

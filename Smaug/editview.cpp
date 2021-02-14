@@ -11,6 +11,7 @@
 #include "cursor.h"
 #include "svarex.h"
 #include "modelmanager.h"
+#include "grid.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp> 
@@ -146,37 +147,10 @@ void CEditView::Draw(float dt)
 	glm::vec3 camPos = GetApp().m_uiView.m_previewView.m_cameraPos;
 
 	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5));
-	/*
-	// Our movement directions
-	glm::vec3 forwardDir;
-	glm::vec3 rightDir;
-	glm::vec3 upDir;
+	
 
-	Directions(camAngle, &forwardDir, &rightDir, &upDir);
+	Grid().Draw({ -width - m_cameraPos.x, width - m_cameraPos.x, -height - m_cameraPos.z, height - m_cameraPos.z });
 
-	glm::mat4 mtx;
-
-	// Up
-	mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, camPos + upDir * 5.0f);
-	mtx = glm::scale(mtx, glm::vec3(1.5f, 1.5f, 1.5f));
-	BasicDraw().Cube(mtx);
-	bgfx::submit(m_viewId, m_shaderProgram);
-
-	// Forward
-	mtx = glm::identity<glm::mat4>();	
-	mtx = glm::translate(mtx, camPos + forwardDir * 5.0f);
-	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-	BasicDraw().Cube(mtx);
-	bgfx::submit(m_viewId, m_shaderProgram);
-
-	// Right
-	mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, camPos + rightDir * 5.0f);
-	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-	BasicDraw().Cube(mtx);
-	bgfx::submit(m_viewId, m_shaderProgram);
-	*/
 }
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)
