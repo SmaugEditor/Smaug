@@ -188,7 +188,11 @@ IModel* CModelManager::LoadModel(const char* path)
         aiProcess_SortByPType);
     
     if (!scene || scene->mNumMeshes == 0)
+    {
+        // Oh, no. We failed to load the image...
+        printf("[Model Manager] Failed to load model %s\n", path);
         return GetErrorModel();
+    }
 
     CModel* model = new CModel;
     aiMesh* mesh = scene->mMeshes[0];
@@ -218,6 +222,9 @@ IModel* CModelManager::LoadModel(const char* path)
     // Add the model to the map
     m_modelMap.emplace(std::string(path), model);
 
+
+
+    printf("[Model Manager] Loaded model %s\n", path);
     return model;
 }
 
