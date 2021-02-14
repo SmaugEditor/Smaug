@@ -5,6 +5,7 @@
 
 struct nodeSide_t;
 class CNode;
+class IModel;
 
 class CEditView : public CBaseView
 {
@@ -32,5 +33,6 @@ private:
 		glm::vec3 cameraStartPos;
 	} m_panView;
 
+	IModel* m_cameraModel;
 };
 
