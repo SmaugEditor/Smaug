@@ -1,3 +1,8 @@
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(ASSIMP_NO_EXPORT ON)
+
 set( SOURCES 
 
 	main.cpp
@@ -7,6 +12,7 @@ set( SOURCES
 
 	shadermanager.cpp 
 	texturemanager.cpp
+	modelmanager.cpp
 	basicdraw.cpp 
 
 	3dview.cpp
@@ -40,8 +46,8 @@ set( SOURCES
 	texturebrowser.cpp
 )
 
-set( VERTEX_SHADERS shaders/vs_preview_view.sc )
-set( FRAGMENT_SHADERS shaders/fs_preview_view.sc )
+set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc )
+set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc )
 
 set( SHADER_OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders" )
 set( GLSL_VERSION 430 )
@@ -82,8 +88,8 @@ endforeach()
 
 include_directories( . )
 add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} )
-target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} )
-target_link_libraries( smaug bigg keyvalues )
+target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp )
+target_link_libraries( smaug bigg keyvalues assimp )
 
 
 install(DIRECTORY ${SHADER_OUT_DIR} DESTINATION bin)

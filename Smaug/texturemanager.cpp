@@ -4,6 +4,31 @@
 #include <stb_image.h>
 
 
+const static uint8_t s_errorTexture[] =
+{
+	255, 000, 000,   000, 000, 000,
+	000, 000, 000,   255, 000, 000
+};
+
+class CErrorTexture
+{
+public:
+	CErrorTexture()
+	{
+		const bgfx::Memory* mem = bgfx::alloc(sizeof(s_errorTexture));
+		memcpy(mem->data, s_errorTexture, sizeof(s_errorTexture));
+		m_textureHandle = bgfx::createTexture2D(2, 2, false, 1, bgfx::TextureFormat::Enum::RGB8, 0, mem);
+	}
+
+	bgfx::TextureHandle m_textureHandle;
+};
+
+static bgfx::TextureHandle GetErrorTexture()
+{
+	static CErrorTexture s_errorT;
+	return s_errorT.m_textureHandle;
+}
+
 bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 {
 	auto textureSearch = m_textureMap.find(path);
@@ -62,7 +87,12 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 
 	// Oh, no. We failed to load the image...
 	printf("[ERROR] Failed to load image %s\n", path);
-	return BGFX_INVALID_HANDLE;
+	return ErrorTexture();
+}
+
+bgfx::TextureHandle CTextureManager::ErrorTexture()
+{
+	return GetErrorTexture();
 }
 
 CTextureManager& TextureManager()

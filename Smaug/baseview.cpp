@@ -1,4 +1,5 @@
 #include "baseview.h"
+#include "modelmanager.h"
 
 void CBaseView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -34,6 +35,8 @@ void CBaseView::Draw(float dt)
 	bgfx::setViewClear(m_viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, m_clearColor);
 
 	bgfx::touch(m_viewId);
+
+	ModelManager().SetView(m_viewId);
 }
 
 
