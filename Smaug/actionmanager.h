@@ -19,6 +19,11 @@ struct selectionInfo_t
 	nodeWall_t* wall = nullptr;
 };
 
+enum class SolveToLine2DSnap;
+glm::vec3 GetSelectionPos(selectionInfo_t info);
+glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2DSnap* snap = nullptr);
+
+
 class CActionManager;
 
 // Actions are single moves performed on single objects one at a time

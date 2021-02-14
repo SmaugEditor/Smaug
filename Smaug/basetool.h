@@ -24,7 +24,8 @@ public:
 	virtual int GetHoldKey() = 0;
 
 	virtual void Enable();
-	virtual void Update(float dt, glm::vec3 mousePos) {};
+	// Mouse pos is snapped to grid, raw is not. Use raw for selections and snapped for actions
+	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw) {};
 	virtual void Disable() {};
 
 private:
@@ -47,7 +48,7 @@ class CBaseDragTool : public CBaseSelectionTool
 public:
 
 	virtual void Enable();
-	virtual void Update(float dt, glm::vec3 mousePos);
+	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw);
 
 	virtual void StartDrag() = 0;
 	virtual void EndDrag() = 0;

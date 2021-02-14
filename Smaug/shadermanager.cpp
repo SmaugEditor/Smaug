@@ -11,10 +11,11 @@ s_programInfo[] = {
 	{nullptr, nullptr}, // Shader::NONE
 
 	{"fs_preview_view.bin", "vs_preview_view.bin"}, // Shader::WORLD_PREVIEW_SHADER
-	{"fs_cubes.bin", "vs_cubes.bin"}, // Shader::EDIT_VIEW_SHADER
-	{"fs_cubes.bin", "vs_cubes.bin"}, // Shader::CURSOR_SHADER
-	{"fs_model.bin", "vs_model.bin"}, // Shader::MODEL_SHADER
-	{"fs_cubes.bin", "vs_cubes.bin"}, // Shader::ERROR_MODEL_SHADER
+	{"fs_cubes.bin",        "vs_cubes.bin"}, // Shader::EDIT_VIEW_SHADER
+	{"fs_cubes.bin",        "vs_cubes.bin"}, // Shader::CURSOR_SHADER
+	{"fs_model.bin",        "vs_model.bin"}, // Shader::MODEL_SHADER
+	{"fs_cubes.bin",        "vs_cubes.bin"}, // Shader::ERROR_MODEL_SHADER
+	{"fs_grid.bin",         "vs_grid.bin" }, // Shader::GRID
 	
 };
 

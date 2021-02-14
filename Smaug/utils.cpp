@@ -83,6 +83,47 @@ bool IsPointNearPoint2D(glm::vec3 point1, glm::vec3 point2, float range)
 	return glm::length(point2 - point1) <= range;
 }
 
+glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, SolveToLine2DSnap* snap)
+{
+	glm::vec2 line = lineEnd - lineStart;
+	if (line.x == 0 && line.y == 0)
+	{
+		// A Point. No line
+		if (snap) *snap = SolveToLine2DSnap::POINT;
+		return lineEnd;
+	}
+	else if (line.x == 0)
+	{
+		// Straight horizontal
+		if (snap) *snap = SolveToLine2DSnap::X_SNAP;
+		return { lineEnd.x, pos.y };
+	}
+	else if (line.y == 0)
+	{
+		// Straight vertical
+		if (snap) *snap = SolveToLine2DSnap::Y_SNAP;
+		return { pos.x, lineEnd.y };
+	}
+
+	float slope = line.y / line.x;
+
+	if (fabs(slope) > 1)
+	{
+		// Vertical
+		// Solve X onto the line
+		slope = line.x / line.y;
+		if (snap) *snap = SolveToLine2DSnap::X_SNAP;
+		return glm::vec2((pos.y - lineStart.y) * slope + lineStart.x, pos.y);
+	}
+	else
+	{
+		// Horizontal
+		// Solve Y onto the line
+		if (snap) *snap = SolveToLine2DSnap::Y_SNAP;
+		return glm::vec2(pos.x, (pos.x - lineStart.x) * slope + lineStart.y);
+	}
+}
+
 bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 {
 	// Static so we don't reinitiate this

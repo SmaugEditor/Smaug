@@ -126,6 +126,11 @@ void CGrid::Draw(glm::vec4 screen)
 	Draw();
 }
 
+glm::vec3 CGrid::Snap(glm::vec3 in)
+{
+	return { round(in.x * m_vecScale.x * 2.0f) / m_vecScale.x / 2.0f, round(in.y * m_vecScale.y * 2.0f) / m_vecScale.y / 2.0f, round(in.z * m_vecScale.z * 2.0f) / m_vecScale.z / 2.0f };
+}
+
 
 CGrid& Grid()
 {

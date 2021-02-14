@@ -1,6 +1,7 @@
 #include "toolbox.h"
 #include "smaugapp.h"
 #include "cursor.h"
+#include "grid.h"
 
 #include <imgui.h>
 
@@ -152,7 +153,7 @@ void CToolBox::Update(float dt, glm::vec3 mousePos)
 
 	// If we have a current tool selected, update it
 	if (m_currentTool)
-		m_currentTool->Update(dt, mousePos);
+		m_currentTool->Update(dt, Grid().Snap(mousePos), mousePos);
 	else
 		GetCursor().SetPosition(mousePos);
 }

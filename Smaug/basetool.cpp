@@ -15,16 +15,31 @@ void CBaseDragTool::Enable()
 
 }
 
-void CBaseDragTool::Update(float dt, glm::vec3 mousePos)
+void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw)
 {
 	if (m_inDrag)
 	{
 		// When we're in drag, we're waiting for the mouse to be released so we can fire off our action
+		
+
+		glm::vec3 delta = mousePosSnapped - m_mouseStartDragPos;
+		
+		// TODO: Improve for when zooming and etc!
+		// Try to keep things on one axis a bit
+		if (fabs(delta.x) < 2)
+			delta.x = 0;
+		else if (fabs(delta.z) < 2)
+			delta.z = 0;
+		delta.y = 0;
+
+		mousePosSnapped = delta + m_mouseStartDragPos;
+
+		GetCursor().SetEditPosition(mousePosSnapped);
 
 		// Using glfw input until something is figured out about ImGui's overriding
 		if (glfwGetMouseButton(GetApp().GetWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE)
 		{
-			m_mouseDragDelta = mousePos - m_mouseStartDragPos;
+			m_mouseDragDelta = delta;
 			EndDrag();
 
 			m_inDrag = false;
@@ -37,31 +52,32 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePos)
 
 		// Check if we're hovering on anything
 		selectionInfo_t info;
-		bool found = GetActionManager().FindFlags(mousePos, info, GetSelectionType());
+		bool found = GetActionManager().FindFlags(mousePosRaw, info, GetSelectionType());
 		
-		if(found && info.selected != ACT_SELECT_NONE)
+		if (found && info.selected != ACT_SELECT_NONE)
 		{
 			// Got something! We can use this for our cursor if we have something
-			GetCursor().SetSelection(info);
+			glm::vec3 solvedPos = GetCursor().SetSelection(mousePosRaw, info);
+			
+
+			// If we found something, and we're clicking, we can start dragging!
+			// Using glfw input until something is figured out about ImGui's overriding
+			if (glfwGetMouseButton(GetApp().GetWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+			{
+				m_selectionInfo = info;
+				m_inDrag = true;
+				m_mouseStartDragPos = solvedPos;// GetSelectionPos(info);
+				m_mouseDragDelta = glm::vec3(0, 0, 0);
+
+				StartDrag();
+			}
 		}
 		else
 		{
 			// Can't use our search for our mouse pos :(
-			GetCursor().SetPosition(mousePos);
+			GetCursor().SetPosition(mousePosRaw);
+
 		}
-
-		// If we found something, and we're clicking, we can start dragging!
-		// Using glfw input until something is figured out about ImGui's overriding
-		if (found && glfwGetMouseButton(GetApp().GetWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
-		{
-			m_selectionInfo = info;
-			m_inDrag = true;
-			m_mouseStartDragPos = mousePos;
-			m_mouseDragDelta = glm::vec3(0, 0, 0);
-
-			StartDrag();
-		}
-
 	}
 }
 

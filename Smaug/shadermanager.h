@@ -12,6 +12,7 @@ enum class Shader
 	CURSOR_SHADER,
 	MODEL_SHADER,
 	ERROR_MODEL_SHADER,
+	GRID,
 
 	COUNT,
 };

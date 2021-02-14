@@ -3,6 +3,57 @@
 #include "utils.h"
 #include "cursor.h"
 
+
+glm::vec3 GetSelectionPos(selectionInfo_t info)
+{
+	// Smallest to largest
+	if (info.selected & ACT_SELECT_VERT)
+		return info.vertex->origin + info.node->m_origin;
+
+	if (info.selected & ACT_SELECT_WALL)
+		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[1] + info.wall->topPoints[0] + info.wall->topPoints[1]) / 4.0f;
+
+	if (info.selected & ACT_SELECT_SIDE)
+		return info.node->m_origin + (info.side->vertex1->origin + info.side->vertex2->origin) / 2.0f + glm::vec3(0, info.node->m_nodeHeight / 2.0f, 0);
+
+	if (info.selected & ACT_SELECT_NODE)
+		return info.node->m_origin;
+
+	return glm::vec3(0.0f, 0.0f, 0.0f);
+}
+
+glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2DSnap* snap)
+{
+	// Smallest to largest
+	if (info.selected & ACT_SELECT_VERT)
+		return info.vertex->origin + info.node->m_origin + glm::vec3(0, info.node->m_nodeHeight / 2.0f, 0);
+
+	if (info.selected & ACT_SELECT_WALL)
+	{
+		glm::vec3 start = info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->topPoints[0]) / 2.0f;
+		glm::vec3 end = info.node->m_origin + (info.wall->bottomPoints[1] + info.wall->topPoints[1]) / 2.0f;
+		float y = (( start + end ) / 2.0f).y;
+
+		glm::vec2 newPos = SolveToLine2D({ pos.x, pos.z }, { start.x, start.z }, { end.x, end.z }, snap);
+		return { newPos.x, y, newPos.y };
+	}
+
+	if (info.selected & ACT_SELECT_SIDE)
+	{
+		glm::vec3 start = info.node->m_origin + info.side->vertex1->origin;
+		glm::vec3 end = info.node->m_origin + info.side->vertex2->origin;
+		float y = info.node->m_origin.y + info.node->m_nodeHeight / 2.0f;
+
+		glm::vec2 newPos = SolveToLine2D({ pos.x, pos.z }, { start.x, start.z }, { end.x, end.z }, snap);
+		return { newPos.x, y, newPos.y };
+	}
+
+	if (info.selected & ACT_SELECT_NODE)
+		return info.node->m_origin;
+
+	return glm::vec3(0.0f, 0.0f, 0.0f);
+}
+
 CActionManager& GetActionManager()
 {
 	static CActionManager actionManager;

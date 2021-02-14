@@ -1,35 +1,20 @@
 #include "cursor.h"
 #include "basicdraw.h"
 #include "modelmanager.h"
+#include "grid.h"
+#include "utils.h"
 
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp> 
 #include <imgui.h>
 
-static glm::vec3 GetSelectionPos(selectionInfo_t info)
-{
-	// Smallest to largest
-	if (info.selected & ACT_SELECT_VERT)
-		return info.vertex->origin + info.node->m_origin;
-
-	if (info.selected & ACT_SELECT_WALL)
-		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[1] + info.wall->topPoints[0] + info.wall->topPoints[1]) / 4.0f;
-
-	if (info.selected & ACT_SELECT_SIDE)
-		return info.node->m_origin + (info.side->vertex1->origin + info.side->vertex2->origin) / 2.0f + glm::vec3(0, info.node->m_nodeHeight/2.0f, 0);
-
-	if (info.selected & ACT_SELECT_NODE)
-		return info.node->m_origin;
-
-	return glm::vec3(0.0f, 0.0f, 0.0f);
-}
 
 CCursor::CCursor()
 {
 	m_position = glm::vec3(0,0,0);
 
-	m_selectedObject = false;
+	m_cursorMode = CursorMode::NONE;
 
 	m_cursorSpinTime = 0;
 	SetModel("assets/gizmo.obj");
@@ -40,41 +25,84 @@ void CCursor::Update(float dt)
 {
 
 	// Spin the cursor backwards if we're selecting something
-	m_cursorSpinTime += dt * ( m_selectedObject ? 1 : -1 );
+	m_cursorSpinTime += dt * ( m_cursorMode != CursorMode::EDITING ? 1 : -1 );
 }
 
 void CCursor::Draw(float scale)
 {
-	/*
-	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, m_position);
-	mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-	mtx *= glm::yawPitchRoll(m_cursorSpinTime * 1.75f, m_cursorSpinTime * 0.5f, 0.0f);
-	BasicDraw().Cube(mtx);
-	*/
-	
-	m_model->Render(m_position, { m_cursorSpinTime * 1.75f, m_cursorSpinTime * 0.5f, 0.0f }, glm::vec3(scale));
+	glm::vec3 rot = glm::vec3(0);
+	glm::vec3 pos = m_position;
+	if (m_cursorMode != CursorMode::NONE)
+	{
+		rot = { m_cursorSpinTime * 1.75f, m_cursorSpinTime * 0.5f, 0.0f };
+	}
+	else
+	{
+		pos = Grid().Snap(m_position);
+	}
+
+	m_model->Render(pos, rot, glm::vec3(scale));
 }
 
 void CCursor::SetPosition(glm::vec3 pos)
 {
-	m_selectedObject = false;
+	SetMode(CursorMode::NONE);
 	m_position = pos;
 }
 
-void CCursor::SetSelection(selectionInfo_t info)
+glm::vec3 CCursor::SetSelection(glm::vec3 pos, selectionInfo_t info)
 {
-	m_selectedObject = info.selected != ACT_SELECT_NONE;
-
-	if (m_selectedObject)
+	if (info.selected != ACT_SELECT_NONE)
 	{
-		m_position = GetSelectionPos(info);
+		SetMode(CursorMode::HOVERING);
+		
+		// TODO: Clean out the double pass!
+		SolveToLine2DSnap snap = SolveToLine2DSnap::POINT;
+		m_position = SolvePosToSelection(info, pos, &snap);
+		glm::vec3 snapedPos = Grid().Snap(m_position);
+		switch (snap)
+		{
+		case SolveToLine2DSnap::POINT:
+			break;
+		case SolveToLine2DSnap::Y_SNAP:
+			m_position = { snapedPos.x, m_position.y, snapedPos.z };
+			m_position = SolvePosToSelection(info, m_position);
+			break;
+		case SolveToLine2DSnap::X_SNAP:
+			m_position = { snapedPos.x, m_position.y, snapedPos.z };
+			m_position = SolvePosToSelection(info, m_position);
+			break;
+		default:
+			break;
+		}
+
+		return m_position;
 	}
+	else if (m_cursorMode == CursorMode::HOVERING)
+	{
+		SetMode(CursorMode::NONE);
+		return pos;
+	}
+}
+
+void CCursor::SetEditPosition(glm::vec3 pos)
+{
+	SetMode(CursorMode::EDITING);
+	m_position = pos;
 }
 
 void CCursor::SetModel(const char* path)
 {
 	m_model = ModelManager().LoadModel(path);
+}
+
+void CCursor::SetMode(CursorMode mode)
+{
+	// If we're moving from none, we need to start the spin
+	if (m_cursorMode == CursorMode::NONE)
+		m_cursorSpinTime = 0;
+
+	m_cursorMode = mode;
 }
 
 CCursor& GetCursor()
