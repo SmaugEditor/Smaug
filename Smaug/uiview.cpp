@@ -52,9 +52,6 @@ void CUIView::Update(float dt, float mx, float my)
 	ImVec2 mv = ImGui::GetMousePos();
 
 	// UI
-#ifdef _DEBUG
-	ImGui::ShowDemoWindow();
-#endif
 
 	if (ImGui::BeginMainMenuBar())
 	{
