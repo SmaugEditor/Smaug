@@ -123,7 +123,7 @@ void CEditView::Draw(float dt)
 	glm::mat4 proj = glm::ortho(-(float)width, (float)width, -(float)height, (float)height, -900.0f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
-	GetWorldRenderer().Draw2D(m_viewId, Shader::EDIT_VIEW_SHADER);
+	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	
 	float t = glfwGetTime();
 
