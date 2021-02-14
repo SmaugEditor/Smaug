@@ -145,7 +145,7 @@ void CEditView::Draw(float dt)
 	glm::vec3 camAngle = GetApp().m_uiView.m_previewView.m_cameraAngle;
 	glm::vec3 camPos = GetApp().m_uiView.m_previewView.m_cameraPos;
 
-	m_cameraModel->Render(camPos, { -camAngle.z + std::numbers::pi / 2.0f, camAngle.y , camAngle.x }, glm::vec3(2.5));
+	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5));
 	/*
 	// Our movement directions
 	glm::vec3 forwardDir;

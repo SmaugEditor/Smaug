@@ -243,7 +243,7 @@ void CModel::Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
     glm::mat4 mtx = glm::identity<glm::mat4>();
     mtx = glm::translate(mtx, origin);
     mtx = glm::scale(mtx, scale);
-    mtx *= glm::yawPitchRoll(angle.x, angle.y, angle.z);
+    mtx *= glm::yawPitchRoll(angle.y, angle.x, angle.z);
 
     
     if (m_texture.idx != bgfx::kInvalidHandle)

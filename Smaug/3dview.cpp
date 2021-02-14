@@ -38,7 +38,7 @@ DEFINE_SETTINGS_MENU("3D View", s_3dViewSettings);
 void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
-	m_cameraAngle = glm::vec3(0, 0.25, -1.57);
+	m_cameraAngle = glm::vec3(0.25, 3.14, 0);
 	m_cameraPos = glm::vec3(0, 15, 15);
 	m_controllingCamera = false;
 
@@ -85,19 +85,19 @@ void C3DView::Update(float dt, float mx, float my)
 
 	if (m_controllingCamera)
 	{
-		glm::vec3 angleDelta = glm::vec3(0, io.MouseDelta.y, io.MouseDelta.x);
+		glm::vec3 angleDelta = glm::vec3(io.MouseDelta.y, -io.MouseDelta.x, 0);
 
 		angleDelta *= s_3dViewSettings.mouseSensitivity.GetValue() / 1000.0f;
 		m_cameraAngle += angleDelta;
 
 		// Lock the view to prevent having upsidedown eyes
-		if (m_cameraAngle.y >= glm::radians(89.9f))
+		if (m_cameraAngle.x >= glm::radians(89.9f))
 		{
-			m_cameraAngle.y = glm::radians(89.9f);
+			m_cameraAngle.x = glm::radians(89.9f);
 		}
-		else if (m_cameraAngle.y <= glm::radians(-89.9f))
+		else if (m_cameraAngle.x <= glm::radians(-89.9f))
 		{
-			m_cameraAngle.y = glm::radians(-89.9f);
+			m_cameraAngle.x = glm::radians(-89.9f);
 		}
 	}
 	
