@@ -1,5 +1,9 @@
 #include "basicdraw.h"
 
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/geometric.hpp>
 
 /*
  * Cube rendering snagged from Bigg's examples
@@ -70,8 +74,9 @@ static TexturedPlanePosColorVertex s_texturedPlaneVertices[] =
 	{ 1.0f,  0.0f, -1.0f, 0.0f, 1.0f },
 	{ 1.0f,  0.0f,  1.0f, 1.0f, 1.0f },
 	{-1.0f,  0.0f,  1.0f, 1.0f, 0.0f },
+
 };
-static const uint16_t s_texturedPlaneTriList[] = { 0, 1, 2, 2, 3, 0 };
+static const uint16_t s_texturedPlaneTriList[] = { 2, 1, 0, 0, 3, 2 };
 
 
 CBasicDraw::CBasicDraw()
@@ -98,6 +103,18 @@ void CBasicDraw::Cube(glm::mat4 mtx)
 
 void CBasicDraw::Plane(glm::mat4 mtx)
 {
+	bgfx::setTransform(&mtx[0][0]);
+	bgfx::setVertexBuffer(0, m_planeVertexBuf);
+	bgfx::setIndexBuffer(m_planeIndexBuf);
+}
+
+void CBasicDraw::Plane(glm::vec3 origin, glm::vec3 scale, glm::vec3 angle)
+{
+	glm::mat4 mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, origin);
+	mtx = glm::scale(mtx, scale);
+	mtx *= glm::yawPitchRoll(angle.x, angle.y, angle.z);
+
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_planeVertexBuf);
 	bgfx::setIndexBuffer(m_planeIndexBuf);

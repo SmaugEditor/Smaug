@@ -10,6 +10,7 @@ public:
 
 	void Cube(glm::mat4 mtx);
 	void Plane(glm::mat4 mtx);
+	void Plane(glm::vec3 origin, glm::vec3 scale, glm::vec3 angle);
 private:
 
 	bgfx::VertexBufferHandle m_cubeVertexBuf;
