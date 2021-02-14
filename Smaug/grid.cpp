@@ -52,8 +52,8 @@ static const uint16_t s_gridTriList[] = { 2, 1, 0, 0, 3, 2 };
 
 CGrid::CGrid()
 {
-	m_iScale = 2;
-	m_vecScale = glm::vec4(1);
+	m_iScale = 3;
+	m_vecScale = glm::vec4(1 / (float)(pow(2, m_iScale)));;
 	
 	GridVertex::init();
 	m_gridScale = bgfx::createUniform("s_gridScale", bgfx::UniformType::Vec4);
