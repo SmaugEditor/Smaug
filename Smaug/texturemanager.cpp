@@ -86,7 +86,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	}
 
 	// Oh, no. We failed to load the image...
-	printf("[ERROR] Failed to load image %s\n", path);
+	printf("[Texture Manager] Failed to load image %s\n", path);
 	return ErrorTexture();
 }
 
