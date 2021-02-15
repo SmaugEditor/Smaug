@@ -50,6 +50,14 @@ void CNode::Init()
 	m_renderData.Setup(this);
 }
 
+void CNode::PreviewUpdate()
+{
+	m_renderData.UpdateBufs();
+
+	// Update our walls
+	ConstructWalls();
+}
+
 void CNode::Update()
 {
 
@@ -58,7 +66,6 @@ void CNode::Update()
 	{
 		m_constrainedTo[i].Update();
 	}
-
 
 
 	// Recenter the origin

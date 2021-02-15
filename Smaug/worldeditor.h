@@ -8,6 +8,7 @@ struct nodeSide_t;
 class CNode;
 struct nodeVertex_t;
 
+
 enum class ConstraintPairType
 {
 	NONE,
@@ -90,6 +91,7 @@ class CNode
 {
 public:
 	void Init();
+	void PreviewUpdate();
 	void Update();
 	void ConstructWalls();
 	bool IsPointInAABB(glm::vec2 point);

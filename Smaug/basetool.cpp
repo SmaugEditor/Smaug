@@ -35,15 +35,19 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 		mousePosSnapped = delta + m_mouseStartDragPos;
 
 		GetCursor().SetEditPosition(mousePosSnapped);
+		m_mouseDragDelta = delta;
 
 		// Using glfw input until something is figured out about ImGui's overriding
 		if (glfwGetMouseButton(GetApp().GetWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE)
 		{
-			m_mouseDragDelta = delta;
 			EndDrag();
 
 			m_inDrag = false;
 			m_selectionInfo.selected = ACT_SELECT_NONE;
+		}
+		else
+		{
+			Preview();
 		}
 	}
 	else

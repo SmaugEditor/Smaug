@@ -50,6 +50,7 @@ public:
 	virtual void Enable();
 	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw);
 
+	virtual void Preview() = 0;
 	virtual void StartDrag() = 0;
 	virtual void EndDrag() = 0;
 
