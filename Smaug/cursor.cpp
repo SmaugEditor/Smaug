@@ -83,6 +83,7 @@ glm::vec3 CCursor::SetSelection(glm::vec3 pos, selectionInfo_t info)
 		SetMode(CursorMode::NONE);
 		return pos;
 	}
+	return pos;
 }
 
 void CCursor::SetEditPosition(glm::vec3 pos)
