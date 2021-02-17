@@ -13,7 +13,7 @@ public:
 	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
 	virtual void Update(float dt, float mx, float my);
 	virtual void Draw(float dt);
-
+	
 	glm::vec3 TransformMousePos(float mx, float my);
 
 private:
@@ -34,5 +34,8 @@ private:
 	} m_panView;
 
 	IModel* m_cameraModel;
+
+	glm::vec3 m_editPlaneAngle;
+
 };
 

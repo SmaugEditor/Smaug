@@ -49,6 +49,8 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_cameraPos = glm::vec3(0, 10, 0);
 	
 	m_panView.panning = false;
+
+	m_editPlaneAngle = glm::vec3(0, 0, 0);
 }
 
 
@@ -148,8 +150,7 @@ void CEditView::Draw(float dt)
 
 	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5));
 	
-
-	Grid().Draw({ -width - m_cameraPos.x, width - m_cameraPos.x, -height - m_cameraPos.z, height - m_cameraPos.z });
+	Grid().Draw({ -width - m_cameraPos.x, width - m_cameraPos.x, -height - m_cameraPos.z, height - m_cameraPos.z }, m_editPlaneAngle);
 
 }
 

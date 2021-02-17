@@ -56,8 +56,9 @@ CGrid::CGrid()
 	m_vecScale = glm::vec4(1 / (float)(pow(2, m_iScale)));;
 	
 	GridVertex::init();
-	m_gridScale = bgfx::createUniform("s_gridScale", bgfx::UniformType::Vec4);
-	
+	m_gridScale = bgfx::createUniform("gridScale", bgfx::UniformType::Vec4);
+	m_gridDirMask = bgfx::createUniform("gridDirMask", bgfx::UniformType::Vec4);
+
 	m_planeVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_gridVertices, sizeof(s_gridVertices)), GridVertex::ms_layout);
 	m_planeIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_gridTriList, sizeof(s_gridTriList)));
 }
@@ -65,6 +66,7 @@ CGrid::CGrid()
 void CGrid::Shutdown()
 {
 	bgfx::destroy(m_gridScale);
+	bgfx::destroy(m_gridDirMask);
 }
 
 
@@ -109,20 +111,29 @@ void CGrid::Draw()
 	glm::vec3 scale = glm::vec3(m_screen.y - m_screen.x, 0, m_screen.w - m_screen.z);
 	glm::mat4 mtx = glm::identity<glm::mat4>();
 	mtx = glm::translate(mtx, glm::vec3(m_screen.x, -0.01, m_screen.z));
+
+	mtx *= glm::yawPitchRoll(m_angles.y, m_angles.x, m_angles.z);
 	mtx = glm::scale(mtx, scale);
+	
+	
 
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_planeVertexBuf);
 	bgfx::setIndexBuffer(m_planeIndexBuf);
 
 	bgfx::setUniform(m_gridScale, &m_vecScale);
+	bgfx::setUniform(m_gridDirMask, &m_vecGridDirMask);
 
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager::GetShaderProgram(Shader::GRID));
 }
 
-void CGrid::Draw(glm::vec4 screen)
+void CGrid::Draw(glm::vec4 screen, glm::vec3 angles)
 {
+	m_angles = angles;
 	m_screen = screen;
+	glm::vec3 vecDir;
+	Directions(angles, 0, 0, &vecDir);
+	m_vecGridDirMask = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z) };
 	Draw();
 }
 

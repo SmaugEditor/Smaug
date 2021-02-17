@@ -11,7 +11,7 @@ public:
 	void Update();
 	void Draw();
 
-	void Draw(glm::vec4 screen); // left, right, bottom, top
+	void Draw(glm::vec4 screen, glm::vec3 angles); // left, right, bottom, top
 
 	glm::vec3 Snap(glm::vec3 in);
 
@@ -20,10 +20,14 @@ private:
 	glm::vec4 m_vecScale;
 
 	glm::vec4 m_screen;
+	glm::vec3 m_vecGridDirMask;
+	glm::vec3 m_angles;
 
 	bgfx::VertexBufferHandle m_planeVertexBuf;
 	bgfx::IndexBufferHandle m_planeIndexBuf;
 	bgfx::UniformHandle m_gridScale;
+	// Which axis should have grid?
+	bgfx::UniformHandle m_gridDirMask;
 
 };
 
