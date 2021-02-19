@@ -66,7 +66,7 @@ void CSettingsMenu::DrawMenu()
                 {
                     ImGui::InputFloat3(var->GetName(), (float*)var->GetData());
                 }
-                else if (info == typeid(key_t))
+                else if (info == typeid(input_t))
                 {
                     // Crusty. Improve this.
                     char* buttonText = var->ToString();
@@ -74,11 +74,11 @@ void CSettingsMenu::DrawMenu()
                     {
                         // So awful
                         size_t len;
-                        keyName_t* keys = GetAllKeys(&len);
+                        inputName_t* keys = GetAllInputs(&len);
                         for(int i = 0; i < len; i++)
-                            if (glfwGetKey(GetApp().GetWindow(), keys[i].id) == GLFW_PRESS)
+                            if (Input().IsDown({ keys[i].id, keys[i].isMouseButton }))
                             {
-                                key_t key{ keys[i].id };
+                                input_t key{ keys[i].id, keys[i].isMouseButton };
                                 var->SetData(&key);
                                 break;
                             }

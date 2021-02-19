@@ -23,13 +23,14 @@ BEGIN_SVAR_TABLE(C3DViewSettings)
 	DEFINE_TABLE_SVAR(mouseSensitivity,  2.0f)
 	DEFINE_TABLE_SVAR(panningMultiplier, 20.0f)
 	DEFINE_TABLE_SVAR(scrollSpeed,       60.0f)
-	DEFINE_TABLE_SVAR_KEY(forward,      GLFW_KEY_W)
-	DEFINE_TABLE_SVAR_KEY(backward,     GLFW_KEY_S)
-	DEFINE_TABLE_SVAR_KEY(left,         GLFW_KEY_A)
-	DEFINE_TABLE_SVAR_KEY(right,        GLFW_KEY_D)
-	DEFINE_TABLE_SVAR_KEY(up,           GLFW_KEY_SPACE)
-	DEFINE_TABLE_SVAR_KEY(down,         GLFW_KEY_LEFT_CONTROL)
-	DEFINE_TABLE_SVAR_KEY(enable,       GLFW_KEY_Z)
+	DEFINE_TABLE_SVAR_INPUT(forward,      GLFW_KEY_W, false)
+	DEFINE_TABLE_SVAR_INPUT(backward,     GLFW_KEY_S, false)
+	DEFINE_TABLE_SVAR_INPUT(left,         GLFW_KEY_A, false)
+	DEFINE_TABLE_SVAR_INPUT(right,        GLFW_KEY_D, false)
+	DEFINE_TABLE_SVAR_INPUT(up,           GLFW_KEY_SPACE, false)
+	DEFINE_TABLE_SVAR_INPUT(down,         GLFW_KEY_LEFT_CONTROL, false)
+	DEFINE_TABLE_SVAR_INPUT(enable,       GLFW_KEY_Z, false)
+	DEFINE_TABLE_SVAR_INPUT(panView,	  GLFW_MOUSE_BUTTON_3, true)
 END_SVAR_TABLE()
 
 static C3DViewSettings s_3dViewSettings;
@@ -80,7 +81,7 @@ void C3DView::Update(float dt, float mx, float my)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	
-	if (io.KeysDown[s_3dViewSettings.enable.GetValue().key] && io.KeysDownDuration[s_3dViewSettings.enable.GetValue().key] == 0)
+	if (Input().IsDown(s_3dViewSettings.enable.GetValue()) && io.KeysDownDuration[s_3dViewSettings.enable.GetValue().code] == 0)
 	{
 		m_controllingCamera = !m_controllingCamera;
 		GetApp().SetMouseLock(m_controllingCamera);
@@ -115,7 +116,7 @@ void C3DView::Update(float dt, float mx, float my)
 	if (!m_panView.panning)
 	{
 		// Should we pan the view?
-		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		if (Input().IsDown(s_3dViewSettings.panView))
 		{
 			m_panView.mouseStartPos = { mx, my };
 			m_panView.cameraStartPos = m_cameraPos;
@@ -126,12 +127,12 @@ void C3DView::Update(float dt, float mx, float my)
 	{
 		moveDelta -= (mx - m_panView.mouseStartPos.x) * rightDir;
 		moveDelta += (my - m_panView.mouseStartPos.y) * upDir;
-		moveDelta *= s_3dViewSettings.panningMultiplier.GetValue();
+		moveDelta *= s_3dViewSettings.panningMultiplier;
 
 		// Preview the pan
 		m_cameraPos = m_panView.cameraStartPos + moveDelta;
 
-		if (!io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		if (!Input().IsDown(s_3dViewSettings.panView))
 		{
 			// Apply the pan
 			m_panView.panning = false;
@@ -142,7 +143,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 	if (!m_panView.panning)
 	{
-		float scrollDelta = io.MouseWheel * s_3dViewSettings.scrollSpeed.GetValue();
+		float scrollDelta = io.MouseWheel * s_3dViewSettings.scrollSpeed;
 		if (scrollDelta != 0)
 		{
 
@@ -155,9 +156,9 @@ void C3DView::Update(float dt, float mx, float my)
 
 
 
-		float forward = io.KeysDown[s_3dViewSettings.forward.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.backward.GetValue().key];
-		float right = io.KeysDown[s_3dViewSettings.right.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.left.GetValue().key];
-		float up = io.KeysDown[s_3dViewSettings.up.GetValue().key] - (int)io.KeysDown[s_3dViewSettings.down.GetValue().key];
+		float forward = Input().Axis(s_3dViewSettings.forward, s_3dViewSettings.backward);
+		float right = Input().Axis(s_3dViewSettings.right, s_3dViewSettings.left);
+		float up = Input().Axis(s_3dViewSettings.up, s_3dViewSettings.down);
 
 
 		float magnitude = sqrt(forward * forward + right * right);
@@ -172,7 +173,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 		moveDelta.y += up;
 
-		moveDelta *= s_3dViewSettings.moveSpeed.GetValue() * dt;
+		moveDelta *= s_3dViewSettings.moveSpeed * dt;
 
 		m_cameraPos += moveDelta;
 	}

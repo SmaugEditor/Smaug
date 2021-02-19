@@ -1,8 +1,8 @@
 #pragma once
 
 #include "actionmanager.h"
+#include "input.h"
 #include <glm/vec3.hpp>
-
 
 class CBaseTool
 {
@@ -18,10 +18,10 @@ public:
 	bgfx::TextureHandle GetIconTexture() { return m_iconHandle; }
 
 	// When this key is pressed, this tool becomes active
-	virtual int GetToggleKey() = 0;
+	virtual input_t GetToggleInput() = 0;
 
 	// While this key is held, this tool is active
-	virtual int GetHoldKey() = 0;
+	virtual input_t GetHoldInput() = 0;
 
 	virtual void Enable();
 	// Mouse pos is snapped to grid, raw is not. Use raw for selections and snapped for actions

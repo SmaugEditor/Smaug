@@ -131,6 +131,7 @@ public:                                                                         
 	using VarType = type;                                                                  \
 	CSVar(const char* name, type value)                    { Init(name, value); }          \
 	CSVar(const char* name, type value, CSVarTable* table) { Init(name, value, table); }   \
+	operator type() const { return m_data; }											   \
 	virtual void SetData(void* data)													   \
 	{                                 													   \
 		SetValue(*(VarType*)data);    													   \

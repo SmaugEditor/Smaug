@@ -23,22 +23,6 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex);
 void Directions(glm::vec3 angles, glm::vec3* forward = nullptr, glm::vec3* right = nullptr, glm::vec3* up = nullptr);
 glm::vec3 Angles(glm::vec3 forward, glm::vec3* up = nullptr);
 
-struct key_t
-{
-public:
-	
-	int key;
-};
-
-struct keyName_t
-{
-	int id;
-	const char* name;
-};
-
-keyName_t* GetAllKeys(size_t* length);
-key_t KeyFromName(const char* name);
-const char* KeyToName(key_t key);
 
 
 template<typename T>

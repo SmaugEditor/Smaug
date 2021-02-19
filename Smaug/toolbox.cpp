@@ -86,12 +86,12 @@ void CToolBox::ShowToolBox()
 		CBaseTool* tool = m_tools[i];
 
 		// Does this tool have a hold key?
-		if (tool->GetHoldKey() != GLFW_KEY_UNKNOWN)
+		if (tool->GetHoldInput().code != GLFW_KEY_UNKNOWN)
 		{
 			if (m_holdingTool && m_currentTool == tool)
 			{
 				// If we're holding this tool and not holding its key, deselect it
-				if (glfwGetKey(GetApp().GetWindow(), tool->GetHoldKey()) == GLFW_RELEASE)
+				if (!Input().IsDown(tool->GetHoldInput()))
 				{
 					m_currentTool->Disable();
 
@@ -108,7 +108,7 @@ void CToolBox::ShowToolBox()
 			else
 			{
 				// Check if we want this tool
-				if (glfwGetKey(GetApp().GetWindow(), tool->GetHoldKey()) == GLFW_PRESS && glfwGetKey)
+				if (Input().IsDown(tool->GetHoldInput()))
 				{
 					// Put our current tool in our pocket
 					if (m_currentTool)
@@ -129,9 +129,9 @@ void CToolBox::ShowToolBox()
 		}
 
 		// Does this tool have a toggle key?
-		if (tool->GetToggleKey() != GLFW_KEY_UNKNOWN)
+		if (tool->GetToggleInput().code != GLFW_KEY_UNKNOWN)
 		{
-			if (glfwGetKey(GetApp().GetWindow(), tool->GetToggleKey()) == GLFW_PRESS)
+			if (Input().IsDown(tool->GetToggleInput()))
 			{
 				if (m_currentTool == tool)
 				{

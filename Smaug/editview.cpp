@@ -21,7 +21,7 @@ BEGIN_SVAR_TABLE(CEditViewSettings)
 	DEFINE_TABLE_SVAR(scrollSpeed,              5.0f)
 	DEFINE_TABLE_SVAR(proportionalScroll,       true)
 	DEFINE_TABLE_SVAR(proportionalScrollScale,  100.0f)
-	// Add Pan Button option!
+	DEFINE_TABLE_SVAR_INPUT(panView, GLFW_MOUSE_BUTTON_3, true)
 END_SVAR_TABLE()
 
 static CEditViewSettings s_editViewSettings;
@@ -86,7 +86,7 @@ void CEditView::Update(float dt, float mx, float my)
 	if (!m_panView.panning)
 	{
 		// Should we pan the view?
-		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		if (Input().IsDown(s_editViewSettings.panView))
 		{
 			m_panView.mouseStartPos = TransformMousePos(mx,my);
 			m_panView.cameraStartPos = m_cameraPos;
@@ -95,7 +95,7 @@ void CEditView::Update(float dt, float mx, float my)
 	}
 	else
 	{
-		if (io.MouseDown[GLFW_MOUSE_BUTTON_3])
+		if (Input().IsDown(s_editViewSettings.panView))
 		{
 			// Preview the pan
 			m_cameraPos = m_panView.cameraStartPos + (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);

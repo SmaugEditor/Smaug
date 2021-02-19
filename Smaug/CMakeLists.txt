@@ -46,6 +46,8 @@ set( SOURCES
 	texturebrowser.cpp
 
 	grid.cpp
+
+	input.cpp
 )
 
 set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc shaders/vs_grid.sc )

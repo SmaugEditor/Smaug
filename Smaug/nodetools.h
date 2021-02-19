@@ -14,10 +14,10 @@ public:
 	virtual const char* GetCursorPath() { return "assets/extrude_gizmo.obj"; }
 
 	// When this key is pressed, this tool becomes active
-	virtual int GetToggleKey();
+	virtual input_t GetToggleInput();
 
 	// While this key is held, this tool is active
-	virtual int GetHoldKey();
+	virtual input_t GetHoldInput();
 
 
 	virtual int GetSelectionType() { return ACT_SELECT_SIDE | ACT_SELECT_VERT; }
@@ -68,10 +68,10 @@ public:
 	virtual const char* GetCursorPath() { return "assets/extend_gizmo.obj"; }
 
 	// When this key is pressed, this tool becomes active
-	virtual int GetToggleKey();
+	virtual input_t GetToggleInput();
 
 	// While this key is held, this tool is active
-	virtual int GetHoldKey();
+	virtual input_t GetHoldInput();
 
 
 	virtual int GetSelectionType() { return ACT_SELECT_WALL; }

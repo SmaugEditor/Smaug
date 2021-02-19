@@ -4,17 +4,18 @@
 #include "smaugapp.h"
 #include "svarex.h"
 #include "basicdraw.h"
+#include "utils.h"
+#include "modelmanager.h"
 
 #include <GLFW/glfw3.h>
-#include <modelmanager.h>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
 
 BEGIN_SVAR_TABLE(CGridSettings)
-	DEFINE_TABLE_SVAR_KEY(increase, GLFW_KEY_RIGHT_BRACKET)
-	DEFINE_TABLE_SVAR_KEY(decrease, GLFW_KEY_LEFT_BRACKET)
+	DEFINE_TABLE_SVAR_INPUT(increase, GLFW_KEY_RIGHT_BRACKET, false)
+	DEFINE_TABLE_SVAR_INPUT(decrease, GLFW_KEY_LEFT_BRACKET, false)
 END_SVAR_TABLE()
 
 static CGridSettings s_gridSettings;
@@ -75,7 +76,7 @@ void CGrid::Update()
 	// Clean this up!
 
 	static int incLastCheck = -1;
-	int inc = glfwGetKey(GetApp().GetWindow(), s_gridSettings.increase.GetValue().key);
+	int inc = Input().IsDown(s_gridSettings.increase.GetValue());
 
 	if (inc == GLFW_REPEAT || (incLastCheck == GLFW_PRESS && inc == GLFW_RELEASE))
 	{
@@ -90,7 +91,7 @@ void CGrid::Update()
 
 
 	static int decLastCheck = -1;
-	int dec = glfwGetKey(GetApp().GetWindow(), s_gridSettings.decrease.GetValue().key);
+	int dec = Input().IsDown(s_gridSettings.decrease.GetValue());
 
 	if (dec == GLFW_REPEAT || (decLastCheck == GLFW_PRESS && dec == GLFW_RELEASE))
 	{
