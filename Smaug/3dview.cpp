@@ -128,6 +128,7 @@ void C3DView::Update(float dt, float mx, float my)
 		moveDelta -= (mx - m_panView.mouseStartPos.x) * rightDir;
 		moveDelta += (my - m_panView.mouseStartPos.y) * upDir;
 		moveDelta *= s_3dViewSettings.panningMultiplier;
+		
 
 		// Preview the pan
 		m_cameraPos = m_panView.cameraStartPos + moveDelta;
@@ -147,10 +148,18 @@ void C3DView::Update(float dt, float mx, float my)
 		if (scrollDelta != 0)
 		{
 
-			// Run TransformMousePos backwards to keep our mouse pos stable
-			moveDelta += ((mx * 2 - 1) * (scrollDelta * m_aspectRatio) - mx) * rightDir;
-			moveDelta -= ((my * 2 - 1) * (scrollDelta)-my) * upDir;
-			moveDelta += scrollDelta * forwardDir;
+			if (m_controllingCamera)
+			{
+				// Run TransformMousePos backwards to keep our mouse pos stable
+				moveDelta += scrollDelta * forwardDir;
+			}
+			else
+			{
+				// Run TransformMousePos backwards to keep our mouse pos stable
+				moveDelta += ((mx * 2 - 1) * (scrollDelta * m_aspectRatio) - mx) * rightDir;
+				moveDelta -= ((my * 2 - 1) * (scrollDelta)-my) * upDir;
+				moveDelta += scrollDelta * forwardDir;
+			}
 		}
 
 
