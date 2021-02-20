@@ -74,8 +74,8 @@ void CToolBox::ShowToolBox()
 				ImGui::SameLine();
 
 		}
-		ImGui::End();
 	}
+	ImGui::End();
 
 	// I could use GetApp()->isKeyDown, but then I'm at the whims of ImGui stealing control...
 	// Find a better solution for this!
