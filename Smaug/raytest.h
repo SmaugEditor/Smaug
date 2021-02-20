@@ -12,7 +12,10 @@ struct line_t
 struct test_t
 {
 	bool hit = false;
+};
 
+struct testLine_t : public test_t
+{
 	glm::vec3 hitPos;
 	
 	// Normal of the plane
@@ -26,4 +29,4 @@ struct test_t
 
 };
 
-test_t testLine(line_t line);
+testLine_t testLine(line_t line);

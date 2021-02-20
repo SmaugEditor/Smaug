@@ -1,17 +1,20 @@
 #include "raytest.h"
 #include "worldeditor.h"
 #include <glm/geometric.hpp>
+#include "basicdraw.h"
+#include <modelmanager.h>
 
+using namespace glm;
 
 struct tri_t
 {
     union
     {
-        glm::vec3 verts[3];
         struct
         {
             glm::vec3 a, b, c;
         };
+        glm::vec3 verts[3];
     };
     glm::vec3& operator[](int i) { return verts[i]; }
 };
@@ -19,7 +22,123 @@ struct tri_t
 
 
 // Adapted from 3D math primer for graphics and game development / Fletcher Dunn, Ian Parberry. -- 2nd ed. pg 724
-test_t rayTriangleTest(line_t line, tri_t tri, float closestT)
+testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
+{
+    glm::vec3 edge1 = tri.b - tri.a;
+    glm::vec3 edge2 = tri.c - tri.b;
+
+    // Unnormalized normal of the face
+    glm::vec3 normal = glm::cross(edge1, edge2);
+
+    // Angle of approach on the face
+    float approach = glm::dot(line.delta, normal);
+
+    // If parallel to or not facing the plane, dump it
+    // 
+    // the ! < dumps malformed triangles with NANs!
+    // does not serve the same purpose as >=
+    if (!(approach < 0.0f))
+    {
+        return { false };
+    }
+
+    // All points on the plane have the same dot, defined as d
+    float d = glm::dot(tri.a, normal);
+
+    // Parametric point of intersection with the plane of the tri and the line
+    float t = (d - glm::dot(line.origin, normal)) / approach;
+
+    // (p0 + tD) * n = d
+    // tD*n = d - p0*d
+
+
+    // Ignore backside and NANs
+    if (!(t >= 0.0f))
+        return { false };
+
+    // If something else was closer, skip our current and NANs
+    if (!(t <= closestT))
+    {
+        return { false };
+    }
+
+    // 3D point of intersection
+    glm::vec3 p = line.origin + line.delta * t;
+
+    testLine_t test;
+    test.hit = true;
+    test.t = t;
+    test.normal = normal;
+    test.approach = approach;
+    test.hitPos = p;
+
+    return test;
+}
+
+void rayPlaneTest(line_t line, tri_t tri, testLine_t& lastTest)
+{
+    testLine_t rayTest = rayPlaneTest(line, tri, lastTest.t);
+    if (rayTest.hit)
+        lastTest = rayTest;
+}
+
+testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
+{
+    glm::vec3 edge1 = tri.b - tri.a;
+    glm::vec3 edge2 = tri.c - tri.b;
+
+    // Unnormalized normal of the face
+    glm::vec3 normal = glm::cross(edge1, edge2);
+
+    // Angle of approach on the face
+    float approach = glm::dot(line.delta, normal);
+
+    // If parallel to or not facing the plane, dump it
+    // 
+    // the ! < dumps malformed triangles with NANs!
+    // does not serve the same purpose as >=
+    if (!(approach < 0.0f))
+    {
+        return { false };
+    }
+
+    // All points on the plane have the same dot, defined as d
+    float d = glm::dot(tri.a, normal);
+
+    // Parametric point of intersection with the plane of the tri and the line
+    float t = (d - glm::dot(line.origin, normal)) / approach;
+
+    // (p0 + tD) * n = d
+    // tD*n = d - p0*d
+
+
+    // If something else was closer, skip our current and NANs
+    if (!(t <= closestT))
+    {
+        return { false };
+    }
+
+    // 3D point of intersection
+    glm::vec3 p = line.origin + line.delta * t;
+
+    testLine_t test;
+    test.hit = true;
+    test.t = t;
+    test.normal = normal;
+    test.approach = approach;
+    test.hitPos = p;
+
+    return test;
+}
+
+void rayPlaneTestNoCull(line_t line, tri_t tri, testLine_t& lastTest)
+{
+    testLine_t rayTest = rayPlaneTest(line, tri, lastTest.t);
+    if (rayTest.hit)
+        lastTest = rayTest;
+}
+
+testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
     glm::vec3 edge2 = tri.c - tri.b;
@@ -108,7 +227,7 @@ test_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
         return { false };
 
-    test_t test;
+    testLine_t test;
     test.hit = true;
     test.t = t;
     test.normal = normal;
@@ -118,24 +237,78 @@ test_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     return test;
 }
 
-void rayTriangleTest(line_t line, tri_t tri, test_t& lastTest)
+void rayTriangleTest(line_t line, tri_t tri, testLine_t& lastTest)
 {
-    test_t rayTest = rayTriangleTest(line, tri, lastTest.t);
+    testLine_t rayTest = rayTriangleTest(line, tri, lastTest.t);
     if (rayTest.hit)
         lastTest = rayTest;
 }
 
 // In clockwise order from topleft
 struct quad_t { glm::vec3 topLeft, topRight, bottomRight, bottomLeft; };
-void rayQuadTest(line_t line, quad_t quad, test_t& lastTest)
+void rayQuadTest(line_t line, quad_t quad, testLine_t& lastTest)
 {
     rayTriangleTest(line, { quad.topLeft, quad.topRight, quad.bottomRight }, lastTest);
     rayTriangleTest(line, { quad.bottomRight, quad.bottomLeft, quad.topLeft }, lastTest);
 }
 
 
-void testNode(line_t line, CNode* node, test_t& end)
+
+// This is terrible
+void rayAABBTest(line_t line, aabb_t aabb, testLine_t& lastTest)
 {
+    vec3 min = aabb.min;
+    vec3 max = aabb.max;
+    
+    // 6 sides
+    // clockwise-side-out order
+    // max first and min second
+    // made from our aabb
+
+    testLine_t test;
+    tri_t plane;
+
+    plane = { max,                       vec3(max.x, max.y, min.z), vec3(min.x, max.y, min.z) }; // Top
+    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.z >= plane[2].z && test.hitPos.x <= plane[0].x && test.hitPos.z <= plane[0].z)
+        lastTest = test;
+
+    plane = { vec3(max.x, min.y, max.z), vec3(min.x, min.y, max.z), min                       };  // Bottom
+    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.z >= plane[2].z && test.hitPos.x <= plane[0].x && test.hitPos.z <= plane[0].z)
+        lastTest = test;
+
+    plane = { max,                       vec3(max.x, min.y, max.z), vec3(max.x, min.y, min.z) }; // Right
+    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    if (test.hit && test.hitPos.z >= plane[2].z && test.hitPos.y >= plane[2].y && test.hitPos.z <= plane[0].z && test.hitPos.y <= plane[0].y)
+        lastTest = test;
+
+    plane = { vec3(min.x, max.y, max.z), vec3(min.x, max.y, min.z), min                       }; // Left
+    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    if (test.hit && test.hitPos.z >= plane[2].z && test.hitPos.y >= plane[2].y && test.hitPos.z <= plane[0].z && test.hitPos.y <= plane[0].y)
+        lastTest = test;
+
+    plane = { max,                       vec3(min.x, max.y, max.z), vec3(min.x, min.y, max.z) }; // Front
+    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.y >= plane[2].y && test.hitPos.x <= plane[0].x && test.hitPos.y <= plane[0].y)
+        lastTest = test;
+
+    plane = { vec3(max.x, max.y, min.z), vec3(max.x, min.y, min.z), min                       }; // Back
+    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.y >= plane[2].y && test.hitPos.x <= plane[0].x && test.hitPos.y <= plane[0].y)
+        lastTest = test;
+
+}
+
+void testNode(line_t line, CNode* node, testLine_t& end)
+{
+    testLine_t aabbTest;
+    aabb_t aabb = { glm::vec3(node->m_aabb.bottomLeft.x + node->m_origin.x, node->m_origin.y,                      node->m_aabb.bottomLeft.y + node->m_origin.z),
+                    glm::vec3(node->m_aabb.topRight.x   + node->m_origin.x, node->m_origin.y + node->m_nodeHeight, node->m_aabb.topRight.y   + node->m_origin.z) };
+    
+    rayAABBTest(line, aabb, aabbTest);
+    if (!aabbTest.hit)
+        return;
 
     // Test walls
     for (int i = 0; i < node->m_sideCount; i++)
@@ -155,9 +328,9 @@ void testNode(line_t line, CNode* node, test_t& end)
         rayTriangleTest(line, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin }, end);
 }
 
-test_t testLine(line_t line)
+testLine_t testLine(line_t line)
 {
-    test_t end = { false };
+    testLine_t end = { false };
 
     size_t nodeCount = GetWorldEditor().m_nodes.size();
     for (size_t i = 0; i < nodeCount; i++)
