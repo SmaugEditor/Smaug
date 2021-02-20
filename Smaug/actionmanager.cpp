@@ -85,7 +85,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		// Check if we're in the AABB
 		// Note: Maybe add a threshold to this?
 
-		if (!node->IsPointInAABB({ mousePos.x, mousePos.z }))
+		if (!node->IsPointInAABB(mousePos))
 			continue; // Not in bounds!
 
 

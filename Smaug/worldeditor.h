@@ -79,13 +79,6 @@ enum class NodeType
 	TRI,
 };
 
-struct boundingBox2D_t
-{
-	glm::vec2 topRight;
-	glm::vec2 bottomLeft;
-
-};
-
 
 class CNode
 {
@@ -94,7 +87,13 @@ public:
 	void PreviewUpdate();
 	void Update();
 	void ConstructWalls();
-	bool IsPointInAABB(glm::vec2 point);
+	bool IsPointInAABB(glm::vec3 point);
+
+	// Absolute to world
+	aabb_t GetAbsAABB();
+	// Local to node's origin
+	aabb_t GetLocalAABB() { return m_aabb; }
+
 protected:
 	void LinkSides();
 	void CalculateAABB();
@@ -116,11 +115,13 @@ public:
 	CConstraint m_constrainedTo[16]; // We are constrained by these constraints 
 	int m_constrainedToCount = 0;
 
-	boundingBox2D_t m_aabb;
 	float m_aabbLength;
 
 	bool m_useCalculatedNodeHeight;
 	float m_nodeHeight;
+
+protected:
+	aabb_t m_aabb;
 };
 
 // I've been told hammer only likes triangles and quads. How sad!

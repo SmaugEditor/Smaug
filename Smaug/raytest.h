@@ -29,4 +29,9 @@ struct testLine_t : public test_t
 
 };
 
+// Test if a line hits any geo in the world
 testLine_t testLine(line_t line);
+
+bool testPointInAABB(glm::vec3 point, aabb_t aabb);
+// sizes up the aabb by aabbBloat units before testing
+bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);

@@ -20,8 +20,25 @@ struct tri_t
 };
 
 
+bool testPointInAABB(glm::vec3 point, aabb_t aabb)
+{
+    return point.x <= aabb.max.x && point.y <= aabb.max.y && point.z <= aabb.max.z
+        && point.x >= aabb.min.x && point.y >= aabb.min.y && point.z >= aabb.min.z;
+}
 
+bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat)
+{
+    aabb.min -= aabbBloat;
+    aabb.max += aabbBloat;
+    return testPointInAABB(point, aabb);
+}
+
+///////////////
+// Ray Tests //
+///////////////
 // Adapted from 3D math primer for graphics and game development / Fletcher Dunn, Ian Parberry. -- 2nd ed. pg 724
+// Lot of this code is a bit duplicated. Clean it up?
+
 testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
@@ -82,6 +99,8 @@ void rayPlaneTest(line_t line, tri_t tri, testLine_t& lastTest)
         lastTest = rayTest;
 }
 
+
+
 testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
@@ -137,6 +156,8 @@ void rayPlaneTestNoCull(line_t line, tri_t tri, testLine_t& lastTest)
     if (rayTest.hit)
         lastTest = rayTest;
 }
+
+
 
 testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
 {
@@ -244,6 +265,7 @@ void rayTriangleTest(line_t line, tri_t tri, testLine_t& lastTest)
         lastTest = rayTest;
 }
 
+
 // In clockwise order from topleft
 struct quad_t { glm::vec3 topLeft, topRight, bottomRight, bottomLeft; };
 void rayQuadTest(line_t line, quad_t quad, testLine_t& lastTest)
@@ -303,9 +325,9 @@ void rayAABBTest(line_t line, aabb_t aabb, testLine_t& lastTest)
 void testNode(line_t line, CNode* node, testLine_t& end)
 {
     testLine_t aabbTest;
-    aabb_t aabb = { glm::vec3(node->m_aabb.bottomLeft.x + node->m_origin.x, node->m_origin.y,                      node->m_aabb.bottomLeft.y + node->m_origin.z),
-                    glm::vec3(node->m_aabb.topRight.x   + node->m_origin.x, node->m_origin.y + node->m_nodeHeight, node->m_aabb.topRight.y   + node->m_origin.z) };
-    
+    aabb_t aabb = node->GetAbsAABB();
+
+
     rayAABBTest(line, aabb, aabbTest);
     if (!aabbTest.hit)
         return;
@@ -339,3 +361,4 @@ testLine_t testLine(line_t line)
     }
     return end;
 }
+

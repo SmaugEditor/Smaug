@@ -1,4 +1,6 @@
 #include "worldeditor.h"
+#include "raytest.h"
+
 #include <glm/geometric.hpp>
 #include <glm/common.hpp>
 
@@ -277,12 +279,18 @@ void CNode::ConstructWalls()
 
 }
 
-bool CNode::IsPointInAABB(glm::vec2 point)
-{
-	point.x -= m_origin.x;
-	point.y -= m_origin.z;
 
-	return point.x <= m_aabb.topRight.x && point.y <= m_aabb.topRight.y && point.x >= m_aabb.bottomLeft.x && point.y >= m_aabb.bottomLeft.y;
+bool CNode::IsPointInAABB(glm::vec3 point)
+{
+	return testPointInAABB(point, GetAbsAABB(), 1.25f);
+}
+
+aabb_t CNode::GetAbsAABB()
+{
+	aabb_t aabb = m_aabb;
+	aabb.min += m_origin;
+	aabb.max += m_origin;
+	return aabb;
 }
 
 void CNode::LinkSides()
@@ -300,26 +308,32 @@ void CNode::LinkSides()
 
 void CNode::CalculateAABB()
 {
-	glm::vec2 topRight = { FLT_MIN, FLT_MIN };
-	glm::vec2 bottomLeft = { FLT_MAX, FLT_MAX };
+	glm::vec3 max = { FLT_MIN, FLT_MIN, FLT_MIN };
+	glm::vec3 min = { FLT_MAX, FLT_MAX, FLT_MAX };
 	for (int i = 0; i < m_sideCount; i++)
 	{
-		if (m_vertexes[i].origin.x > topRight.x)
-			topRight.x = m_vertexes[i].origin.x;
-		if (m_vertexes[i].origin.z > topRight.y)
-			topRight.y = m_vertexes[i].origin.z;
+		if (m_vertexes[i].origin.x > max.x)
+			max.x = m_vertexes[i].origin.x;
+		if (m_vertexes[i].origin.y > max.y)
+			max.y = m_vertexes[i].origin.y;
+		if (m_vertexes[i].origin.z > max.z)
+			max.z = m_vertexes[i].origin.z;
 
-		if (m_vertexes[i].origin.x < bottomLeft.x)
-			bottomLeft.x = m_vertexes[i].origin.x;
-		if(m_vertexes[i].origin.z < bottomLeft.y)
-			bottomLeft.y = m_vertexes[i].origin.z;
+		if (m_vertexes[i].origin.x < min.x)
+			min.x = m_vertexes[i].origin.x;
+		if(m_vertexes[i].origin.y < min.y)
+			min.y = m_vertexes[i].origin.y;
+		if (m_vertexes[i].origin.z < min.z)
+			min.z = m_vertexes[i].origin.z;
 	}
-	m_aabb.bottomLeft = bottomLeft;
-	m_aabb.topRight = topRight;
+	max.y += m_nodeHeight;
+	m_aabb.min = min;
+	m_aabb.max = max;
+	
 
-	m_aabbLength = glm::length(topRight - bottomLeft);
+	m_aabbLength = glm::length(max - min);
 
-	printf("AABB - TR:{%f, %f} - BL:{%f, %f}\n", m_aabb.topRight.x, m_aabb.topRight.y, m_aabb.bottomLeft.x, m_aabb.bottomLeft.y);
+	printf("AABB - Max:{%f, %f, %f} - Min:{%f, %f, %f}\n", m_aabb.max.x, m_aabb.max.y, m_aabb.max.z, m_aabb.min.x, m_aabb.min.y, m_aabb.min.z);
 }
 
 CQuadNode::CQuadNode()
