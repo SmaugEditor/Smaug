@@ -16,6 +16,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 	m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
 
 	m_mouseLocked = false;
+	mFpsLock = 120;
 }
 
 int CSmaugApp::shutdown()
