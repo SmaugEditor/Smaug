@@ -33,6 +33,8 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat)
     return testPointInAABB(point, aabb);
 }
 
+
+
 ///////////////
 // Ray Tests //
 ///////////////
@@ -48,7 +50,7 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
     glm::vec3 normal = glm::cross(edge1, edge2);
 
     // Angle of approach on the face
-    float approach = glm::dot(ray.delta, normal);
+    float approach = glm::dot(ray.dir, normal);
 
     // If parallel to or not facing the plane, dump it
     // 
@@ -80,14 +82,14 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
     }
 
     // 3D point of intersection
-    glm::vec3 p = ray.origin + ray.delta * t;
+    glm::vec3 p = ray.origin + ray.dir * t;
 
     testRayPlane_t test;
     test.hit = true;
     test.t = t;
     test.normal = normal;
     test.approach = approach;
-    test.hitPos = p;
+    test.intersect = p;
 
     return test;
 }
@@ -110,7 +112,7 @@ testRayPlane_t rayPlaneTestNoCull(ray_t ray, tri_t tri, float closestT)
     glm::vec3 normal = glm::cross(edge1, edge2);
 
     // Angle of approach on the face
-    float approach = glm::dot(ray.delta, normal);
+    float approach = glm::dot(ray.dir, normal);
 
     // If parallel to or not facing the plane, dump it
     // 
@@ -138,14 +140,14 @@ testRayPlane_t rayPlaneTestNoCull(ray_t ray, tri_t tri, float closestT)
     }
 
     // 3D point of intersection
-    glm::vec3 p = ray.origin + ray.delta * t;
+    glm::vec3 p = ray.origin + ray.dir * t;
 
     testRayPlane_t test;
     test.hit = true;
     test.t = t;
     test.normal = normal;
     test.approach = approach;
-    test.hitPos = p;
+    test.intersect = p;
 
     return test;
 }
@@ -168,7 +170,7 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     glm::vec3 normal = glm::cross(edge1, edge2);
     
     // Angle of approach on the face
-    float approach = glm::dot(ray.delta, normal);
+    float approach = glm::dot(ray.dir, normal);
 
     // If parallel to or not facing the plane, dump it
     // 
@@ -200,7 +202,7 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     }
 
     // 3D point of intersection
-    glm::vec3 p = ray.origin + ray.delta * t;
+    glm::vec3 p = ray.origin + ray.dir * t;
 
     // Find the dominant axis
     int uAxis, vAxis;
@@ -253,7 +255,7 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     test.t = t;
     test.normal = normal;
     test.approach = approach;
-    test.hitPos = p;
+    test.intersect = p;
 
     return test;
 }
@@ -292,32 +294,32 @@ void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
 
     plane = { max,                       vec3(max.x, max.y, min.z), vec3(min.x, max.y, min.z) }; // Top
     test = rayPlaneTestNoCull(ray, plane, lastTest.t);
-    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.z >= plane[2].z && test.hitPos.x <= plane[0].x && test.hitPos.z <= plane[0].z)
+    if (test.hit && test.intersect.x >= plane[2].x && test.intersect.z >= plane[2].z && test.intersect.x <= plane[0].x && test.intersect.z <= plane[0].z)
         lastTest = test;
 
     plane = { vec3(max.x, min.y, max.z), vec3(min.x, min.y, max.z), min                       };  // Bottom
     test = rayPlaneTestNoCull(ray, plane, lastTest.t);
-    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.z >= plane[2].z && test.hitPos.x <= plane[0].x && test.hitPos.z <= plane[0].z)
+    if (test.hit && test.intersect.x >= plane[2].x && test.intersect.z >= plane[2].z && test.intersect.x <= plane[0].x && test.intersect.z <= plane[0].z)
         lastTest = test;
 
     plane = { max,                       vec3(max.x, min.y, max.z), vec3(max.x, min.y, min.z) }; // Right
     test = rayPlaneTestNoCull(ray, plane, lastTest.t);
-    if (test.hit && test.hitPos.z >= plane[2].z && test.hitPos.y >= plane[2].y && test.hitPos.z <= plane[0].z && test.hitPos.y <= plane[0].y)
+    if (test.hit && test.intersect.z >= plane[2].z && test.intersect.y >= plane[2].y && test.intersect.z <= plane[0].z && test.intersect.y <= plane[0].y)
         lastTest = test;
 
     plane = { vec3(min.x, max.y, max.z), vec3(min.x, max.y, min.z), min                       }; // Left
     test = rayPlaneTestNoCull(ray, plane, lastTest.t);
-    if (test.hit && test.hitPos.z >= plane[2].z && test.hitPos.y >= plane[2].y && test.hitPos.z <= plane[0].z && test.hitPos.y <= plane[0].y)
+    if (test.hit && test.intersect.z >= plane[2].z && test.intersect.y >= plane[2].y && test.intersect.z <= plane[0].z && test.intersect.y <= plane[0].y)
         lastTest = test;
 
     plane = { max,                       vec3(min.x, max.y, max.z), vec3(min.x, min.y, max.z) }; // Front
     test = rayPlaneTestNoCull(ray, plane, lastTest.t);
-    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.y >= plane[2].y && test.hitPos.x <= plane[0].x && test.hitPos.y <= plane[0].y)
+    if (test.hit && test.intersect.x >= plane[2].x && test.intersect.y >= plane[2].y && test.intersect.x <= plane[0].x && test.intersect.y <= plane[0].y)
         lastTest = test;
 
     plane = { vec3(max.x, max.y, min.z), vec3(max.x, min.y, min.z), min                       }; // Back
     test = rayPlaneTestNoCull(ray, plane, lastTest.t);
-    if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.y >= plane[2].y && test.hitPos.x <= plane[0].x && test.hitPos.y <= plane[0].y)
+    if (test.hit && test.intersect.x >= plane[2].x && test.intersect.y >= plane[2].y && test.intersect.x <= plane[0].x && test.intersect.y <= plane[0].y)
         lastTest = test;
 
 }
@@ -350,7 +352,7 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
         rayTriangleTest(ray, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin }, end);
 }
 
-testRayPlane_t testLine(ray_t ray)
+testRayPlane_t testRay(ray_t ray)
 {
     testRayPlane_t end = { false };
 
@@ -362,3 +364,52 @@ testRayPlane_t testLine(ray_t ray)
     return end;
 }
 
+// TODO: Add distance based optimizations!
+testRayPlane_t testLine(line_t line)
+{
+    testRayPlane_t rpTest = testRay({ line.origin, line.delta });
+    if (glm::distance(rpTest.intersect, line.origin) > glm::length(line.delta))
+    {
+        // Too long!
+        return { false };
+    }
+    return rpTest;
+}
+
+
+
+testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
+{
+
+    vec3 cross = glm::cross(a.delta, a.delta);
+    if (cross.x == 0.0f && cross.y == 0.0f && cross.z == 0.0f)
+        return {false};
+
+    vec3 aDir = glm::normalize(a.delta);
+    vec3 bDir = glm::normalize(b.delta);
+
+    // Defined for reuse in t1 & t2
+    float crossPow = pow(glm::length(cross), 2);
+    vec3 dirCross = glm::cross(aDir, bDir);
+    vec3 originDelta = b.origin - a.origin;
+    
+    float t1 = glm::dot(glm::cross(originDelta, bDir), dirCross) / crossPow;
+    float t2 = glm::dot(glm::cross(originDelta, aDir), dirCross) / crossPow;
+
+    vec3 p1 = a.origin + t1 * aDir;
+    vec3 p2 = b.origin + t2 * bDir;
+
+    // Are the points valid?
+    if (glm::distance(p1, p2) > tolerance)
+        return { false };
+
+    // Unnecessary floating point error introduction? Maybe...
+    vec3 point = (p1 + p2) / 2.0f;
+
+    // Check if we're too long
+    if (glm::distance(a.origin, point) > glm::distance(a.origin, a.delta)
+        || glm::distance(b.origin, point) > glm::distance(b.origin, b.delta))
+        return { false };
+
+    return { true, point };
+}
