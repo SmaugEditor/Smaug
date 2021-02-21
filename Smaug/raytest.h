@@ -2,7 +2,7 @@
 #include <glm/vec3.hpp>
 #include "mesh.h"
 
-struct line_t
+struct ray_t
 {
 	glm::vec3 origin;
 	glm::vec3 delta;
@@ -14,7 +14,7 @@ struct test_t
 	bool hit = false;
 };
 
-struct testLine_t : public test_t
+struct testRayPlane_t : public test_t
 {
 	glm::vec3 hitPos;
 	
@@ -30,7 +30,7 @@ struct testLine_t : public test_t
 };
 
 // Test if a line hits any geo in the world
-testLine_t testLine(line_t line);
+testRayPlane_t testRay(ray_t ray);
 
 bool testPointInAABB(glm::vec3 point, aabb_t aabb);
 // sizes up the aabb by aabbBloat units before testing

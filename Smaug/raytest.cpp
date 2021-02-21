@@ -39,7 +39,7 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat)
 // Adapted from 3D math primer for graphics and game development / Fletcher Dunn, Ian Parberry. -- 2nd ed. pg 724
 // Lot of this code is a bit duplicated. Clean it up?
 
-testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
+testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
     glm::vec3 edge2 = tri.c - tri.b;
@@ -48,7 +48,7 @@ testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
     glm::vec3 normal = glm::cross(edge1, edge2);
 
     // Angle of approach on the face
-    float approach = glm::dot(line.delta, normal);
+    float approach = glm::dot(ray.delta, normal);
 
     // If parallel to or not facing the plane, dump it
     // 
@@ -62,8 +62,8 @@ testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
     // All points on the plane have the same dot, defined as d
     float d = glm::dot(tri.a, normal);
 
-    // Parametric point of intersection with the plane of the tri and the line
-    float t = (d - glm::dot(line.origin, normal)) / approach;
+    // Parametric point of intersection with the plane of the tri and the ray
+    float t = (d - glm::dot(ray.origin, normal)) / approach;
 
     // (p0 + tD) * n = d
     // tD*n = d - p0*d
@@ -80,9 +80,9 @@ testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
     }
 
     // 3D point of intersection
-    glm::vec3 p = line.origin + line.delta * t;
+    glm::vec3 p = ray.origin + ray.delta * t;
 
-    testLine_t test;
+    testRayPlane_t test;
     test.hit = true;
     test.t = t;
     test.normal = normal;
@@ -92,16 +92,16 @@ testLine_t rayPlaneTest(line_t line, tri_t tri, float closestT)
     return test;
 }
 
-void rayPlaneTest(line_t line, tri_t tri, testLine_t& lastTest)
+void rayPlaneTest(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 {
-    testLine_t rayTest = rayPlaneTest(line, tri, lastTest.t);
+    testRayPlane_t rayTest = rayPlaneTest(ray, tri, lastTest.t);
     if (rayTest.hit)
         lastTest = rayTest;
 }
 
 
 
-testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
+testRayPlane_t rayPlaneTestNoCull(ray_t ray, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
     glm::vec3 edge2 = tri.c - tri.b;
@@ -110,7 +110,7 @@ testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
     glm::vec3 normal = glm::cross(edge1, edge2);
 
     // Angle of approach on the face
-    float approach = glm::dot(line.delta, normal);
+    float approach = glm::dot(ray.delta, normal);
 
     // If parallel to or not facing the plane, dump it
     // 
@@ -124,8 +124,8 @@ testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
     // All points on the plane have the same dot, defined as d
     float d = glm::dot(tri.a, normal);
 
-    // Parametric point of intersection with the plane of the tri and the line
-    float t = (d - glm::dot(line.origin, normal)) / approach;
+    // Parametric point of intersection with the plane of the tri and the ray
+    float t = (d - glm::dot(ray.origin, normal)) / approach;
 
     // (p0 + tD) * n = d
     // tD*n = d - p0*d
@@ -138,9 +138,9 @@ testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
     }
 
     // 3D point of intersection
-    glm::vec3 p = line.origin + line.delta * t;
+    glm::vec3 p = ray.origin + ray.delta * t;
 
-    testLine_t test;
+    testRayPlane_t test;
     test.hit = true;
     test.t = t;
     test.normal = normal;
@@ -150,16 +150,16 @@ testLine_t rayPlaneTestNoCull(line_t line, tri_t tri, float closestT)
     return test;
 }
 
-void rayPlaneTestNoCull(line_t line, tri_t tri, testLine_t& lastTest)
+void rayPlaneTestNoCull(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 {
-    testLine_t rayTest = rayPlaneTest(line, tri, lastTest.t);
+    testRayPlane_t rayTest = rayPlaneTest(ray, tri, lastTest.t);
     if (rayTest.hit)
         lastTest = rayTest;
 }
 
 
 
-testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
+testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
     glm::vec3 edge2 = tri.c - tri.b;
@@ -168,7 +168,7 @@ testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     glm::vec3 normal = glm::cross(edge1, edge2);
     
     // Angle of approach on the face
-    float approach = glm::dot(line.delta, normal);
+    float approach = glm::dot(ray.delta, normal);
 
     // If parallel to or not facing the plane, dump it
     // 
@@ -182,8 +182,8 @@ testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     // All points on the plane have the same dot, defined as d
     float d = glm::dot(tri.a, normal);
 
-    // Parametric point of intersection with the plane of the tri and the line
-    float t = (d - glm::dot(line.origin, normal)) / approach;
+    // Parametric point of intersection with the plane of the tri and the ray
+    float t = (d - glm::dot(ray.origin, normal)) / approach;
 
     // (p0 + tD) * n = d
     // tD*n = d - p0*d
@@ -200,7 +200,7 @@ testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     }
 
     // 3D point of intersection
-    glm::vec3 p = line.origin + line.delta * t;
+    glm::vec3 p = ray.origin + ray.delta * t;
 
     // Find the dominant axis
     int uAxis, vAxis;
@@ -248,7 +248,7 @@ testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
         return { false };
 
-    testLine_t test;
+    testRayPlane_t test;
     test.hit = true;
     test.t = t;
     test.normal = normal;
@@ -258,9 +258,9 @@ testLine_t rayTriangleTest(line_t line, tri_t tri, float closestT)
     return test;
 }
 
-void rayTriangleTest(line_t line, tri_t tri, testLine_t& lastTest)
+void rayTriangleTest(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 {
-    testLine_t rayTest = rayTriangleTest(line, tri, lastTest.t);
+    testRayPlane_t rayTest = rayTriangleTest(ray, tri, lastTest.t);
     if (rayTest.hit)
         lastTest = rayTest;
 }
@@ -268,16 +268,16 @@ void rayTriangleTest(line_t line, tri_t tri, testLine_t& lastTest)
 
 // In clockwise order from topleft
 struct quad_t { glm::vec3 topLeft, topRight, bottomRight, bottomLeft; };
-void rayQuadTest(line_t line, quad_t quad, testLine_t& lastTest)
+void rayQuadTest(ray_t ray, quad_t quad, testRayPlane_t& lastTest)
 {
-    rayTriangleTest(line, { quad.topLeft, quad.topRight, quad.bottomRight }, lastTest);
-    rayTriangleTest(line, { quad.bottomRight, quad.bottomLeft, quad.topLeft }, lastTest);
+    rayTriangleTest(ray, { quad.topLeft, quad.topRight, quad.bottomRight }, lastTest);
+    rayTriangleTest(ray, { quad.bottomRight, quad.bottomLeft, quad.topLeft }, lastTest);
 }
 
 
 
 // This is terrible
-void rayAABBTest(line_t line, aabb_t aabb, testLine_t& lastTest)
+void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
 {
     vec3 min = aabb.min;
     vec3 max = aabb.max;
@@ -287,48 +287,48 @@ void rayAABBTest(line_t line, aabb_t aabb, testLine_t& lastTest)
     // max first and min second
     // made from our aabb
 
-    testLine_t test;
+    testRayPlane_t test;
     tri_t plane;
 
     plane = { max,                       vec3(max.x, max.y, min.z), vec3(min.x, max.y, min.z) }; // Top
-    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
     if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.z >= plane[2].z && test.hitPos.x <= plane[0].x && test.hitPos.z <= plane[0].z)
         lastTest = test;
 
     plane = { vec3(max.x, min.y, max.z), vec3(min.x, min.y, max.z), min                       };  // Bottom
-    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
     if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.z >= plane[2].z && test.hitPos.x <= plane[0].x && test.hitPos.z <= plane[0].z)
         lastTest = test;
 
     plane = { max,                       vec3(max.x, min.y, max.z), vec3(max.x, min.y, min.z) }; // Right
-    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
     if (test.hit && test.hitPos.z >= plane[2].z && test.hitPos.y >= plane[2].y && test.hitPos.z <= plane[0].z && test.hitPos.y <= plane[0].y)
         lastTest = test;
 
     plane = { vec3(min.x, max.y, max.z), vec3(min.x, max.y, min.z), min                       }; // Left
-    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
     if (test.hit && test.hitPos.z >= plane[2].z && test.hitPos.y >= plane[2].y && test.hitPos.z <= plane[0].z && test.hitPos.y <= plane[0].y)
         lastTest = test;
 
     plane = { max,                       vec3(min.x, max.y, max.z), vec3(min.x, min.y, max.z) }; // Front
-    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
     if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.y >= plane[2].y && test.hitPos.x <= plane[0].x && test.hitPos.y <= plane[0].y)
         lastTest = test;
 
     plane = { vec3(max.x, max.y, min.z), vec3(max.x, min.y, min.z), min                       }; // Back
-    test = rayPlaneTestNoCull(line, plane, lastTest.t);
+    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
     if (test.hit && test.hitPos.x >= plane[2].x && test.hitPos.y >= plane[2].y && test.hitPos.x <= plane[0].x && test.hitPos.y <= plane[0].y)
         lastTest = test;
 
 }
 
-void testNode(line_t line, CNode* node, testLine_t& end)
+void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
 {
-    testLine_t aabbTest;
+    testRayPlane_t aabbTest;
     aabb_t aabb = node->GetAbsAABB();
 
 
-    rayAABBTest(line, aabb, aabbTest);
+    rayAABBTest(ray, aabb, aabbTest);
     if (!aabbTest.hit)
         return;
 
@@ -339,25 +339,25 @@ void testNode(line_t line, CNode* node, testLine_t& end)
         for (int j = 0; j < side.walls.size(); j++)
         {
             nodeWall_t& wall = side.walls[j];
-            rayQuadTest(line, { node->m_origin + wall.topPoints[0], node->m_origin + wall.topPoints[1], node->m_origin + wall.bottomPoints[1], node->m_origin + wall.bottomPoints[0] }, end);
+            rayQuadTest(ray, { node->m_origin + wall.topPoints[0], node->m_origin + wall.topPoints[1], node->m_origin + wall.bottomPoints[1], node->m_origin + wall.bottomPoints[0] }, end);
         }
     }
 
     // Test floor
     if(node->m_nodeType == NodeType::QUAD)
-        rayQuadTest(line, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin, node->m_origin + node->m_vertexes[3].origin }, end);
+        rayQuadTest(ray, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin, node->m_origin + node->m_vertexes[3].origin }, end);
     else if (node->m_nodeType == NodeType::TRI)
-        rayTriangleTest(line, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin }, end);
+        rayTriangleTest(ray, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin }, end);
 }
 
-testLine_t testLine(line_t line)
+testRayPlane_t testLine(ray_t ray)
 {
-    testLine_t end = { false };
+    testRayPlane_t end = { false };
 
     size_t nodeCount = GetWorldEditor().m_nodes.size();
     for (size_t i = 0; i < nodeCount; i++)
     {
-        testNode(line, GetWorldEditor().m_nodes[i], end );
+        testNode(ray, GetWorldEditor().m_nodes[i], end );
     }
     return end;
 }
