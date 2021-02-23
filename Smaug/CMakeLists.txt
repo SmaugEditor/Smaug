@@ -24,6 +24,7 @@ set( SOURCES
 
 	utils.cpp 
 	raytest.cpp
+	mesh.cpp
 
 	worldeditor.cpp 
 	worldrenderer.cpp 
@@ -46,6 +47,7 @@ set( SOURCES
 	texturebrowser.cpp
 
 	grid.cpp
+	
 
 	input.cpp
 )
