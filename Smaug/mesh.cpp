@@ -1,4 +1,6 @@
 #include "mesh.h"
+#include "raytest.h"
+#include <glm/geometric.hpp>
 
 /*
 Process that happens here
@@ -64,6 +66,8 @@ face_t* sliceShapeFaceUnsafe(cutttableShape_t& shape, face_t* face, vertex_t* st
 	// We need to steal from our old and add to our new
 	for (halfEdge_t* he = heEnd; he != heStart; he = he->next)
 	{
+		printf("%p\n", (void*)(he));
+		he->face = newFace;
 		newFace->verts.push_back(he->vert);
 		newFace->edges.push_back(he);
 		newFace->sideCount++;
@@ -78,20 +82,23 @@ face_t* sliceShapeFaceUnsafe(cutttableShape_t& shape, face_t* face, vertex_t* st
 
 
 	// Abysmal
+	face->verts.clear();
 	face->edges.clear();
 
-	vertex_t* newStart = new vertex_t{ start->vert, start->edge };
+	vertex_t* newStart = new vertex_t{ start->vert, heStart };
 	face->verts.push_back(newStart);
+	face->sideCount = 1;
 	for (halfEdge_t* he = heStart; he != heEnd; he = he->next)
 	{
 		face->verts.push_back(he->vert);
 		face->edges.push_back(he);
+		face->sideCount++;
 	}
 
 	// New HE for our larger half
-	halfEdge_t* newHeLarger = new halfEdge_t{ newStart, newHe, face, heEnd };
+	halfEdge_t* newHeLarger = new halfEdge_t{ newStart, newHe, face, heStart };
 	newHe->pair = newHeLarger;
-	halfEdge_t* prevEnd = newFace->edges[newFace->edges.size() - 1];
+	halfEdge_t* prevEnd = face->edges[face->edges.size() - 1];
 	prevEnd->next = newHeLarger;
 	prevEnd->vert->edge = newHeLarger;
 	face->edges.push_back(newHeLarger);
@@ -142,18 +149,61 @@ void triangluateShapeFaces(cutttableShape_t& shape)
 		if (face->edges.size() < 4)
 			continue;
 
+		// Center of face
+		glm::vec3 center = { 0,0,0 };
+		for (auto v : face->verts)
+			center += *v->vert;
+		center /= face->verts.size();
+
+		// Get the norm of the face for later testing 
+		// Not fond of this
+		glm::vec3 faceNormal = { 0,0,0 };
+		for (int i = 1; i < face->verts.size(); i++)
+		{
+			faceNormal += glm::cross((center - (*face->verts[i]->vert)), (*face->verts[i-1]->vert) - center);
+		}
+		faceNormal = glm::normalize(faceNormal);
 		
+		// On odd numbers, we use start + 1, end instead of start, end - 1
+		// Makes it look a bit like we're fitting quads instead of tris
+		int alternate = 0;
+
 		// In these loop, we'll progressively push the original face to become smaller and smaller
 		while(face->verts.size() > 3)
 		{
 			// Vert 0 will become our anchor for all new faces to connect to
-			vertex_t* v0 = face->verts[0];
+			vertex_t* v0;
+			vertex_t* end;
+			if (fmod(alternate, 2) == 1)
+			{
+				v0 = face->verts[1];
+				end = face->verts[face->verts.size() - 1];
+			}
+			else
+			{
+				v0 = face->verts[0];
+				end = face->verts[face->verts.size() - 2];
+			}
 
-			vertex_t* end = face->verts[face->verts.size() - 2];
+
+			// Will this be convex?
+			vertex_t* between = face->verts[face->verts.size() - 1];
+			glm::vec3 edge1 = (*v0->vert) - (*between->vert);
+			glm::vec3 edge2 = (*between->vert) - (*end->vert);
+			glm::vec3 triNormal = -glm::cross(edge1, edge2);
+
+			float dot = glm::dot(triNormal, faceNormal);
+			if (dot < 0)
+			{
+				// Shift to somewhere it shouldn't be convex
+				v0 = v0->edge->vert;
+				end = end->edge->vert;
+			}
 
 			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
 			sliceShapeFaceUnsafe(shape, face, v0, end);
 
+			alternate++;
 		};
 
 		
@@ -182,13 +232,12 @@ void defineShape(cutttableShape_t& shape)
 	{
 		halfEdge_t* he = new halfEdge_t{};
 		he->face = f;
-		vertex_t* v = new vertex_t{ &vert };
+		vertex_t* v = new vertex_t{ &vert, he };
 
 		// Should never be a situation where these both arent null or something
 		// If one is null, something's extremely wrong
 		if (lastHe && lastVert)
 		{
-			lastVert->edge = he;
 			lastHe->next = he;
 			lastHe->vert = v;
 		}

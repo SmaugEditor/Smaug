@@ -127,3 +127,9 @@ struct cutttableShape_t : public meshPart_t
 	// These cut into this shape and form what the faces look like
 	std::vector<cutttableShape_t*> cutters;
 };
+
+
+
+void triangluateShapeFaces(cutttableShape_t& shape);
+void defineShape(cutttableShape_t& shape);
+face_t* sliceShapeFace(cutttableShape_t& shape, face_t* face, vertex_t* start, vertex_t* end);
