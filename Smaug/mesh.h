@@ -55,7 +55,9 @@ struct halfEdge_t
 struct meshPart_t;
 struct face_t
 {
-	size_t sideCount;
+	~face_t();
+
+	size_t sideCount = 0;
 
 	// These edges use the verts 
 	std::vector<halfEdge_t*> edges;
@@ -75,6 +77,8 @@ struct aabb_t
 
 struct meshPart_t
 {
+	~meshPart_t();
+
 	std::vector<face_t*> faces;
 	
 	// Calculated from face verts

@@ -262,3 +262,17 @@ void slicePlane(face_t* f, face_t** )
 {
 
 }
+
+face_t::~face_t()
+{
+	for (auto e : edges)
+		delete e;
+	for (auto v : verts)
+		delete v;
+}
+
+meshPart_t::~meshPart_t()
+{
+	for (auto f : faces)
+		delete f;
+}
