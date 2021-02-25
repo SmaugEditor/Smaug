@@ -65,7 +65,7 @@ struct face_t
 	std::vector<vertex_t*> verts;
 
 	// What part of the mesh we belong to.
-	meshPart_t* meshPart;
+	meshPart_t* meshPart = nullptr;
 };
 
 // Axis Aligned Bounding Box. Absolute minimum and maximum of a shape
@@ -75,7 +75,8 @@ struct aabb_t
 	glm::vec3 max;
 };
 
-struct meshPart_t
+// A mesh part is a face that is part of a larger mesh that holds more faces
+struct meshPart_t : public face_t
 {
 	~meshPart_t();
 
@@ -83,11 +84,21 @@ struct meshPart_t
 	
 	// Calculated from face verts
 	//aabb_t aabb;
+
+	// What mesh do we belong to
+	mesh_t* mesh;
 };
 
 struct mesh_t
 {
+	~mesh_t();
+
+	// The faces of this mesh
 	std::vector<meshPart_t*> parts;
+	
+	// Not ordered! Do no depend on this!
+	// Pointers so that adding doesn't delete the memory
+	std::vector<glm::vec3*> verts;
 
 	// Calculated from part aabbs
 	aabb_t aabb;
@@ -116,12 +127,13 @@ struct mesh_t
 //  /  |XX|  \
 // /___|__|___\
 
+/*
 struct cutttableShape_t : public meshPart_t
 {
 	// These define the shape 
 	// Must be defined in clockwise-faceout-order
 	// Editing this MUST be followed by redefinition!
-	std::vector<glm::vec3> verts;
+	//std::vector<glm::vec3> verts;
 
 	// Inherited from meshPart_t
 	// These are triangluated faces within the shape
@@ -131,9 +143,10 @@ struct cutttableShape_t : public meshPart_t
 	// These cut into this shape and form what the faces look like
 	std::vector<cutttableShape_t*> cutters;
 };
+*/
 
+void addMeshFace(mesh_t& mesh, glm::vec3* points, int pointCount);
 
-
-void triangluateShapeFaces(cutttableShape_t& shape);
-void defineShape(cutttableShape_t& shape);
-face_t* sliceShapeFace(cutttableShape_t& shape, face_t* face, vertex_t* start, vertex_t* end);
+void triangluateMeshPartFaces(meshPart_t& mesh);
+void defineMeshPart(meshPart_t& mesh);
+face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end);

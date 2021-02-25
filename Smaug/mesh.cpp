@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "raytest.h"
+#include "containerutil.h"
 #include <glm/geometric.hpp>
 
 /*
@@ -46,11 +47,11 @@ void swap(T& a, T& b)
 
 // For use where we know which side's going to end up larger
 // Returns the new face
-face_t* sliceShapeFaceUnsafe(cutttableShape_t& shape, face_t* face, vertex_t* start, vertex_t* end)
+face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end)
 {
 	face_t* newFace = new face_t;
-	newFace->meshPart = &shape;
-	shape.faces.push_back(newFace);
+	newFace->meshPart = &mesh;
+	mesh.faces.push_back(newFace);
 
 	halfEdge_t* heStart = start->edge;
 	halfEdge_t* heEnd   = end->edge;
@@ -107,10 +108,10 @@ face_t* sliceShapeFaceUnsafe(cutttableShape_t& shape, face_t* face, vertex_t* st
 	return newFace;
 }
 
-// This will subdivide a shape's face from start to end
+// This will subdivide a mesh's face from start to end
 // It will return the new face
 // This cut will only occur on ONE face
-face_t* sliceShapeFace(cutttableShape_t& shape, face_t* face, vertex_t* start, vertex_t* end)
+face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end)
 {
 	// No slice
 	if (start == end || !start || !end || !face)
@@ -131,17 +132,36 @@ face_t* sliceShapeFace(cutttableShape_t& shape, face_t* face, vertex_t* start, v
 	}
 
 	// Now that we know which side's larger, we can safely slice
-	return sliceShapeFaceUnsafe(shape, face, start, end);
+	return sliceMeshPartFaceUnsafe(mesh, face, start, end);
 }
 
-void triangluateShapeFaces(cutttableShape_t& shape)
+void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
+void addMeshFace(mesh_t& mesh, glm::vec3* points, int pointCount)
+{
+	meshPart_t* mp = new meshPart_t;
+	mp->mesh = &mesh;
+	mp->sideCount = pointCount;
+	mesh.parts.push_back(mp);
+
+	int start = mesh.verts.size();
+
+	for (int i = 0; i < pointCount; i++)
+	{
+		glm::vec3* v = new glm::vec3(points[i]);
+		mesh.verts.push_back(v);
+	}
+
+	defineFace(*mp, mesh.verts.data() + start, pointCount);
+}
+
+void triangluateMeshPartFaces(meshPart_t& mesh)
 {
 	// As we'll be walking this, we wont want to walk over our newly created faces
 	// Store our len so we only get to the end of the predefined faces
-	size_t len = shape.faces.size();
+	size_t len = mesh.faces.size();
 	for (size_t i = 0; i < len; i++)
 	{
-		face_t* face = shape.faces[i];
+		face_t* face = mesh.faces[i];
 		if (!face)
 			continue;
 		
@@ -201,7 +221,7 @@ void triangluateShapeFaces(cutttableShape_t& shape)
 			}
 
 			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
-			sliceShapeFaceUnsafe(shape, face, v0, end);
+			sliceMeshPartFaceUnsafe(mesh, face, v0, end);
 
 			alternate++;
 		};
@@ -211,28 +231,31 @@ void triangluateShapeFaces(cutttableShape_t& shape)
 
 }
 
-void defineShape(cutttableShape_t& shape)
-{
-	// Clear out our old faces
-	for (auto v : shape.faces)
-		if(v) delete v;
-	shape.faces.clear();
 
-	face_t* f = new face_t;
-	shape.faces.push_back(f);
+// Wires up all the HEs for this face
+// Does not triangulate
+void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
+{
+	// Clear out our old data
+	for (auto v : face.verts)
+		if (v) delete v;
+	for (auto e : face.edges)
+		if (e) delete e;
+	face.verts.clear();
+	face.edges.clear();
+	face.sideCount = 0;
 
 	// Let the face know our data
-	f->sideCount = shape.verts.size();
-	f->meshPart = &shape;
+	face.sideCount = vecCount;
 
 	// Populate our face with HEs
 	vertex_t* lastVert = nullptr;
 	halfEdge_t* lastHe = nullptr;
-	for (glm::vec3& vert : shape.verts)
+	for (int i = 0; i < vecCount; i++)
 	{
 		halfEdge_t* he = new halfEdge_t{};
-		he->face = f;
-		vertex_t* v = new vertex_t{ &vert, he };
+		he->face = &face;
+		vertex_t* v = new vertex_t{ vecs[i], he };
 
 		// Should never be a situation where these both arent null or something
 		// If one is null, something's extremely wrong
@@ -244,24 +267,40 @@ void defineShape(cutttableShape_t& shape)
 
 		lastHe = he;
 		lastVert = v;
-		f->edges.push_back(he);
-		f->verts.push_back(v);
+		face.edges.push_back(he);
+		face.verts.push_back(v);
 	}
 
 	// Link up our last HE
 	if (lastHe && lastVert)
 	{
-		lastHe->next = f->edges.front();
-		lastHe->vert = f->verts.front();
+		lastHe->next = face.edges.front();
+		lastHe->vert = face.verts.front();
 	}
-
-	//triangluateShapeFaces(shape);
 }
 
-void slicePlane(face_t* f, face_t** )
+void defineMeshPartFaces(meshPart_t& mesh)
 {
+	// Clear out our old faces
+	for (auto v : mesh.faces)
+		if(v) delete v;
+	mesh.faces.clear();
 
+	face_t* f = new face_t;
+	mesh.faces.push_back(f);
+	f->meshPart = &mesh;
+	
+	if (mesh.verts.size() == 0)
+		return;
+
+	// Only give it our verts
+	C2DPSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
+	defineFace(*f, skip, mesh.verts.size());
+
+
+	triangluateMeshPartFaces(mesh);
 }
+
 
 face_t::~face_t()
 {
@@ -275,4 +314,13 @@ meshPart_t::~meshPart_t()
 {
 	for (auto f : faces)
 		delete f;
+}
+
+mesh_t::~mesh_t()
+{
+	for (auto p : parts)
+		delete p;
+
+	for (auto v : verts)
+		delete v;
 }
