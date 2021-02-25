@@ -1,8 +1,9 @@
 #pragma once
+#include "worldrenderer.h"
+#include "mesh.h"
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <vector>
-#include "worldrenderer.h"
 
 struct nodeSide_t;
 class CNode;
