@@ -4,6 +4,8 @@
 #include <glm/vec3.hpp>
 #include <bgfx/bgfx.h>
 
+const double PI = 3.141592653589793238463;
+
 // This function does not take Y into account
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range);
 
