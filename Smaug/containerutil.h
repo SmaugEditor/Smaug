@@ -1,5 +1,6 @@
 #pragma once
 #include <assert.h>
+#include <cstddef>
 
 // File contents
 // 
@@ -55,14 +56,14 @@ class CUArrayAccessor
 {
 	typedef T& (*accessor_t)(void*, size_t);
 public:
-	CUArrayAccessor(T* arr) { m_arr = arr; m_f = &CUArrayAccessor<T>::normalArrayAccessor; }
-	CUArrayAccessor(void* arr, accessor_t f) { m_arr = arr; m_f = f; }
+	CUArrayAccessor(T* arr) : m_arr(arr), m_f(&CUArrayAccessor<T>::normalArrayAccessor) { }
+	CUArrayAccessor(void* arr, accessor_t f) : m_arr(arr), m_f(f) { }
 
 	T& operator[](size_t i) { return m_f(m_arr, i); }
 private:
 	static T& normalArrayAccessor(void* arr, size_t i) { return reinterpret_cast<T*>(arr)[i]; }
-	void* m_arr;
-	accessor_t m_f;
+	void* const m_arr;
+	accessor_t const m_f;
 };
 
 
@@ -74,7 +75,7 @@ class CIterArray
 	class Iterator;
 public:
 
-	CIterArray(T* data, size_t count) { m_elements = data; m_elementCount = count; }
+	CIterArray(T* data, size_t count) : m_elements(data), m_elementCount(count) { }
 
 	inline size_t count() { return m_elementCount; }
 	inline T* data() { return m_elements; }
@@ -85,7 +86,7 @@ public:
 	T& operator[](size_t i) { assert(i < m_elementCount); return m_elements[i]; }
 	operator T* () const { return m_elements; }
 
-	CUArrayAccessor<T> accessor() { return { this, &CIterArray<T>::accessor }; }
+	CUArrayAccessor<T> accessor() const { return { (void*)this, &CIterArray<T>::accessor }; }
 	operator CUArrayAccessor<T>() const { return accessor(); }
 private:
 	static T& accessor(void* t, size_t i) { return ((CIterArray<T>*)t)->operator[](i); }
@@ -103,8 +104,8 @@ private:
 		T& operator*() { return *m_p; }
 	};
 
-	T* m_elements;
-	size_t m_elementCount;
+	T* const m_elements;
+	size_t const m_elementCount;
 };
 
 // This is used for easy accessing of elements in a struct as an array
@@ -120,19 +121,19 @@ public:
 	// Normal array in
 	// How many bytes need to be skipped for each element
 	// Offset in bytes from start of stride for an element
-	CSkipArray(void* data, unsigned int stride, unsigned int offset) { m_data = reinterpret_cast<char*>(data); m_stride = stride; m_offset = offset; }
+	CSkipArray(void* data, unsigned int stride, unsigned int offset) : m_data(reinterpret_cast<char*>(data)), m_stride(stride), m_offset(offset) { }
 
 	T& operator[](size_t i) { return *reinterpret_cast<T*>(m_data + m_stride * i + m_offset); }
 
-	CUArrayAccessor<T> accessor() { return { this, &CSkipArray<void, T>::accessor }; }
+	CUArrayAccessor<T> accessor() const { return { (void*)this, &CSkipArray<void, T>::accessor }; }
 	operator CUArrayAccessor<T>() const { return accessor(); }
 
 protected:
 	static T& accessor(void* t, size_t i) { return ((CSkipArray<void, T>*)t)->operator[](i); }
 
-	char* m_data;
-	unsigned int m_stride;
-	unsigned int m_offset;
+	char* const m_data;
+	unsigned int const m_stride;
+	unsigned int const m_offset;
 };
 
 template<typename S, typename T>
@@ -158,7 +159,7 @@ public:
 	// Normal array in
 	// How many bytes need to be skipped for each element
 	// Offset in bytes from start of stride for an element
-	CSizedSkipArray(void* data, unsigned int stride, unsigned int offset, unsigned int elementCount) { m_data = reinterpret_cast<char*>(data); m_stride = stride; m_offset = offset; m_elementCount = elementCount; }
+	CSizedSkipArray(void* data, unsigned int stride, unsigned int offset, unsigned int elementCount) : m_data(reinterpret_cast<char*>(data)), m_stride(stride), m_offset(offset), m_elementCount(elementCount) { }
 
 	inline size_t count() { return m_elementCount; }
 
@@ -167,12 +168,11 @@ public:
 
 	T& operator[](size_t i) { assert(i < m_elementCount); return *reinterpret_cast<T*>(m_data + m_stride * i + m_offset); }
 
-	class Iterator;
 
-	CUArrayAccessor<T> accessor() { return { this, &CSizedSkipArray<void, T>::accessor }; }
+	CUArrayAccessor<T> accessor() const { return { (void*)this, &CSizedSkipArray<void, T>::accessor }; }
 	operator CUArrayAccessor<T>() const { return accessor(); }
 
-protected:
+private:
 	static T& accessor(void* t, size_t i) { return ((CSizedSkipArray<void, T>*)t)->operator[](i); }
 
 	// Little odd, but we have to be able to access offset and stride at all times
@@ -191,10 +191,10 @@ protected:
 		T& operator*() { return m_a[m_i]; }
 	};
 
-	char* m_data;
-	unsigned int m_stride;
-	unsigned int m_offset;
-	size_t m_elementCount;
+	char* const m_data;
+	unsigned int const m_stride;
+	unsigned int const m_offset;
+	size_t const m_elementCount;
 };
 
 
@@ -222,20 +222,20 @@ public:
 	// How many bytes need to be skipped for each element
 	// Offset in bytes from start of stride for an element
 	// In a 2D array, [x][y], index is x
-	C2DPSkipArray(void** data, unsigned int stride, unsigned int offset, unsigned int index) { m_data = reinterpret_cast<char**>(data); m_stride = stride; m_offset = offset; m_index = index; }
+	C2DPSkipArray(void** data, unsigned int stride, unsigned int offset, unsigned int index) : m_data(reinterpret_cast<char**>(data)), m_stride(stride), m_offset(offset), m_index(index) { }
 
 	T& operator[](size_t i) { return *reinterpret_cast<T*>(m_data[m_index] + m_stride * i + m_offset); }
 
-	CUArrayAccessor<T> accessor() { return { this, &C2DPSkipArray<void, T>::accessor }; }
+	CUArrayAccessor<T> accessor() const { return { (void*)this, &C2DPSkipArray<void, T>::accessor }; }
 	operator CUArrayAccessor<T>() const { return accessor(); }
 
 protected:
 	static T& accessor(void* t, size_t i) { return ((C2DPSkipArray<void, T>*)t)->operator[](i); }
 
-	char** m_data;
-	unsigned int m_stride;
-	unsigned int m_offset;
-	unsigned int m_index;
+	char** const m_data;
+	unsigned int const m_stride;
+	unsigned int const m_offset;
+	unsigned int const m_index;
 };
 
 template<typename S, typename T>
