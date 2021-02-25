@@ -242,7 +242,7 @@ template<typename S, typename T>
 class C2DPSkipArray : public C2DPSkipArray<void, T>
 {
 public:
-	// In a 2D array, [x][y], index is x
+	// In an array of pointers, [x][y], index is x
 	C2DPSkipArray(S** data, unsigned int offset, unsigned int index) : C2DPSkipArray<void, T>(data, sizeof(S), offset, index) { }
 	C2DPSkipArray(S** data, T* firstElement, unsigned int index) : C2DPSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(firstElement) - reinterpret_cast<char*>(data[index]), index) { }
 	C2DPSkipArray(S** data, T& firstElement, unsigned int index) : C2DPSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(&firstElement) - reinterpret_cast<char*>(data[index]), index) { }
