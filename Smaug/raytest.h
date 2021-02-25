@@ -59,3 +59,5 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb);
 bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);
 
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
+
+bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);

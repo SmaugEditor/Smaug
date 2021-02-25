@@ -413,3 +413,61 @@ testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
 
     return { true, point };
 }
+
+bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
+{
+
+    glm::vec3 edge1 = tri1 - tri0;
+    glm::vec3 edge2 = tri2 - tri1;
+
+    // Unnormalized normal of the face
+    glm::vec3 normal = glm::cross(edge1, edge2);
+
+    // Find the dominant axis
+    int uAxis, vAxis;
+    if (fabs(normal.x) > fabs(normal.y))
+    {
+        if (fabs(normal.x) > fabs(normal.z))
+        {
+            uAxis = 1;
+            vAxis = 2;
+        }
+        else
+        {
+            uAxis = 0;
+            vAxis = 1;
+        }
+    }
+    else
+    {
+        if (fabs(normal.y) > fabs(normal.z))
+        {
+            uAxis = 0;
+            vAxis = 2;
+        }
+        else
+        {
+            uAxis = 0;
+            vAxis = 1;
+        }
+    }
+
+    // Project plane onto axis
+    glm::vec3 u = { p[uAxis] - tri0[uAxis], tri1[uAxis] - tri0[uAxis], tri2[uAxis] - tri0[uAxis] };
+    glm::vec3 v = { p[vAxis] - tri0[vAxis], tri1[vAxis] - tri0[vAxis], tri2[vAxis] - tri0[vAxis] };
+
+    // Denominator
+    float temp = u[1] * v[2] - v[1] * u[2];
+    if (!(temp != 0))
+        return false;
+    temp = 1.0f / temp;
+
+    // Barycentric coords with NAN checks
+    float alpha = (u[0] * v[2] - v[0] * u[2]) * temp;
+    float beta = (u[1] * v[0] - v[1] * u[0]) * temp;
+    float gamma = 1.0f - alpha - beta;
+    if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
+        return false;
+
+    return true;
+}
