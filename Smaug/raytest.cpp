@@ -414,6 +414,61 @@ testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
     return { true, point };
 }
 
+
+void findDominantAxis(glm::vec3 normal, int& uAxis, int& vAxis)
+{
+    // Find the dominant axis
+    if (fabs(normal.x) > fabs(normal.y))
+    {
+        if (fabs(normal.x) > fabs(normal.z))
+        {
+            uAxis = 1;
+            vAxis = 2;
+        }
+        else
+        {
+            uAxis = 0;
+            vAxis = 1;
+        }
+    }
+    else
+    {
+        if (fabs(normal.y) > fabs(normal.z))
+        {
+            uAxis = 0;
+            vAxis = 2;
+        }
+        else
+        {
+            uAxis = 0;
+            vAxis = 1;
+        }
+    }
+}
+
+bool testPointInTri(float pU, float pV, glm::vec3 domU, glm::vec3 domV)
+{
+
+    // Project plane onto axis
+    glm::vec3 u = { pU - domU.x, domU.y - domU.x, domU.z - domU.x };
+    glm::vec3 v = { pV - domV.x, domV.y - domV.x, domV.z - domV.x };
+
+    // Denominator
+    float temp = u[1] * v[2] - v[1] * u[2];
+    if (!(temp != 0))
+        return false;
+    temp = 1.0f / temp;
+
+    // Barycentric coords with NAN checks
+    float alpha = (u[0] * v[2] - v[0] * u[2]) * temp;
+    float beta = (u[1] * v[0] - v[1] * u[0]) * temp;
+    float gamma = 1.0f - alpha - beta;
+    if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
+        return false;
+    return false;
+}
+
+
 bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
 {
 
