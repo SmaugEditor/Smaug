@@ -186,12 +186,15 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 		}
 		faceNormal = glm::normalize(faceNormal);
 		
+		int nU, nV;
+		findDominantAxis(faceNormal, nU, nV);
+
 		// On odd numbers, we use start + 1, end instead of start, end - 1
 		// Makes it look a bit like we're fitting quads instead of tris
 		int alternate = 0;
 
 		// In these loop, we'll progressively push the original face to become smaller and smaller
-		while(face->verts.size() > 3)
+		while (face->verts.size() > 3)
 		{
 			// Vert 0 will become our anchor for all new faces to connect to
 			vertex_t* v0;
@@ -207,20 +210,48 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 				end = face->verts[face->verts.size() - 2];
 			}
 
+			int attempts = 0;
+			bool shift;
+			do{
+				shift = false;
 
-			// Will this be convex?
-			vertex_t* between = face->verts[face->verts.size() - 1];
-			glm::vec3 edge1 = (*v0->vert) - (*between->vert);
-			glm::vec3 edge2 = (*between->vert) - (*end->vert);
-			glm::vec3 triNormal = -glm::cross(edge1, edge2);
+				// Will this be convex?
+				vertex_t* between = end->edge->vert;
+				glm::vec3 edge1 = (*end->vert) - (*between->vert);
+				glm::vec3 edge2 = (*between->vert) - (*v0->vert);
+				glm::vec3 triNormal = glm::cross(edge1, edge2);
 
-			float dot = glm::dot(triNormal, faceNormal);
-			if (dot < 0)
-			{
-				// Shift to somewhere it shouldn't be convex
-				v0 = v0->edge->vert;
-				end = end->edge->vert;
+				float dot = glm::dot(triNormal, faceNormal);
+				if (dot < 0)
+					shift = true;
+				else
+				{
+					// Dot was fine. Let's see if anything's in our new tri
+
+					glm::vec3 u = tritod(*end->vert, *between->vert, *v0->vert, nU);
+					glm::vec3 v = tritod(*end->vert, *between->vert, *v0->vert, nV);
+
+					// I fear the cache misses...
+					for (vertex_t* c = v0->edge->vert; c != end; c = c->edge->vert)
+					{
+						glm::vec3 ptt = *c->vert;
+						if (testPointInTri(ptt, *end->vert, *between->vert, *v0->vert))//(ptt[nU], ptt[nV], u, v))
+						{
+							shift = true;
+							break;
+						}
+					}
+				}
+
+				if (shift)
+				{
+					// Shift to somewhere it shouldn't be convex
+					v0 = v0->edge->vert;
+					end = end->edge->vert;
+					attempts++;
+				}
 			}
+			while (shift && attempts < 10);
 
 			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
 			sliceMeshPartFaceUnsafe(mesh, face, v0, end);
@@ -296,7 +327,7 @@ void defineMeshPartFaces(meshPart_t& mesh)
 		return;
 
 	// Only give it our verts
-	C2DPSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
+	C2DPYSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
 	defineFace(*f, skip, mesh.verts.size());
 
 

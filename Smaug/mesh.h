@@ -152,5 +152,5 @@ glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
 void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 
 void triangluateMeshPartFaces(meshPart_t& mesh);
-void defineMeshPart(meshPart_t& mesh);
+void defineMeshPartFaces(meshPart_t& mesh);
 face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end);

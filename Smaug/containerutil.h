@@ -37,12 +37,12 @@
 //       printf("%d, ", a[i]); // Prints "1, 2, 3,"
 //
 //
-// C2DPSkipArray
+// C2DPXSkipArray
 //   Used for skipping around within an array of pointers
 //   DO NOT USE WITH NORMAL 2D ARRAYS!
 //
 //	 vec3** arr = new vec3* [] { new vec3[]{ {0,1,2}, {3,4,5}, {6,7,8}, {9,10,11} }, new vec3[]{ {12,13,14}, {15,16,17}, {18,19,20}, {21,22,23} } };
-//	 C2DPSkipArray<vec3, int> skiparray2dp(arr, arr[1][0].y, 1);
+//	 C2DPXSkipArray<vec3, int> skiparray2dp(arr, arr[1][0].y, 1);
 //	 for (int i = 0; i < 4; i++)
 //		 printf("%d, ", skiparray2dp[i]); // Prints "13, 16, 19, 22,"
 
@@ -212,25 +212,25 @@ public:
 // DO NOT USE WITH NORMAL 2D ARRAYS!
 
 template<typename S, typename T>
-class C2DPSkipArray;
+class C2DPXSkipArray;
 
 template<typename T>
-class C2DPSkipArray<void, T>
+class C2DPXSkipArray<void, T>
 {
 public:
 	// Normal array in
 	// How many bytes need to be skipped for each element
 	// Offset in bytes from start of stride for an element
 	// In a 2D array, [x][y], index is x
-	C2DPSkipArray(void** data, unsigned int stride, unsigned int offset, unsigned int index) : m_data(reinterpret_cast<char**>(data)), m_stride(stride), m_offset(offset), m_index(index) { }
+	C2DPXSkipArray(void** data, unsigned int stride, unsigned int offset, unsigned int index) : m_data(reinterpret_cast<char**>(data)), m_stride(stride), m_offset(offset), m_index(index) { }
 
 	T& operator[](size_t i) { return *reinterpret_cast<T*>(m_data[m_index] + m_stride * i + m_offset); }
 
-	CUArrayAccessor<T> accessor() const { return { (void*)this, &C2DPSkipArray<void, T>::accessor }; }
+	CUArrayAccessor<T> accessor() const { return { (void*)this, &C2DPXSkipArray<void, T>::accessor }; }
 	operator CUArrayAccessor<T>() const { return accessor(); }
 
 protected:
-	static T& accessor(void* t, size_t i) { return ((C2DPSkipArray<void, T>*)t)->operator[](i); }
+	static T& accessor(void* t, size_t i) { return ((C2DPXSkipArray<void, T>*)t)->operator[](i); }
 
 	char** const m_data;
 	unsigned int const m_stride;
@@ -239,11 +239,52 @@ protected:
 };
 
 template<typename S, typename T>
-class C2DPSkipArray : public C2DPSkipArray<void, T>
+class C2DPXSkipArray : public C2DPXSkipArray<void, T>
 {
 public:
 	// In an array of pointers, [x][y], index is x
-	C2DPSkipArray(S** data, unsigned int offset, unsigned int index) : C2DPSkipArray<void, T>(data, sizeof(S), offset, index) { }
-	C2DPSkipArray(S** data, T* firstElement, unsigned int index) : C2DPSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(firstElement) - reinterpret_cast<char*>(data[index]), index) { }
-	C2DPSkipArray(S** data, T& firstElement, unsigned int index) : C2DPSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(&firstElement) - reinterpret_cast<char*>(data[index]), index) { }
+	C2DPXSkipArray(S** data, unsigned int offset, unsigned int index) : C2DPXSkipArray<void, T>(data, sizeof(S), offset, index) { }
+	C2DPXSkipArray(S** data, T* firstElement, unsigned int index) : C2DPXSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(firstElement) - reinterpret_cast<char*>(data[index]), index) { }
+	C2DPXSkipArray(S** data, T& firstElement, unsigned int index) : C2DPXSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(&firstElement) - reinterpret_cast<char*>(data[index]), index) { }
+};
+
+
+// Used for skipping around within an array of pointers
+// DO NOT USE WITH NORMAL 2D ARRAYS!
+
+template<typename S, typename T>
+class C2DPYSkipArray;
+
+template<typename T>
+class C2DPYSkipArray<void, T>
+{
+public:
+	// Normal array in
+	// How many bytes need to be skipped for each element
+	// Offset in bytes from start of stride for an element
+	// In a 2D array, [x][y], index is y
+	C2DPYSkipArray(void** data, unsigned int stride, unsigned int offset, unsigned int index) : m_data(reinterpret_cast<char**>(data)), m_stride(stride), m_offset(offset), m_index(index) { }
+
+	T& operator[](size_t i) { return *reinterpret_cast<T*>(m_data[i] + m_stride * m_index + m_offset); }
+
+	CUArrayAccessor<T> accessor() const { return { (void*)this, &C2DPYSkipArray<void, T>::accessor }; }
+	operator CUArrayAccessor<T>() const { return accessor(); }
+
+protected:
+	static T& accessor(void* t, size_t i) { return ((C2DPYSkipArray<void, T>*)t)->operator[](i); }
+
+	char** const m_data;
+	unsigned int const m_stride;
+	unsigned int const m_offset;
+	unsigned int const m_index;
+};
+
+template<typename S, typename T>
+class C2DPYSkipArray : public C2DPYSkipArray<void, T>
+{
+public:
+	// In an array of pointers, [x][y], index is y
+	C2DPYSkipArray(S** data, unsigned int offset, unsigned int index) : C2DPYSkipArray<void, T>(data, sizeof(S), offset, index) { }
+	C2DPYSkipArray(S** data, T* firstElement, unsigned int index) : C2DPYSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(firstElement) - reinterpret_cast<char*>(data[index]), index) { }
+	C2DPYSkipArray(S** data, T& firstElement, unsigned int index) : C2DPYSkipArray<void, T>((void**)data, sizeof(S), reinterpret_cast<char*>(&firstElement) - reinterpret_cast<char*>(data[index]), index) { }
 };

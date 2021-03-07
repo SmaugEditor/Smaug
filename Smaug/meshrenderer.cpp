@@ -17,7 +17,7 @@ static bgfx::VertexLayout MeshVertexLayout()
 }
 
 
-CMeshRenderer::CMeshRenderer(mesh_t& mesh) : m_mesh(mesh)
+CMeshRenderer::CMeshRenderer(mesh_t& mesh) : m_mesh(mesh), m_indexCount(0)
 {
 }
 
@@ -48,8 +48,7 @@ void CMeshRenderer::RebuildRenderData()
 
 void CMeshRenderer::Render()
 {
-	bgfx::setVertexBuffer(0, m_vertexBuf);
-	bgfx::setIndexBuffer(m_indexBuf, 0, m_indexCount);
+	
 	// This does not bgfx::submit!!
 }
 
@@ -57,8 +56,10 @@ void CMeshRenderer::Render(CModelTransform& trnsfm)
 {
 	glm::mat4 mtx = trnsfm.Matrix();
 
+
 	bgfx::setTransform(&mtx[0][0]);
-	Render();
+	bgfx::setVertexBuffer(0, m_vertexBuf);
+	bgfx::setIndexBuffer(m_indexBuf, 0, m_indexCount);
 	// This does not bgfx::submit!!
 }
 
@@ -72,9 +73,6 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	int indexCount = 0;
 	for (auto p : m_mesh.parts)
 	{
-		int vCount = p->verts.size();
-
-		triangluateMeshPartFaces(*p);
 		indexCount += p->faces.size() * 3; // 3 indexes per tri
 	}
 
@@ -114,7 +112,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 			*/
 			for (auto v : f->verts)
 			{
-				uint16_t vert = 0;// v->vert - vertData;
+				uint16_t vert = std::find(m_mesh.verts.begin(), m_mesh.verts.end(), v->vert) - m_mesh.verts.begin();// v->vert - vertData;
 				if (vert > m_mesh.verts.size())
 					printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
 
