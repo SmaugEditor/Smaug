@@ -25,6 +25,7 @@ set( SOURCES
 	utils.cpp 
 	raytest.cpp
 	mesh.cpp
+	meshrenderer.cpp
 
 	worldeditor.cpp 
 	worldrenderer.cpp 

@@ -128,7 +128,7 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, verte
 	// Start should always be the clockwise start of the smaller part
 	if (between < face->edges.size() / 2.0f)
 	{
-		swap(start,    end);
+		swap(start, end);
 	}
 
 	// Now that we know which side's larger, we can safely slice
@@ -136,22 +136,24 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, verte
 }
 
 void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
-void addMeshFace(mesh_t& mesh, glm::vec3* points, int pointCount)
+glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount)
+{
+	size_t start = mesh.verts.size();
+	for (int i = 0; i < pointCount; i++)
+	{
+		glm::vec3* v = new glm::vec3(points[i]);
+		mesh.verts.push_back(v);
+	}
+	return mesh.verts.data() + start;
+}
+void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
 {
 	meshPart_t* mp = new meshPart_t;
 	mp->mesh = &mesh;
 	mp->sideCount = pointCount;
 	mesh.parts.push_back(mp);
 
-	int start = mesh.verts.size();
-
-	for (int i = 0; i < pointCount; i++)
-	{
-		glm::vec3* v = new glm::vec3(points[i]);
-		mesh.verts.push_back(v);
-	}
-
-	defineFace(*mp, mesh.verts.data() + start, pointCount);
+	defineFace(*mp, points, pointCount);
 }
 
 void triangluateMeshPartFaces(meshPart_t& mesh)

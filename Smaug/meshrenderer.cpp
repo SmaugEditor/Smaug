@@ -17,7 +17,7 @@ static bgfx::VertexLayout MeshVertexLayout()
 }
 
 
-CMeshRenderer::CMeshRenderer(meshPart_t& part) : m_part(part)
+CMeshRenderer::CMeshRenderer(mesh_t& mesh) : m_mesh(mesh)
 {
 }
 
@@ -66,53 +66,65 @@ void CMeshRenderer::Render(CModelTransform& trnsfm)
 void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf)
 {
 	// We can only render tris!
-	if (m_part.verts.size() < 4)
+	if (m_mesh.verts.size() < 3)
 		return;
 
-	triangluateMeshPartFaces(m_part);
+	int indexCount = 0;
+	for (auto p : m_mesh.parts)
+	{
+		int vCount = p->verts.size();
+
+		triangluateMeshPartFaces(*p);
+		indexCount += p->faces.size() * 3; // 3 indexes per tri
+	}
+
 	// Allocate our buffers
 	// bgfx cleans these up for us
-	vertBuf = bgfx::alloc(m_part.verts.size() * sizeof(glm::vec3));
-	indexBuf = bgfx::alloc(m_part.faces.size()  * sizeof(uint16_t) * 3 ); // Each face is a tri
+	vertBuf = bgfx::alloc(m_mesh.verts.size() * sizeof(glm::vec3));
+	indexBuf = bgfx::alloc(indexCount * sizeof(uint16_t)); // Each face is a tri
 
 	uint16_t* idxData = (uint16_t*)indexBuf->data;
 
 	int vOffset = 0;
-	for (vertex_t* v : m_part.verts)
+	for (glm::vec3* v : m_mesh.verts)
 	{
-		memcpy(vertBuf->data + vOffset, v->vert, sizeof(glm::vec3));
+		memcpy(vertBuf->data + vOffset, v, sizeof(glm::vec3));
 		vOffset += sizeof(glm::vec3);
 	}
 
-	int offset = 0;
-	for (auto f : m_part.faces)
-	{
-		/*
-		// If our verts are out of order, this will fail. Should we use the HE data to determine this?
-		halfEdge_t* he = f->edges[0];
-		do
+	int iOffset = 0;
+
+	for (auto p : m_mesh.parts)
+		for (auto f : p->faces)
 		{
+			/*
+			// If our verts are out of order, this will fail. Should we use the HE data to determine this?
+			halfEdge_t* he = f->edges[0];
+			do
+			{
 
-			uint16_t vert = he->vert->vert - vertData;
-			if (vert > m_part.verts.size())
-				printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+				uint16_t vert = he->vert->vert - vertData;
+				if (vert > m_part.verts.size())
+					printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
 
-			idxData[offset] = vert;
-			offset++;
-			he = he->next;
-		} while (he != f->edges[0]);
-		*/
-		for (auto v : f->verts)
-		{
-			uint16_t vert = 0;// v->vert - vertData;
-			if (vert > m_part.verts.size())
-				printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+				idxData[offset] = vert;
+				offset++;
+				he = he->next;
+			} while (he != f->edges[0]);
+			*/
+			for (auto v : f->verts)
+			{
+				uint16_t vert = 0;// v->vert - vertData;
+				if (vert > m_mesh.verts.size())
+					printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
 
-			idxData[offset] = vert;
-			offset++;
+				idxData[iOffset] = vert;
+				iOffset++;
+			}
+
 		}
+	m_indexCount = iOffset;
 
-	}
-	m_indexCount = offset;
+}
 
 }

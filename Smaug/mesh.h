@@ -145,7 +145,11 @@ struct cutttableShape_t : public meshPart_t
 };
 */
 
-void addMeshFace(mesh_t& mesh, glm::vec3* points, int pointCount);
+// Returns start of the points within mesh.verts
+glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
+
+// Does not add points to mesh! Only adds face
+void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 
 void triangluateMeshPartFaces(meshPart_t& mesh);
 void defineMeshPart(meshPart_t& mesh);

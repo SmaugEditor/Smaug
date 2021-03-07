@@ -8,7 +8,7 @@
 class CMeshRenderer
 {
 public:
-	CMeshRenderer(meshPart_t& part);
+	CMeshRenderer(mesh_t& mesh);
 	~CMeshRenderer();
 
 	void RebuildRenderData();
@@ -16,7 +16,7 @@ public:
 	void Render(CModelTransform& trnsfm);
 
 private:
-	meshPart_t& m_part;
+	mesh_t& m_mesh;
 	void BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf);
 	
 	bgfx::DynamicVertexBufferHandle m_vertexBuf = BGFX_INVALID_HANDLE;
