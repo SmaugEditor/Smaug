@@ -369,10 +369,10 @@ glm::mat4 CModelTransform::Matrix()
 {
     glm::mat4 mtx = glm::identity<glm::mat4>();
     if (m_pParent)
-        mtx *= m_pParent->Matrix();
+        mtx = m_pParent->Matrix();
     mtx = glm::translate(mtx, m_position);
-    mtx = glm::scale(mtx, m_scale);
     mtx *= glm::yawPitchRoll(m_angles.y, m_angles.x, m_angles.z);
+    mtx = glm::scale(mtx, m_scale);
 
     return mtx;
 }
