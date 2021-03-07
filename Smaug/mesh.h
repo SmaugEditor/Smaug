@@ -21,6 +21,9 @@ P=vertex.edge.next.next.pair.next.vertex
 
 */
 
+// Might be worth turning this whole thing into a class of sorts?
+// It's a little bit messy currently...
+
 
 struct halfEdge_t;
 struct face_t;
@@ -104,7 +107,21 @@ struct mesh_t
 	aabb_t aabb;
 };
 
+// A mesh that can be sliced by other meshes
+struct cuttableMesh_t : public mesh_t
+{
 
+	// These cut into this mesh without changing the real structure of it
+	std::vector<mesh_t*> cutters;
+
+	// We cut these meshes
+	std::vector<mesh_t*> cutting;
+
+	// Not ordered! Do no depend on this!
+	// Pointers so that adding doesn't delete the memory
+	// Added during cutting
+	std::vector<glm::vec3*> cutVerts;
+};
 
 // One shape contains many HE'd faces
 // Used for large editing and faces for cutting
@@ -127,23 +144,6 @@ struct mesh_t
 //  /  |XX|  \
 // /___|__|___\
 
-/*
-struct cutttableShape_t : public meshPart_t
-{
-	// These define the shape 
-	// Must be defined in clockwise-faceout-order
-	// Editing this MUST be followed by redefinition!
-	//std::vector<glm::vec3> verts;
-
-	// Inherited from meshPart_t
-	// These are triangluated faces within the shape
-	// Never depend on them post a refresh
-	//std::vector<face_t*> faces;
-
-	// These cut into this shape and form what the faces look like
-	std::vector<cutttableShape_t*> cutters;
-};
-*/
 
 // Returns start of the points within mesh.verts
 glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
@@ -154,3 +154,5 @@ void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 void triangluateMeshPartFaces(meshPart_t& mesh);
 void defineMeshPartFaces(meshPart_t& mesh);
 face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end);
+
+void applyCuts(cuttableMesh_t& mesh);

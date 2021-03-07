@@ -17,7 +17,7 @@ static bgfx::VertexLayout MeshVertexLayout()
 }
 
 
-CMeshRenderer::CMeshRenderer(mesh_t& mesh) : m_mesh(mesh), m_indexCount(0)
+CMeshRenderer::CMeshRenderer(cuttableMesh_t& mesh) : m_mesh(mesh), m_indexCount(0)
 {
 }
 
@@ -78,13 +78,19 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 	// Allocate our buffers
 	// bgfx cleans these up for us
-	vertBuf = bgfx::alloc(m_mesh.verts.size() * sizeof(glm::vec3));
+	vertBuf = bgfx::alloc(m_mesh.verts.size() * sizeof(glm::vec3) + m_mesh.cutVerts.size() * sizeof(glm::vec3));
 	indexBuf = bgfx::alloc(indexCount * sizeof(uint16_t)); // Each face is a tri
 
 	uint16_t* idxData = (uint16_t*)indexBuf->data;
 
 	int vOffset = 0;
 	for (glm::vec3* v : m_mesh.verts)
+	{
+		memcpy(vertBuf->data + vOffset, v, sizeof(glm::vec3));
+		vOffset += sizeof(glm::vec3);
+	}
+
+	for (glm::vec3* v : m_mesh.cutVerts)
 	{
 		memcpy(vertBuf->data + vOffset, v, sizeof(glm::vec3));
 		vOffset += sizeof(glm::vec3);
@@ -112,9 +118,24 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 			*/
 			for (auto v : f->verts)
 			{
-				uint16_t vert = std::find(m_mesh.verts.begin(), m_mesh.verts.end(), v->vert) - m_mesh.verts.begin();// v->vert - vertData;
-				if (vert > m_mesh.verts.size())
-					printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+				uint16_t vert = 0;
+				auto f = std::find(m_mesh.verts.begin(), m_mesh.verts.end(), v->vert);
+				if (f != m_mesh.verts.end())
+				{
+					vert = f - m_mesh.verts.begin();// v->vert - vertData;
+				}
+				else
+				{
+					f = std::find(m_mesh.cutVerts.begin(), m_mesh.cutVerts.end(), v->vert);
+					if (f != m_mesh.cutVerts.end())
+					{
+						vert = m_mesh.verts.size() + (f - m_mesh.cutVerts.begin());// v->vert - vertData;
+					}
+					else
+					{
+						printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+					}
+				}
 
 				idxData[iOffset] = vert;
 				iOffset++;

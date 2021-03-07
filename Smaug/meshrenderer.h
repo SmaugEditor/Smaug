@@ -8,16 +8,16 @@
 class CMeshRenderer
 {
 public:
-	CMeshRenderer(mesh_t& mesh);
+	CMeshRenderer(cuttableMesh_t& mesh);
 	~CMeshRenderer();
 
 	void RebuildRenderData();
 	void Render();
 	void Render(CModelTransform& trnsfm);
-	mesh_t& Mesh() { return m_mesh; }
+	cuttableMesh_t& Mesh() { return m_mesh; }
 
 private:
-	mesh_t& m_mesh;
+	cuttableMesh_t& m_mesh;
 	void BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf);
 	
 	bgfx::DynamicVertexBufferHandle m_vertexBuf = BGFX_INVALID_HANDLE;

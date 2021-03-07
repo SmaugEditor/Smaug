@@ -67,3 +67,6 @@ inline glm::vec3 tritod(glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2, int axis
 bool testPointInTri(float pU, float pV, glm::vec3 triU, glm::vec3 triV);
 
 bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
+
+bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
+bool testPointInTriNoEdges(float pU, float pV, glm::vec3 domU, glm::vec3 domV);

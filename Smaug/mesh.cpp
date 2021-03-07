@@ -3,40 +3,7 @@
 #include "containerutil.h"
 #include <glm/geometric.hpp>
 
-/*
-Process that happens here
-
-INPUT
-________________________
-|                      |
-|       ________       |
-|       |XXXXXX|       |
-|       |XXXXXX|       |
-|                      |
-|______________________|
-
-SLICE
-________________________
-|              |       |
-|______________|       |
-|       |XXXXXX|       |
-|       |XXXXXX|_______|
-|       |              |
-|_______|______________|
-
-TRIANGULATE
-
-________________________
-|\............ |\      |
-|_____________\|  \    |
-|\      |XXXXXX|    \  |
-|  \    |XXXXXX|______\|
-|    \  |\............ |
-|______\|_____________\|
-
-
-*/
-
+// Move this to util or something?
 template<typename T>
 void swap(T& a, T& b)
 {
@@ -44,6 +11,10 @@ void swap(T& a, T& b)
 	a = b;
 	b = temp;
 }
+
+///////////////////////
+// Mesh face slicing //
+///////////////////////
 
 // For use where we know which side's going to end up larger
 // Returns the new face
@@ -67,7 +38,6 @@ face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start,
 	// We need to steal from our old and add to our new
 	for (halfEdge_t* he = heEnd; he != heStart; he = he->next)
 	{
-		printf("%p\n", (void*)(he));
 		he->face = newFace;
 		newFace->verts.push_back(he->vert);
 		newFace->edges.push_back(he);
@@ -135,27 +105,32 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, verte
 	return sliceMeshPartFaceUnsafe(mesh, face, start, end);
 }
 
-void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
-glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount)
+// Returns the unnormalized normal of a face
+glm::vec3 faceNormal(face_t* face)
 {
-	size_t start = mesh.verts.size();
-	for (int i = 0; i < pointCount; i++)
+	// Not fond of this
+
+	// Center of face
+	glm::vec3 center = { 0,0,0 };
+	for (auto v : face->verts)
+		center += *v->vert;
+	center /= face->verts.size();
+
+	glm::vec3 faceNormal = { 0,0,0 };
+	for (int i = 1; i < face->verts.size(); i++)
 	{
-		glm::vec3* v = new glm::vec3(points[i]);
-		mesh.verts.push_back(v);
+		faceNormal += glm::cross((center - (*face->verts[i]->vert)), (*face->verts[i - 1]->vert) - center);
 	}
-	return mesh.verts.data() + start;
-}
-void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
-{
-	meshPart_t* mp = new meshPart_t;
-	mp->mesh = &mesh;
-	mp->sideCount = pointCount;
-	mesh.parts.push_back(mp);
 
-	defineFace(*mp, points, pointCount);
+	return faceNormal;
 }
 
+/////////////////////////////
+// Mesh face triangulation //
+/////////////////////////////
+
+// Clean this all up!!
+// Takes in a mesh part and triangulates every face within the part
 void triangluateMeshPartFaces(meshPart_t& mesh)
 {
 	// As we'll be walking this, we wont want to walk over our newly created faces
@@ -171,23 +146,12 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 		if (face->edges.size() < 4)
 			continue;
 
-		// Center of face
-		glm::vec3 center = { 0,0,0 };
-		for (auto v : face->verts)
-			center += *v->vert;
-		center /= face->verts.size();
-
-		// Get the norm of the face for later testing 
-		// Not fond of this
-		glm::vec3 faceNormal = { 0,0,0 };
-		for (int i = 1; i < face->verts.size(); i++)
-		{
-			faceNormal += glm::cross((center - (*face->verts[i]->vert)), (*face->verts[i-1]->vert) - center);
-		}
-		faceNormal = glm::normalize(faceNormal);
 		
-		int nU, nV;
-		findDominantAxis(faceNormal, nU, nV);
+		// Get the norm of the face for later testing 
+		glm::vec3 faceNorm = faceNormal(face);
+		
+		//int nU, nV;
+		//findDominantAxis(faceNorm, nU, nV);
 
 		// On odd numbers, we use start + 1, end instead of start, end - 1
 		// Makes it look a bit like we're fitting quads instead of tris
@@ -197,18 +161,8 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 		while (face->verts.size() > 3)
 		{
 			// Vert 0 will become our anchor for all new faces to connect to
-			vertex_t* v0;
-			vertex_t* end;
-			if (fmod(alternate, 2) == 1)
-			{
-				v0 = face->verts[1];
-				end = face->verts[face->verts.size() - 1];
-			}
-			else
-			{
-				v0 = face->verts[0];
-				end = face->verts[face->verts.size() - 2];
-			}
+			vertex_t* end = face->verts[face->verts.size() - 1 - fmod(alternate, 2)];
+			vertex_t* v0 = end->edge->next->vert;
 
 			int attempts = 0;
 			bool shift;
@@ -221,21 +175,21 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 				glm::vec3 edge2 = (*between->vert) - (*v0->vert);
 				glm::vec3 triNormal = glm::cross(edge1, edge2);
 
-				float dot = glm::dot(triNormal, faceNormal);
+				float dot = glm::dot(triNormal, faceNorm);
 				if (dot < 0)
 					shift = true;
 				else
 				{
 					// Dot was fine. Let's see if anything's in our new tri
 
-					glm::vec3 u = tritod(*end->vert, *between->vert, *v0->vert, nU);
-					glm::vec3 v = tritod(*end->vert, *between->vert, *v0->vert, nV);
+					//glm::vec3 u = tritod(*end->vert, *between->vert, *v0->vert, nU);
+					//glm::vec3 v = tritod(*end->vert, *between->vert, *v0->vert, nV);
 
 					// I fear the cache misses...
 					for (vertex_t* c = v0->edge->vert; c != end; c = c->edge->vert)
 					{
 						glm::vec3 ptt = *c->vert;
-						if (testPointInTri(ptt, *end->vert, *between->vert, *v0->vert))//(ptt[nU], ptt[nV], u, v))
+						if (testPointInTriNoEdges(ptt, *end->vert, *between->vert, *v0->vert))//(ptt[nU], ptt[nV], u, v))
 						{
 							shift = true;
 							break;
@@ -262,6 +216,195 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 		
 	}
 
+}
+
+/////////////////////////////
+// Mesh face shape cutting //
+/////////////////////////////
+
+// Cuts another face into a face using the cracking method
+//
+// Input
+//  ________
+// |        |
+// |        |           /\
+// |        |    +     /  \
+// |        |         /____\
+// |________|
+//
+// Output
+//  ________
+// |        |
+// |   /\   |
+// |  /  \  |
+// | /____\ |
+// |_______\|  < outer face is "cracked" and shaped around the cut
+//               ready to be triangulated for drawing
+//
+
+// Mesh part must belong to a cuttable mesh!
+// Cutter must have an opposing normal, verts are counter-clockwise
+void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutter)
+{
+	// This fails if either parts have < 3 verts
+	if (part->verts.size() < 3 || cutter->verts.size() < 3)
+		return;
+
+	// Find the closest two points
+	float distClosest = FLT_MAX;
+	vertex_t* v1Closest = nullptr;
+	vertex_t* v2Closest = nullptr;
+	
+	// We don't want to break this face's self representation
+	// We're going to be editing child face #0
+	// This means cracking *must* be done before triangulation
+	// Which really sucks cause point testing is going to be waaay harder
+	// We might want a representation below the mesh face for this...
+	face_t* target = part->faces[0];
+	
+	// This might have horrible performance...
+	for (auto v1 : target->verts)
+		for (auto v2 : cutter->verts)
+		{
+			glm::vec3 delta = *v1->vert - *v2->vert;
+
+			// Cheap dist
+			// We don't need sqrt for just comparisons
+			float dist = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
+			if (dist < distClosest)
+			{
+				distClosest = dist;
+				v1Closest = v1;
+				v2Closest = v2;
+			}
+		}
+
+
+	// Let's start by tracking all of our new found points
+	for(auto v : cutter->verts)
+		mesh.cutVerts.push_back(v->vert);
+
+	// Since we checked the len earlier, v1 and v2 should exist...
+	
+	// Start the crack into the face
+	halfEdge_t* crackIn = new halfEdge_t{nullptr, nullptr, target, nullptr};
+	target->edges.push_back(crackIn);
+
+	vertex_t* curV = new vertex_t{v2Closest->vert};
+	crackIn->vert = curV;
+	target->verts.push_back(curV);
+
+	// Now we need to recreate our cutting mesh within this mesh
+	halfEdge_t* curHE = crackIn;
+
+	halfEdge_t* v2Edge = v2Closest->edge;
+	
+	halfEdge_t* otherHE = v2Edge;
+	do
+	{
+		halfEdge_t* nHE = new halfEdge_t{};
+		nHE->face = target;
+		target->edges.push_back(nHE);
+
+		curHE->next = nHE;
+		curV->edge = nHE;
+
+		curV = new vertex_t{ otherHE->vert->vert };
+		nHE->vert = curV;
+		target->verts.push_back(curV);
+
+		curHE = nHE;
+
+		otherHE = otherHE->next;
+	} while (otherHE != v2Edge);
+
+
+	
+
+	// We need to crack v1 and v2 into two verts
+	vertex_t* v1Out = new vertex_t{ v1Closest->vert, v1Closest->edge };
+	target->verts.push_back(v1Out);
+
+	// v1's going to need a new HE that points to v2
+	halfEdge_t* crackOut = new halfEdge_t{ v1Out, crackIn, target, v1Out->edge };
+	curHE->next = crackOut;
+	curV->edge = crackOut;
+	crackIn->pair = crackOut;
+	target->edges.push_back(crackOut);
+
+	// Don't like this
+	// Walk and find what leads up to v1Closest
+	halfEdge_t* preHE;
+	for (preHE = v1Closest->edge; preHE->vert != v1Closest; preHE = preHE->next);
+	preHE->next = crackIn;
+	v1Closest->edge = crackIn;
+}
+
+void applyCuts(cuttableMesh_t& mesh)
+{
+	// Totally lame!
+	// For now, we're just going to cut faces opposing each other...
+
+	
+	// Precompute the normals
+	glm::vec3* norms = new glm::vec3[mesh.parts.size()];
+	for (int i = 0; auto p : mesh.parts)
+	{
+		norms[i] = glm::normalize(faceNormal(p));
+		i++;
+	}
+	
+	for (auto cutter : mesh.cutters)
+	{
+		for (auto cutP : cutter->parts)
+		{
+			glm::vec3 cutNorm = glm::normalize(faceNormal(cutP));
+			// Iterate over faces and check if we have ones with opposing norms
+			for (int i = 0; auto p : mesh.parts)
+			{
+				glm::vec3& pN = norms[i];
+				i++;
+				if (glm::dot(cutNorm, pN) < 0)
+				{
+					opposingFaceCrack(mesh, p, cutP);
+				}
+
+			}
+		}
+
+	}
+
+}
+
+
+
+/////////////////////
+// Mesh management //
+/////////////////////
+
+
+// Adds vertices to a mesh for use in face definition
+glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount)
+{
+	size_t start = mesh.verts.size();
+	for (int i = 0; i < pointCount; i++)
+	{
+		glm::vec3* v = new glm::vec3(points[i]);
+		mesh.verts.push_back(v);
+	}
+	return mesh.verts.data() + start;
+}
+
+// Creates and defines a new face within a mesh
+void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
+void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
+{
+	meshPart_t* mp = new meshPart_t;
+	mp->mesh = &mesh;
+	mp->sideCount = pointCount;
+	mesh.parts.push_back(mp);
+
+	defineFace(*mp, points, pointCount);
 }
 
 
@@ -331,7 +474,6 @@ void defineMeshPartFaces(meshPart_t& mesh)
 	defineFace(*f, skip, mesh.verts.size());
 
 
-	triangluateMeshPartFaces(mesh);
 }
 
 
