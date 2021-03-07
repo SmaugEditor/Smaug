@@ -14,6 +14,7 @@ public:
 	void RebuildRenderData();
 	void Render();
 	void Render(CModelTransform& trnsfm);
+	mesh_t& Mesh() { return m_mesh; }
 
 private:
 	mesh_t& m_mesh;
