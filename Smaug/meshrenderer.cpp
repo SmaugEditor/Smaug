@@ -145,5 +145,3 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	m_indexCount = iOffset;
 
 }
-
-}
