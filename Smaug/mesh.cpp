@@ -249,11 +249,15 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// This fails if either parts have < 3 verts
 	if (part->verts.size() < 3 || cutter->verts.size() < 3)
 		return;
+	std::vector<vertex_t*> cutterVerts = cutter->verts;
 
 	// Find the closest two points
 	float distClosest = FLT_MAX;
 	vertex_t* v1Closest = nullptr;
 	vertex_t* v2Closest = nullptr;
+	int v2Index = 0;
+
+	glm::vec3 cutterToLocal = mesh.origin - cutter->mesh->origin;
 	
 	// We don't want to break this face's self representation
 	// We're going to be editing child face #0
@@ -264,9 +268,11 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	
 	// This might have horrible performance...
 	for (auto v1 : target->verts)
-		for (auto v2 : cutter->verts)
+	{
+		int v2i = 0;
+		for (auto v2 : cutterVerts)
 		{
-			glm::vec3 delta = *v1->vert - *v2->vert;
+			glm::vec3 delta = *v1->vert - (*v2->vert + cutterToLocal);
 
 			// Cheap dist
 			// We don't need sqrt for just comparisons
@@ -276,13 +282,24 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 				distClosest = dist;
 				v1Closest = v1;
 				v2Closest = v2;
+				v2Index = v2i;
 			}
+			v2i++;
 		}
+	}
 
 
 	// Let's start by tracking all of our new found points
-	for(auto v : cutter->verts)
-		mesh.cutVerts.push_back(v->vert);
+	// aaand transforming them into our local space
+	int startSize = mesh.cutVerts.size();
+	for (auto v : cutterVerts)
+	{
+		glm::vec3* vec = new glm::vec3();
+		*vec = *v->vert + cutterToLocal;
+		mesh.cutVerts.push_back(vec);
+	}
+	glm::vec3** cutVerts = mesh.cutVerts.data() + startSize;
+	//long long transformPointerToLocal = cutterVerts - cutter->verts.data();
 
 	// Since we checked the len earlier, v1 and v2 should exist...
 	
@@ -290,7 +307,8 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	halfEdge_t* crackIn = new halfEdge_t{nullptr, nullptr, target, nullptr};
 	target->edges.push_back(crackIn);
 
-	vertex_t* curV = new vertex_t{v2Closest->vert};
+
+	vertex_t* curV = new vertex_t{cutVerts[v2Index]};
 	crackIn->vert = curV;
 	target->verts.push_back(curV);
 
@@ -309,7 +327,10 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 		curHE->next = nHE;
 		curV->edge = nHE;
 
-		curV = new vertex_t{ otherHE->vert->vert };
+		// Don't like this!
+		int offset = std::find(cutterVerts.begin(), cutterVerts.end(), otherHE->vert) - cutterVerts.begin();
+
+		curV = new vertex_t{ cutVerts[offset] };
 		nHE->vert = curV;
 		target->verts.push_back(curV);
 
@@ -345,7 +366,12 @@ void applyCuts(cuttableMesh_t& mesh)
 	// Totally lame!
 	// For now, we're just going to cut faces opposing each other...
 
-	
+
+	// Clear out our old cut verts
+	for (auto v : mesh.cutVerts)
+		delete v;
+	mesh.cutVerts.clear();
+
 	// Precompute the normals
 	glm::vec3* norms = new glm::vec3[mesh.parts.size()];
 	for (int i = 0; auto p : mesh.parts)

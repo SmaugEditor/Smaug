@@ -105,6 +105,9 @@ struct mesh_t
 
 	// Calculated from part aabbs
 	aabb_t aabb;
+
+	// Transform of the mesh
+	glm::vec3 origin;
 };
 
 // A mesh that can be sliced by other meshes
