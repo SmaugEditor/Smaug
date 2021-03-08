@@ -78,13 +78,11 @@ testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
 void findDominantAxis(glm::vec3 normal, int& uAxis, int& vAxis);
 // triU and triV should be tri0[axis], tri1[axis], tri3[axis]
 inline glm::vec3 tritod(glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2, int axis) { return { tri0[axis], tri1[axis], tri2[axis] }; }
+
+template<bool testEdges = true>
 bool testPointInTri(float pU, float pV, glm::vec3 triU, glm::vec3 triV);
-
+template<bool testEdges = true>
 bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
-
-bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
-bool testPointInTriNoEdges(float pU, float pV, glm::vec3 domU, glm::vec3 domV);
-
 
 
 testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p);

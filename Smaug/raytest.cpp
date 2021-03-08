@@ -29,6 +29,7 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat)
 // Adapted from 3D math primer for graphics and game development / Fletcher Dunn, Ian Parberry. -- 2nd ed. pg 724
 // Lot of this code is a bit duplicated. Clean it up?
 
+template<bool cull = true>
 testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
@@ -58,10 +59,12 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
     // (p0 + tD) * n = d
     // tD*n = d - p0*d
 
-
-    // Ignore backside and NANs
-    if (!(t >= 0.0f))
-        return { false };
+    if constexpr (cull)
+    {
+        // Ignore backside and NANs
+        if (!(t >= 0.0f))
+            return { false };
+    }
 
     // If something else was closer, skip our current and NANs
     if (!(t <= closestT))
@@ -82,70 +85,15 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
     return test;
 }
 
+template<bool cull = true>
 void rayPlaneTest(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 {
-    testRayPlane_t rayTest = rayPlaneTest(ray, tri, lastTest.t);
+    testRayPlane_t rayTest = rayPlaneTest<cull>(ray, tri, lastTest.t);
     if (rayTest.hit)
         lastTest = rayTest;
 }
 
 
-
-testRayPlane_t rayPlaneTestNoCull(ray_t ray, tri_t tri, float closestT)
-{
-    glm::vec3 edge1 = tri.b - tri.a;
-    glm::vec3 edge2 = tri.c - tri.b;
-
-    // Unnormalized normal of the face
-    glm::vec3 normal = glm::cross(edge1, edge2);
-
-    // Angle of approach on the face
-    float approach = glm::dot(ray.dir, normal);
-
-    // If parallel to or not facing the plane, dump it
-    // 
-    // the ! < dumps malformed triangles with NANs!
-    // does not serve the same purpose as >=
-    if (!(approach < 0.0f))
-    {
-        return { false };
-    }
-
-    // All points on the plane have the same dot, defined as d
-    float d = glm::dot(tri.a, normal);
-
-    // Parametric point of intersection with the plane of the tri and the ray
-    float t = (d - glm::dot(ray.origin, normal)) / approach;
-
-    // (p0 + tD) * n = d
-    // tD*n = d - p0*d
-
-
-    // If something else was closer, skip our current and NANs
-    if (!(t <= closestT))
-    {
-        return { false };
-    }
-
-    // 3D point of intersection
-    glm::vec3 p = ray.origin + ray.dir * t;
-
-    testRayPlane_t test;
-    test.hit = true;
-    test.t = t;
-    test.normal = normal;
-    test.approach = approach;
-    test.intersect = p;
-
-    return test;
-}
-
-void rayPlaneTestNoCull(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
-{
-    testRayPlane_t rayTest = rayPlaneTestNoCull(ray, tri, lastTest.t);
-    if (rayTest.hit)
-        lastTest = rayTest;
-}
 
 
 template<bool cull = true>
@@ -283,32 +231,32 @@ void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
     tri_t plane;
 
     plane = { max,                       vec3(max.x, max.y, min.z), vec3(min.x, max.y, min.z) }; // Top
-    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
+    test = rayPlaneTest<false>(ray, plane, lastTest.t);
     if (test.hit && test.intersect.x >= plane[2].x && test.intersect.z >= plane[2].z && test.intersect.x <= plane[0].x && test.intersect.z <= plane[0].z)
         lastTest = test;
 
     plane = { vec3(max.x, min.y, max.z), vec3(min.x, min.y, max.z), min                       };  // Bottom
-    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
+    test = rayPlaneTest<false>(ray, plane, lastTest.t);
     if (test.hit && test.intersect.x >= plane[2].x && test.intersect.z >= plane[2].z && test.intersect.x <= plane[0].x && test.intersect.z <= plane[0].z)
         lastTest = test;
 
     plane = { max,                       vec3(max.x, min.y, max.z), vec3(max.x, min.y, min.z) }; // Right
-    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
+    test = rayPlaneTest<false>(ray, plane, lastTest.t);
     if (test.hit && test.intersect.z >= plane[2].z && test.intersect.y >= plane[2].y && test.intersect.z <= plane[0].z && test.intersect.y <= plane[0].y)
         lastTest = test;
 
     plane = { vec3(min.x, max.y, max.z), vec3(min.x, max.y, min.z), min                       }; // Left
-    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
+    test = rayPlaneTest<false>(ray, plane, lastTest.t);
     if (test.hit && test.intersect.z >= plane[2].z && test.intersect.y >= plane[2].y && test.intersect.z <= plane[0].z && test.intersect.y <= plane[0].y)
         lastTest = test;
 
     plane = { max,                       vec3(min.x, max.y, max.z), vec3(min.x, min.y, max.z) }; // Front
-    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
+    test = rayPlaneTest<false>(ray, plane, lastTest.t);
     if (test.hit && test.intersect.x >= plane[2].x && test.intersect.y >= plane[2].y && test.intersect.x <= plane[0].x && test.intersect.y <= plane[0].y)
         lastTest = test;
 
     plane = { vec3(max.x, max.y, min.z), vec3(max.x, min.y, min.z), min                       }; // Back
-    test = rayPlaneTestNoCull(ray, plane, lastTest.t);
+    test = rayPlaneTest<false>(ray, plane, lastTest.t);
     if (test.hit && test.intersect.x >= plane[2].x && test.intersect.y >= plane[2].y && test.intersect.x <= plane[0].x && test.intersect.y <= plane[0].y)
         lastTest = test;
 
@@ -435,6 +383,7 @@ void findDominantAxis(glm::vec3 normal, int& uAxis, int& vAxis)
     }
 }
 
+template<bool testEdges>
 bool testPointInTri(float pU, float pV, glm::vec3 domU, glm::vec3 domV)
 {
 
@@ -452,36 +401,21 @@ bool testPointInTri(float pU, float pV, glm::vec3 domU, glm::vec3 domV)
     float alpha = (u[0] * v[2] - v[0] * u[2]) * temp;
     float beta = (u[1] * v[0] - v[1] * u[0]) * temp;
     float gamma = 1.0f - alpha - beta;
-    if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
-        return false;
+    if constexpr (testEdges)
+    {
+        if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
+            return false;
+    }
+    else
+    {
+        if (!(alpha > 0.0f) || !(beta > 0.0f) || !(gamma > 0.0f))
+            return false;
+    }
     return false;
 }
 
 
-bool testPointInTriNoEdges(float pU, float pV, glm::vec3 domU, glm::vec3 domV)
-{
-
-    // Project plane onto axis
-    glm::vec3 u = { pU - domU.x, domU.y - domU.x, domU.z - domU.x };
-    glm::vec3 v = { pV - domV.x, domV.y - domV.x, domV.z - domV.x };
-
-    // Denominator
-    float temp = u[1] * v[2] - v[1] * u[2];
-    if (!(temp != 0))
-        return false;
-    temp = 1.0f / temp;
-
-    // Barycentric coords with NAN checks
-    float alpha = (u[0] * v[2] - v[0] * u[2]) * temp;
-    float beta = (u[1] * v[0] - v[1] * u[0]) * temp;
-    float gamma = 1.0f - alpha - beta;
-    if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
-        return false;
-    return false;
-}
-
-
-
+template<bool testEdges>
 bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
 {
 
@@ -534,70 +468,20 @@ bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
     float alpha = (u[0] * v[2] - v[0] * u[2]) * temp;
     float beta = (u[1] * v[0] - v[1] * u[0]) * temp;
     float gamma = 1.0f - alpha - beta;
-    if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
-        return false;
-
-    return true;
-}
-
-
-bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
-{
-
-    glm::vec3 edge1 = tri1 - tri0;
-    glm::vec3 edge2 = tri2 - tri1;
-
-    // Unnormalized normal of the face
-    glm::vec3 normal = glm::cross(edge1, edge2);
-
-    // Find the dominant axis
-    int uAxis, vAxis;
-    if (fabs(normal.x) > fabs(normal.y))
+    if constexpr (testEdges)
     {
-        if (fabs(normal.x) > fabs(normal.z))
-        {
-            uAxis = 1;
-            vAxis = 2;
-        }
-        else
-        {
-            uAxis = 0;
-            vAxis = 1;
-        }
+        if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
+            return false;
     }
     else
     {
-        if (fabs(normal.y) > fabs(normal.z))
-        {
-            uAxis = 0;
-            vAxis = 2;
-        }
-        else
-        {
-            uAxis = 0;
-            vAxis = 1;
-        }
+        if (!(alpha > 0.0f) || !(beta > 0.0f) || !(gamma > 0.0f))
+            return false;
     }
-
-    // Project plane onto axis
-    glm::vec3 u = { p[uAxis] - tri0[uAxis], tri1[uAxis] - tri0[uAxis], tri2[uAxis] - tri0[uAxis] };
-    glm::vec3 v = { p[vAxis] - tri0[vAxis], tri1[vAxis] - tri0[vAxis], tri2[vAxis] - tri0[vAxis] };
-
-    // Denominator
-    float temp = u[1] * v[2] - v[1] * u[2];
-    if (!(temp != 0))
-        return false;
-    temp = 1.0f / temp;
-
-    // Barycentric coords with NAN checks
-    float alpha = (u[0] * v[2] - v[0] * u[2]) * temp;
-    float beta = (u[1] * v[0] - v[1] * u[0]) * temp;
-    float gamma = 1.0f - alpha - beta;
-    if (!(alpha > 0.0f) || !(beta > 0.0f) || !(gamma > 0.0f))
-        return false;
 
     return true;
 }
+
 
 testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p)
 {
