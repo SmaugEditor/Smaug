@@ -94,7 +94,7 @@ foreach(FS ${FRAGMENT_SHADERS})
 endforeach()
 
 include_directories( . )
-add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} )
+add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} shaders/varying.def.sc )
 target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp )
 target_link_libraries( smaug bigg keyvalues assimp )
 
