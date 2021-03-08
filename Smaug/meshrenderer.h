@@ -13,7 +13,7 @@ public:
 
 	void RebuildRenderData();
 	void Render();
-	void Render(CModelTransform& trnsfm);
+	void Render(CModelTransform trnsfm);
 	cuttableMesh_t& Mesh() { return m_mesh; }
 
 private:

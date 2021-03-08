@@ -25,6 +25,8 @@ void CBaseView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 
 		m_framebuffer = bgfx::createFrameBuffer(2, m_fbTextures, true);
 	}
+
+	m_focused = false;
 }
 
 void CBaseView::Draw(float dt)

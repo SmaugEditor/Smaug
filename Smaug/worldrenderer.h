@@ -13,7 +13,7 @@ public:
 
 };
 
-
+/*
 class CNode;
 
 struct CNodeRenderData
@@ -43,5 +43,6 @@ struct CNodeRenderData
 	CNode* m_parentNode;
 };
 
+*/
 
 CWorldRenderer& GetWorldRenderer();

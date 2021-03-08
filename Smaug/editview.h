@@ -15,6 +15,7 @@ public:
 	virtual void Draw(float dt);
 	
 	glm::vec3 TransformMousePos(float mx, float my);
+	glm::vec3 m_editPlaneAngle;
 
 private:
 
@@ -22,9 +23,9 @@ private:
 
 	bgfx::ProgramHandle m_shaderProgram;
 
-	float m_viewZoom;
+	static float m_viewZoom;
 
-	glm::vec3 m_cameraPos;
+	static glm::vec3 m_cameraPos;
 	
 	struct
 	{
@@ -35,7 +36,6 @@ private:
 
 	IModel* m_cameraModel;
 
-	glm::vec3 m_editPlaneAngle;
 
 };
 

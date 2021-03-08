@@ -21,12 +21,14 @@ CQuadNode* CWorldEditor::CreateQuad()
 	return node;
 }
 
+/*
 CTriNode* CWorldEditor::CreateTri()
 {
 	CTriNode* node = new CTriNode();
 	RegisterNode(node);
 	return node;
 }
+*/
 
 
 CWorldEditor& GetWorldEditor()
@@ -36,9 +38,13 @@ CWorldEditor& GetWorldEditor()
 }
 
 
+CNode::CNode() : m_renderData(m_mesh)
+{
+}
+
 void CNode::Init()
 {
-
+	/*
 	m_sides = new nodeSide_t[m_sideCount];
 	LinkSides();
 
@@ -46,45 +52,30 @@ void CNode::Init()
 	
 	m_nodeHeight = 10;
 	ConstructWalls();
+	*/
 
 	CalculateAABB();
-
-	m_renderData.Setup(this);
 }
 
 void CNode::PreviewUpdate()
 {
-	m_renderData.UpdateBufs();
+	m_renderData.RebuildRenderData();
 
-	// Update our walls
-	ConstructWalls();
 }
 
 void CNode::Update()
 {
-
+#if 0
 	// Make sure our new position fits our constraints
 	for (int i = 0; i < m_constrainedToCount; i++)
 	{
 		m_constrainedTo[i].Update();
 	}
+#endif
 
+	
 
-	// Recenter the origin
-	glm::vec3 averageOrigin = glm::vec3(0,0,0);
-	for (int i = 0; i < m_sideCount; i++)
-	{
-		averageOrigin += m_sides[i].vertex1->origin;
-	}
-	averageOrigin /= m_sideCount;
-
-	// Shift the vertexes
-	m_origin += averageOrigin;
-	for (int i = 0; i < m_sideCount; i++)
-	{
-		m_sides[i].vertex1->origin -= averageOrigin;
-	}
-
+#if 0
 	// Update our walls
 	ConstructWalls();
 
@@ -105,8 +96,25 @@ void CNode::Update()
 		m_constrainedTo[i].m_parentNode->ConstructWalls();
 		m_constrainedTo[i].m_parentNode->m_renderData.Update3DBufs();
 	}
-}
+#endif
+	recenterMesh(m_mesh);
+	CalculateAABB();
 
+	for (auto pa : m_mesh.parts)
+	{
+		defineMeshPartFaces(*pa);
+	}
+
+	applyCuts(m_mesh);
+
+	for (auto pa : m_mesh.parts)
+	{
+		triangluateMeshPartFaces(*pa);
+	}
+
+	m_renderData.RebuildRenderData();
+}
+#if 0
 static float FindMaxConstraintHeight(CNode* otherNode, nodeSide_t* otherSide, CNode* ourNode, nodeSide_t* ourSide)
 {
 	// Highest point on the other side's wall + how high the node is + how high the ceiling is. Absolute Max Y for the other side.
@@ -137,7 +145,6 @@ int SortSideSideConstraints(const void* a, const void* b)
 	if (arg1Dist > arg2Dist) return 1;
 	return 0;
 }
-
 void CNode::ConstructWalls()
 {
 	// We start with discarding our walls and then creating new ones for each side. We then have to cut out of the walls where side->side constraints exist
@@ -278,7 +285,7 @@ void CNode::ConstructWalls()
 	}
 
 }
-
+#endif
 
 bool CNode::IsPointInAABB(glm::vec3 point)
 {
@@ -288,11 +295,12 @@ bool CNode::IsPointInAABB(glm::vec3 point)
 aabb_t CNode::GetAbsAABB()
 {
 	aabb_t aabb = m_aabb;
-	aabb.min += m_origin;
-	aabb.max += m_origin;
+	aabb.min += m_mesh.origin;
+	aabb.max += m_mesh.origin;
 	return aabb;
 }
 
+#if 0
 void CNode::LinkSides()
 {
 	// Link up the sides
@@ -305,39 +313,20 @@ void CNode::LinkSides()
 	m_sides[m_sideCount - 1].vertex2 = &m_vertexes[0];
 
 }
+#endif
 
 void CNode::CalculateAABB()
 {
-	glm::vec3 max = { FLT_MIN, FLT_MIN, FLT_MIN };
-	glm::vec3 min = { FLT_MAX, FLT_MAX, FLT_MAX };
-	for (int i = 0; i < m_sideCount; i++)
-	{
-		if (m_vertexes[i].origin.x > max.x)
-			max.x = m_vertexes[i].origin.x;
-		if (m_vertexes[i].origin.y > max.y)
-			max.y = m_vertexes[i].origin.y;
-		if (m_vertexes[i].origin.z > max.z)
-			max.z = m_vertexes[i].origin.z;
+	m_aabb = meshAABB(m_mesh);
 
-		if (m_vertexes[i].origin.x < min.x)
-			min.x = m_vertexes[i].origin.x;
-		if(m_vertexes[i].origin.y < min.y)
-			min.y = m_vertexes[i].origin.y;
-		if (m_vertexes[i].origin.z < min.z)
-			min.z = m_vertexes[i].origin.z;
-	}
-	max.y += m_nodeHeight;
-	m_aabb.min = min;
-	m_aabb.max = max;
-	
-
-	m_aabbLength = glm::length(max - min);
+	//m_aabbLength = glm::length(m_aabb.max - m_aabb.min);
 
 	printf("AABB - Max:{%f, %f, %f} - Min:{%f, %f, %f}\n", m_aabb.max.x, m_aabb.max.y, m_aabb.max.z, m_aabb.min.x, m_aabb.min.y, m_aabb.min.z);
 }
 
-CQuadNode::CQuadNode()
+CQuadNode::CQuadNode() : CNode()
 {
+#if 0
 	m_nodeType = NodeType::QUAD;
 	m_sideCount = 4;
 	m_vertexes = new nodeVertex_t[4];
@@ -347,10 +336,44 @@ CQuadNode::CQuadNode()
 	m_vertexes[1].origin = glm::vec3(-1,  0,  1); // Top Left
 	m_vertexes[2].origin = glm::vec3( 1,  0,  1); // Top Right
 	m_vertexes[3].origin = glm::vec3( 1,  0, -1); // Bottom Right
+#endif
+	glm::vec3 points[] = {
 
+	{-1,-1,-1}, // bottom back left
+	{ 1,-1,-1}, // bottom back right
+	{ 1, 1,-1}, // top back right
+	{-1, 1,-1}, // top back left
+
+	{-1,-1, 1}, // bottom front left
+	{ 1,-1, 1}, // bottom front right
+	{ 1, 1, 1}, // top front right
+	{-1, 1, 1}, // top front left
+
+	};
+
+	auto p = addMeshVerts(m_mesh, &points[0], 8);
+
+	glm::vec3* front[] = { p[7], p[6], p[5], p[4] };
+	addMeshFace(m_mesh, front, 4);
+
+	glm::vec3* back[] = { p[0], p[1], p[2], p[3] };
+	addMeshFace(m_mesh, &back[0], 4);
+
+	glm::vec3* left[] = { p[3], p[7], p[4], p[0] };
+	addMeshFace(m_mesh, &left[0], 4);
+
+	glm::vec3* right[] = { p[2], p[1], p[5], p[6] };
+	addMeshFace(m_mesh, &right[0], 4);
+
+	glm::vec3* bottom[] = { p[4], p[5], p[1], p[0] };
+	addMeshFace(m_mesh, &bottom[0], 4);
+
+	glm::vec3* top[] = { p[3], p[2], p[6], p[7] };
+	addMeshFace(m_mesh, &top[0], 4);
 	Init();
 }
 
+/*
 CTriNode::CTriNode()
 {
 	m_nodeType = NodeType::TRI;
@@ -365,7 +388,8 @@ CTriNode::CTriNode()
 
 	Init();
 }
-
+*/
+#if 0
 void CConstraint::Update()
 {
 	if(m_parentType == ConstraintPairType::NONE || m_childType == ConstraintPairType::NONE)
@@ -509,3 +533,4 @@ void CConstraint::SideVertConstrain()
 	// Since our origin is local the the home origin, we have to remove it 
 	m_childVertex->origin = newOrigin - m_childNode->m_origin;
 }
+#endif

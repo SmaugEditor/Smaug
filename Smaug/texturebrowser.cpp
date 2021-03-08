@@ -6,6 +6,7 @@
 
 CTextureBrowser::CTextureBrowser()
 {
+	return;
 	std::string path = "D:\\game\\baseq2\\textures\\e1u1";
 	for (const auto& entry : std::filesystem::directory_iterator(path))
 	{

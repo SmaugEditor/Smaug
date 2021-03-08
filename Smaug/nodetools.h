@@ -74,7 +74,7 @@ public:
 	virtual input_t GetHoldInput();
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_WALL; }
+	virtual int GetSelectionType() { return ACT_SELECT_SIDE; }
 
 	virtual void StartDrag()
 	{

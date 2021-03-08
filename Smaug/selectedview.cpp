@@ -19,8 +19,8 @@ void CSelectedView::Draw(float dt)
 	time += dt;
 	CBaseView::Draw(dt);
 
-
-	CNode* selectedNode = GetActionManager().selectedNode;
+#if 0
+	CNode* selectedNode = nullptr;// GetActionManager().selectedNode;
 	if (selectedNode)
 	{
 		
@@ -30,7 +30,8 @@ void CSelectedView::Draw(float dt)
 		glm::mat4 proj = glm::perspective(glm::radians(60.0f), m_aspectRatio, 0.1f, 800.0f);
 		bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
-		selectedNode->m_renderData.Draw3D(glm::vec3(0,0,0));
+		selectedNode->m_renderData.Render(glm::vec3(0,0,0));
 		bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
 	}
+#endif
 }

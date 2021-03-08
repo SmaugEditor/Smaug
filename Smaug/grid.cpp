@@ -42,10 +42,10 @@ bgfx::VertexLayout GridVertex::ms_layout;
 
 static GridVertex s_gridVertices[] =
 {
-	{ 0.0f,  0.0f,  0.0f },
-	{ 1.0f,  0.0f,  0.0f },
+	{-1.0f,  0.0f, -1.0f },
+	{ 1.0f,  0.0f, -1.0f },
 	{ 1.0f,  0.0f,  1.0f },
-	{ 0.0f,  0.0f,  1.0f },
+	{-1.0f,  0.0f,  1.0f },
 
 };
 static const uint16_t s_gridTriList[] = { 2, 1, 0, 0, 3, 2 };
@@ -109,14 +109,30 @@ void CGrid::Update()
 
 void CGrid::Draw()
 {
-	glm::vec3 scale = glm::vec3(m_screen.y - m_screen.x, 0, m_screen.w - m_screen.z);
-	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, glm::vec3(m_screen.x, -0.01, m_screen.z));
+	Draw(m_screenSize, m_pos, m_angles, false);
+}
 
-	mtx *= glm::yawPitchRoll(m_angles.y, m_angles.x, m_angles.z);
+void CGrid::Draw(glm::vec2 screenSize, glm::vec3 pos, glm::vec3 angles, bool submitTo3D, glm::vec3 offsetHack)
+{
+	if (submitTo3D)
+	{
+		m_angles = angles;
+		m_screenSize = screenSize;
+		m_pos = pos;
+	}
+
+	glm::vec3 vecDir;
+	Directions(angles, 0, 0, &vecDir);
+	m_vecGridDirMask = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z) };
+
+	glm::vec3 scale = glm::vec3(screenSize.x, 0, screenSize.y);
+	glm::mat4 mtx = glm::identity<glm::mat4>();
+	mtx = glm::translate(mtx, pos + offsetHack);
+
+	mtx *= glm::yawPitchRoll(angles.y, angles.x, angles.z);
 	mtx = glm::scale(mtx, scale);
-	
-	
+
+
 
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_planeVertexBuf);
@@ -126,16 +142,6 @@ void CGrid::Draw()
 	bgfx::setUniform(m_gridDirMask, &m_vecGridDirMask);
 
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager::GetShaderProgram(Shader::GRID));
-}
-
-void CGrid::Draw(glm::vec4 screen, glm::vec3 angles)
-{
-	m_angles = angles;
-	m_screen = screen;
-	glm::vec3 vecDir;
-	Directions(angles, 0, 0, &vecDir);
-	m_vecGridDirMask = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z) };
-	Draw();
 }
 
 glm::vec3 CGrid::Snap(glm::vec3 in)

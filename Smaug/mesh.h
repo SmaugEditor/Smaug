@@ -60,8 +60,6 @@ struct face_t
 {
 	~face_t();
 
-	size_t sideCount = 0;
-
 	// These edges use the verts 
 	std::vector<halfEdge_t*> edges;
 
@@ -104,7 +102,7 @@ struct mesh_t
 	std::vector<glm::vec3*> verts;
 
 	// Calculated from part aabbs
-	aabb_t aabb;
+	//aabb_t aabb;
 
 	// Transform of the mesh
 	glm::vec3 origin;
@@ -159,3 +157,8 @@ void defineMeshPartFaces(meshPart_t& mesh);
 face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end);
 
 void applyCuts(cuttableMesh_t& mesh);
+
+aabb_t meshAABB(mesh_t& mesh);
+void recenterMesh(mesh_t& mesh);
+glm::vec3 faceCenter(face_t* face);
+glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr);

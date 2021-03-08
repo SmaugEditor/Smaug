@@ -33,7 +33,6 @@ face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start,
 	vertex_t* newEnd = new vertex_t{ end->vert, end->edge };
 
 	newFace->verts.push_back(newEnd);
-	newFace->sideCount = 1;
 
 	// We need to steal from our old and add to our new
 	for (halfEdge_t* he = heEnd; he != heStart; he = he->next)
@@ -41,7 +40,6 @@ face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start,
 		he->face = newFace;
 		newFace->verts.push_back(he->vert);
 		newFace->edges.push_back(he);
-		newFace->sideCount++;
 	}
 
 	// Set up our new HE from start to end on the small side
@@ -58,12 +56,10 @@ face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start,
 
 	vertex_t* newStart = new vertex_t{ start->vert, heStart };
 	face->verts.push_back(newStart);
-	face->sideCount = 1;
 	for (halfEdge_t* he = heStart; he != heEnd; he = he->next)
 	{
 		face->verts.push_back(he->vert);
 		face->edges.push_back(he);
-		face->sideCount++;
 	}
 
 	// New HE for our larger half
@@ -106,15 +102,11 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, verte
 }
 
 // Returns the unnormalized normal of a face
-glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr)
+glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 {
 	// Not fond of this
 
-	// Center of face
-	glm::vec3 center = { 0,0,0 };
-	for (auto v : face->verts)
-		center += *v->vert;
-	center /= face->verts.size();
+	glm::vec3 center = faceCenter(face);
 
 	glm::vec3 faceNormal = { 0,0,0 };
 	for (int i = 1; i < face->verts.size(); i++)
@@ -379,6 +371,9 @@ void applyCuts(cuttableMesh_t& mesh)
 		delete v;
 	mesh.cutVerts.clear();
 
+	if (mesh.cutters.size() == 0)
+		return;
+
 	// Precompute the normals
 	struct precomputed_t
 	{
@@ -408,10 +403,12 @@ void applyCuts(cuttableMesh_t& mesh)
 				
 				glm::vec3 centerDiff = pc.center - cutCenter;
 
-				// Do we share an axis?
-				if (fabs(centerDiff.x) < 0.001f || fabs(centerDiff.y) < 0.001f || fabs(centerDiff.z) < 0.001f)
-				{
+				// I's so tired. Review this in the morning
+				centerDiff *= pc.norm;
 
+				// Do we share an axis?
+				if (glm::length(centerDiff) < 0.1f)
+				{
 					// Are our norms opposing?
 					if (glm::dot(cutNorm, pc.norm) < 0)
 					{
@@ -423,6 +420,7 @@ void applyCuts(cuttableMesh_t& mesh)
 		}
 
 	}
+	delete[] precomp;
 
 }
 
@@ -451,7 +449,6 @@ void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
 {
 	meshPart_t* mp = new meshPart_t;
 	mp->mesh = &mesh;
-	mp->sideCount = pointCount;
 	mesh.parts.push_back(mp);
 
 	defineFace(*mp, points, pointCount);
@@ -469,11 +466,7 @@ void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 		if (e) delete e;
 	face.verts.clear();
 	face.edges.clear();
-	face.sideCount = 0;
-
-	// Let the face know our data
-	face.sideCount = vecCount;
-
+	
 	// Populate our face with HEs
 	vertex_t* lastVert = nullptr;
 	halfEdge_t* lastHe = nullptr;
@@ -526,6 +519,60 @@ void defineMeshPartFaces(meshPart_t& mesh)
 
 }
 
+
+aabb_t meshAABB(mesh_t& mesh)
+{
+
+	glm::vec3 max = { FLT_MIN, FLT_MIN, FLT_MIN };
+	glm::vec3 min = { FLT_MAX, FLT_MAX, FLT_MAX };
+	for (auto v : mesh.verts)
+	{
+		if (v->x > max.x)
+			max.x = v->x;
+		if (v->y > max.y)
+			max.y = v->y;
+		if (v->z > max.z)
+			max.z = v->z;
+
+		if (v->x < min.x)
+			min.x = v->x;
+		if (v->y < min.y)
+			min.y = v->y;
+		if (v->z < min.z)
+			min.z = v->z;
+	}
+
+	return { min,max };
+}
+
+void recenterMesh(mesh_t& mesh)
+{
+	// Recenter the origin
+	glm::vec3 averageOrigin = glm::vec3(0, 0, 0);
+	for(auto v : mesh.verts)
+	{
+		averageOrigin += *v;
+	}
+	averageOrigin /= mesh.verts.size();
+
+	// Shift the vertexes
+	mesh.origin += averageOrigin;
+	for (auto v : mesh.verts)
+	{
+		*v -= averageOrigin;
+	}
+}
+
+glm::vec3 faceCenter(face_t* face)
+{
+	// Center of face
+	glm::vec3 center = { 0,0,0 };
+	for (auto v : face->verts)
+		center += *v->vert;
+	center /= face->verts.size();
+
+	return center;
+}
 
 face_t::~face_t()
 {

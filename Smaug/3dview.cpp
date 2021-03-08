@@ -5,6 +5,8 @@
 #include "smaugapp.h"
 #include "utils.h"
 #include "cursor.h"
+#include "meshrenderer.h"
+#include "raytest.h"
 
 #include "svar.h"
 #include "svarex.h"
@@ -43,7 +45,6 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_cameraAngle = glm::vec3(0.25, 3.14, 0);
 	m_cameraPos = glm::vec3(0, 15, 15);
 	m_controllingCamera = false;
-
 }
 
 void C3DView::Draw(float dt)
@@ -66,15 +67,28 @@ void C3DView::Draw(float dt)
 	glm::mat4 proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
+
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 
-	//bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 	// Draw the Cursor
 	GetCursor().Draw();
+	//bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 
+
+	testRayPlane_t t = testRay({ m_cameraPos, forwardDir });
+	if (t.hit)
+	{
+		CModelTransform r;
+		r.SetAbsOrigin(t.intersect);
+		ModelManager().ErrorModel()->Render(&r);
+	}
+
+
+	// Grid gets drawn before all else
+	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Grid().Draw();
-
+	bgfx::setState(BGFX_STATE_DEFAULT);
 }
 
 void C3DView::Update(float dt, float mx, float my)

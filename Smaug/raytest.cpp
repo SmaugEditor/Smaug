@@ -6,18 +6,6 @@
 
 using namespace glm;
 
-struct tri_t
-{
-    union
-    {
-        struct
-        {
-            glm::vec3 a, b, c;
-        };
-        glm::vec3 verts[3];
-    };
-    glm::vec3& operator[](int i) { return verts[i]; }
-};
 
 
 bool testPointInAABB(glm::vec3 point, aabb_t aabb)
@@ -154,13 +142,13 @@ testRayPlane_t rayPlaneTestNoCull(ray_t ray, tri_t tri, float closestT)
 
 void rayPlaneTestNoCull(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 {
-    testRayPlane_t rayTest = rayPlaneTest(ray, tri, lastTest.t);
+    testRayPlane_t rayTest = rayPlaneTestNoCull(ray, tri, lastTest.t);
     if (rayTest.hit)
         lastTest = rayTest;
 }
 
 
-
+template<bool cull = true>
 testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
 {
     glm::vec3 edge1 = tri.b - tri.a;
@@ -190,10 +178,12 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     // (p0 + tD) * n = d
     // tD*n = d - p0*d
 
-
-    // Ignore backside and NANs
-    if (!(t >= 0.0f))
-        return { false };
+    if constexpr (cull)
+    {
+        // Ignore backside and NANs
+        if (!(t >= 0.0f))
+            return { false };
+    }
 
     // If something else was closer, skip our current and NANs
     if (!(t <= closestT))
@@ -334,22 +324,21 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
     if (!aabbTest.hit)
         return;
 
-    // Test walls
-    for (int i = 0; i < node->m_sideCount; i++)
-    {
-        nodeSide_t& side = node->m_sides[i];
-        for (int j = 0; j < side.walls.size(); j++)
+    // Test mesh
+    vec3 origin = node->m_mesh.origin;
+    for (auto p : node->m_mesh.parts)
+        for (auto f : p->faces)
         {
-            nodeWall_t& wall = side.walls[j];
-            rayQuadTest(ray, { node->m_origin + wall.topPoints[0], node->m_origin + wall.topPoints[1], node->m_origin + wall.bottomPoints[1], node->m_origin + wall.bottomPoints[0] }, end);
-        }
-    }
+            if (f->verts.size() == 3)
+            {
+                // Technically, we shouldn't be accessing the data like this
+                // Buut triangulation should have us clear? For now?
+                // CHECK ME!
+                rayTriangleTest(ray, { origin + *f->verts[0]->vert, origin + *f->verts[1]->vert, origin + *f->verts[2]->vert }, end);
 
-    // Test floor
-    if(node->m_nodeType == NodeType::QUAD)
-        rayQuadTest(ray, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin, node->m_origin + node->m_vertexes[3].origin }, end);
-    else if (node->m_nodeType == NodeType::TRI)
-        rayTriangleTest(ray, { node->m_origin + node->m_vertexes[0].origin, node->m_origin + node->m_vertexes[1].origin, node->m_origin + node->m_vertexes[2].origin }, end);
+            }
+        }
+
 }
 
 testRayPlane_t testRay(ray_t ray)
@@ -491,6 +480,8 @@ bool testPointInTriNoEdges(float pU, float pV, glm::vec3 domU, glm::vec3 domV)
     return false;
 }
 
+
+
 bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
 {
 
@@ -606,4 +597,27 @@ bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec
         return false;
 
     return true;
+}
+
+testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p)
+{
+    // To Abs
+    p -= part->mesh->origin;
+    //glm::vec3 origin = part->mesh->origin;
+    for (auto f : part->faces)
+    {
+        if (f->verts.size() == 3)
+        {
+            glm::vec3 norm = faceNormal(f);
+
+            testRayPlane_t t = rayTriangleTest<false>({ p, -norm }, { *f->verts[0]->vert, *f->verts[1]->vert, *f->verts[2]->vert }, FLT_MAX);
+
+            if (t.hit)
+            {
+
+                return t;
+            }
+        }
+    }
+    return { false };
 }

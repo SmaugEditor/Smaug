@@ -8,6 +8,7 @@
 #include "nodetools.h"
 #include "texturebrowser.h"
 #include "grid.h"
+#include "utils.h"
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -18,7 +19,11 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	// Move this?
 	GetSettingsRegister().LoadSettings();
 
-	m_editView.Init(ViewID::EDIT_VIEW, 1024, 1024, 0x383838FF);
+	m_editViews[0].m_editPlaneAngle = { 0, 0, 0 };
+	m_editViews[1].m_editPlaneAngle = { -PI / 2, 0, 0 };
+
+	for(int i = 0; i < 2; i++)
+		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x383838FF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
 	m_selectedView.Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
 
@@ -37,8 +42,8 @@ void CUIView::Draw(float dt)
 
 
 
-	if (m_drawEditView)
-		m_editView.Draw(dt);
+	for (int i = 0; i < 2; i++)
+		m_editViews[i].Draw(dt);
 	if (m_drawPreviewView)
 		m_previewView.Draw(dt);
 	if (m_drawSelectedView)
@@ -92,14 +97,16 @@ void CUIView::Update(float dt, float mx, float my)
 
 		ImGui::EndMainMenuBar();
 	}
+	for (int i = 0; i < 2; i++)
+	{
 
-	if(ImGui::Begin("2D Editor"))
+	if(ImGui::Begin(i == 0 ? "2D Editor" : "2D Editor 2"))
 	{
 		m_drawEditView = !ImGui::IsWindowCollapsed();
 	
 		ImVec2 imageSize = ImGui::GetContentRegionAvail();
-		m_editView.m_aspectRatio = imageSize.x / imageSize.y;
-		ImGui::Image(m_editView.GetImTextureID(), imageSize);
+		m_editViews[i].m_aspectRatio = imageSize.x / imageSize.y;
+		ImGui::Image(m_editViews[i].GetImTextureID(), imageSize);
 
 		bool hoveredOn2DEditor = ImGui::IsItemHovered();
 		ImVec2 inv = ImGui::GetItemRectMin();
@@ -111,12 +118,16 @@ void CUIView::Update(float dt, float mx, float my)
 			float x = (mv.x - inv.x) / (ixv.x - inv.x);
 			float y = (mv.y - inv.y) / (ixv.y - inv.y);
 
-			m_editView.Update(dt, x, y);
-			m_toolBox.Update(dt, m_editView.TransformMousePos(x, y));
+			m_editViews[i].m_focused = true;
+			m_editViews[i].Update(dt, x, y);
+			m_toolBox.Update(dt, m_editViews[i].TransformMousePos(x, y));
 
 		}
+		else
+			m_editViews[i].m_focused = false;
 	}
 	ImGui::End();
+	}
 
 	if(ImGui::Begin("3D Preview"))
 	{
@@ -135,8 +146,11 @@ void CUIView::Update(float dt, float mx, float my)
 			float x = (mv.x - inv.x) / (ixv.x - inv.x);
 			float y = (mv.y - inv.y) / (ixv.y - inv.y);
 
+			m_previewView.m_focused = true;
 			m_previewView.Update(dt, x, y);
 		}
+		else
+			m_previewView.m_focused = false;
 	}
 	ImGui::End();
 

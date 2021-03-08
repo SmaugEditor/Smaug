@@ -54,3 +54,7 @@ T clamp(T min, T max, T value)
 	return value;
 }
 
+inline glm::vec3 dirMask(glm::vec3 vec)
+{
+	return { 1.0f - fabs(vec.x), 1.0f - fabs(vec.y), 1.0f - fabs(vec.z) };
+}

@@ -30,7 +30,9 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 			delta.x = 0;
 		else if (fabs(delta.z) < 2)
 			delta.z = 0;
-		delta.y = 0;
+		else if (fabs(delta.y) < 2)
+			delta.y = 0;
+
 
 		mousePosSnapped = delta + m_mouseStartDragPos;
 

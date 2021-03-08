@@ -7,10 +7,12 @@ void CWallExtrudeAction::Preview()
 void CWallExtrudeAction::Act()
 {
 
-	printf("SELECTED WALL %f\n", m_selectInfo.wall->bottomPoints[0].x);
-	
+	printf("SELECTED WALL\n");
+
 	CQuadNode* quad = GetWorldEditor().CreateQuad();
-	quad->m_origin = m_node->m_origin;
+	quad->m_mesh.origin = m_node->Origin();
+
+#if 0
 
 	// If we don't flip vertex 1 and 2 here, the tri gets messed up and wont render.
 
@@ -38,10 +40,24 @@ void CWallExtrudeAction::Act()
 
 	quad->Update();
 
+#endif
+
+	meshPart_t* selectedPart = m_selectInfo.side;
+
+	meshPart_t* newFront = quad->m_mesh.parts[0];
+	meshPart_t* newBack  = quad->m_mesh.parts[1];
+
+	for (int i = 0; auto v : selectedPart->verts)
+		*newBack->verts[i++]->vert = *v->vert + m_moveDelta;
+
+	for (int i = 0; auto v : selectedPart->verts)
+		*newFront->verts[newFront->verts.size() - 1 - (i++)]->vert = *v->vert;
 
 	// HACK HACK
 	// For some reason we have to update the parent... Even though we just updated them...
-	m_node->Update();
+	//m_selectInfo.node->m_mesh.cutters.push_back(&quad->m_mesh);
+	quad->Update();
+	//m_selectInfo.node->Update();
 
 	printf("Created New Node\n");
 }

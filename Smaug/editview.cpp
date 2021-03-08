@@ -27,6 +27,8 @@ END_SVAR_TABLE()
 static CEditViewSettings s_editViewSettings;
 DEFINE_SETTINGS_MENU("Edit View", s_editViewSettings);
 
+glm::vec3 CEditView::m_cameraPos = glm::vec3(0, 0, 0);
+float CEditView::m_viewZoom = 80;
 
 void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -36,21 +38,11 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	m_shaderProgram = ShaderManager::GetShaderProgram(Shader::EDIT_VIEW_SHADER);
 	m_cameraModel = ModelManager().LoadModel("assets/camera.obj");
 
-	CNode* node = GetWorldEditor().CreateQuad();
-
-	node->m_origin = glm::vec3(0, 0, -16);
-
-	for (int i = 0; i < node->m_sideCount; i++)
-		node->m_sides[i].vertex1->origin *= 8;
-	node->Update();
-
 	// Zoom and pan
 	m_viewZoom = 80;
-	m_cameraPos = glm::vec3(0, 10, 0);
 	
 	m_panView.panning = false;
 
-	m_editPlaneAngle = glm::vec3(0, 0, 0);
 }
 
 
@@ -71,11 +63,12 @@ void CEditView::Update(float dt, float mx, float my)
 		else
 			m_viewZoom -= scrollDelta;
 
-
+		/*
 		// Run TransformMousePos backwards to keep our mouse pos stable
 		m_cameraPos.x = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - startMouseStartPos.x;
 		m_cameraPos.z = (my * 2 - 1) * (m_viewZoom) - startMouseStartPos.z;
 
+		*/
 	}
 
 	if (m_viewZoom <= 0)
@@ -98,12 +91,12 @@ void CEditView::Update(float dt, float mx, float my)
 		if (Input().IsDown(s_editViewSettings.panView))
 		{
 			// Preview the pan
-			m_cameraPos = m_panView.cameraStartPos + (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);
+			m_cameraPos = m_panView.cameraStartPos - (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);
 		}
 		else
 		{
 			// Apply the pan
-			m_cameraPos = m_panView.cameraStartPos + (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);
+			m_cameraPos = m_panView.cameraStartPos - (TransformMousePos(mx, my, m_panView.cameraStartPos) - m_panView.mouseStartPos);
 			m_panView.panning = false;
 		}
 	}
@@ -117,13 +110,28 @@ void CEditView::Draw(float dt)
 	float width = m_viewZoom * m_aspectRatio;
 	float height = m_viewZoom;
 
-
 	// Camera
 	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1, 0, 0)); // Look down
-	view = glm::translate(view, m_cameraPos); // Set our pos to be 10 units up
+
+
+	glm::vec3 forward, right, up;
+	Directions(m_editPlaneAngle, &forward, &right, &up);
+	// HACK: Not sure why this is how it is. Will find out soon. On a deadline
+	if (glm::length(m_editPlaneAngle) == 0)
+	{
+		view = glm::rotate(view, m_editPlaneAngle.x + glm::radians(90.0f), glm::vec3(1, 0, 0)); // Look down
+		view = glm::translate(view, m_cameraPos); // Set our pos to be 10 units up
+		view = glm::rotate(view, glm::radians(180.0f), glm::vec3(0, 1, 0)); // Flip 180
+	}
+	else
+	{
+		view = glm::lookAt(m_cameraPos, m_cameraPos - up, glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+
 	glm::mat4 proj = glm::ortho(-(float)width, (float)width, -(float)height, (float)height, -900.0f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
+
+	
 
 	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	
@@ -132,7 +140,7 @@ void CEditView::Draw(float dt)
 	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 	{
 		glm::mat4 mtx = glm::identity<glm::mat4>();
-		mtx = glm::translate(mtx, GetWorldEditor().m_nodes[i]->m_origin);
+		mtx = glm::translate(mtx, GetWorldEditor().m_nodes[i]->Origin());
 		mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
 		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);	
 		BasicDraw().Cube(mtx);
@@ -150,8 +158,8 @@ void CEditView::Draw(float dt)
 
 	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5));
 	
-	Grid().Draw({ -width - m_cameraPos.x, width - m_cameraPos.x, -height - m_cameraPos.z, height - m_cameraPos.z }, m_editPlaneAngle);
-
+	// Grid gets drawn last. Figure out transparency!
+	Grid().Draw({ width, height }, m_cameraPos, m_editPlaneAngle, m_focused, up * -200.0f);
 }
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)
@@ -162,9 +170,14 @@ glm::vec3 CEditView::TransformMousePos(float mx, float my)
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my, glm::vec3 cameraPos)
 {
-	// Put the mouse pos into the world
-	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - cameraPos.x;
-	my = (my * 2 - 1) * (m_viewZoom)-cameraPos.z;
+	glm::vec3 forward, right, up;
+	Directions(m_editPlaneAngle, &forward, &right, &up);
 
-	return glm::vec3(mx, 5, my);
+	// Put the mouse pos into the world
+	mx =  (mx * 2 - 1) * (m_viewZoom * m_aspectRatio);
+	my = -(my * 2 - 1) * (m_viewZoom);
+
+
+	printf("%f, %f, { %f, %f, %f } - { %f, %f, %f }\n", mx, my, forward.x, forward.y, forward.z, right.x, right.y, right.z);
+	return mx * right + my * forward + cameraPos;
 }

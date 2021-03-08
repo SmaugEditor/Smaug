@@ -2,22 +2,23 @@
 #include "smaugapp.h"
 #include "utils.h"
 #include "cursor.h"
+#include "raytest.h"
 
 
 glm::vec3 GetSelectionPos(selectionInfo_t info)
 {
 	// Smallest to largest
 	if (info.selected & ACT_SELECT_VERT)
-		return info.vertex->origin + info.node->m_origin;
+		return info.node->Origin() + *info.vertex->vert;
 
 	if (info.selected & ACT_SELECT_WALL)
-		return info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->bottomPoints[1] + info.wall->topPoints[0] + info.wall->topPoints[1]) / 4.0f;
+		return info.node->Origin() + faceCenter(info.wall);
 
 	if (info.selected & ACT_SELECT_SIDE)
-		return info.node->m_origin + (info.side->vertex1->origin + info.side->vertex2->origin) / 2.0f + glm::vec3(0, info.node->m_nodeHeight / 2.0f, 0);
+		return info.node->Origin() + faceCenter(info.side);
 
 	if (info.selected & ACT_SELECT_NODE)
-		return info.node->m_origin;
+		return info.node->Origin();
 
 	return glm::vec3(0.0f, 0.0f, 0.0f);
 }
@@ -26,30 +27,35 @@ glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2D
 {
 	// Smallest to largest
 	if (info.selected & ACT_SELECT_VERT)
-		return info.vertex->origin + info.node->m_origin + glm::vec3(0, info.node->m_nodeHeight / 2.0f, 0);
+		return *info.vertex->vert + info.node->Origin();
 
 	if (info.selected & ACT_SELECT_WALL)
 	{
-		glm::vec3 start = info.node->m_origin + (info.wall->bottomPoints[0] + info.wall->topPoints[0]) / 2.0f;
-		glm::vec3 end = info.node->m_origin + (info.wall->bottomPoints[1] + info.wall->topPoints[1]) / 2.0f;
+#if 0
+		glm::vec3 start = info.node->Origin() + (info.wall->bottomPoints[0] + info.wall->topPoints[0]) / 2.0f;
+		glm::vec3 end = info.node->Origin() + (info.wall->bottomPoints[1] + info.wall->topPoints[1]) / 2.0f;
 		float y = (( start + end ) / 2.0f).y;
 
 		glm::vec2 newPos = SolveToLine2D({ pos.x, pos.z }, { start.x, start.z }, { end.x, end.z }, snap);
-		return { newPos.x, y, newPos.y };
+#endif
+		return faceCenter(info.wall) + info.node->Origin();//{ newPos.x, y, newPos.y };
 	}
 
 	if (info.selected & ACT_SELECT_SIDE)
 	{
+#if 0
 		glm::vec3 start = info.node->m_origin + info.side->vertex1->origin;
 		glm::vec3 end = info.node->m_origin + info.side->vertex2->origin;
 		float y = info.node->m_origin.y + info.node->m_nodeHeight / 2.0f;
 
 		glm::vec2 newPos = SolveToLine2D({ pos.x, pos.z }, { start.x, start.z }, { end.x, end.z }, snap);
 		return { newPos.x, y, newPos.y };
+#endif
+		return faceCenter(info.side) + info.node->Origin();
 	}
 
 	if (info.selected & ACT_SELECT_NODE)
-		return info.node->m_origin;
+		return info.node->Origin();
 
 	return glm::vec3(0.0f, 0.0f, 0.0f);
 }
@@ -87,63 +93,72 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 
 		if (!node->IsPointInAABB(mousePos))
 			continue; // Not in bounds!
-
-
+		printf("IN BOUND");
 		// Do we want vertex selecting?
 		if (findFlags & ACT_SELECT_VERT)
 		{
 			// Corner check
-			for (int j = 0; j < node->m_sideCount; j++)
-			{
-				if (IsPointNearPoint2D(node->m_vertexes[j].origin + node->m_origin, mousePos, 4))
+			//for (int j = 0; j < node->m_sideCount; j++)
+			for(auto p : node->m_mesh.parts)
+				for (auto v : p->verts)
 				{
-					// Got a point. Add the flag and break the loop.
-					info.selected |= ACT_SELECT_VERT;
-					info.vertex = &node->m_vertexes[j];
-					break;
+					if (IsPointNearPoint2D(node->Origin() + *v->vert, mousePos, 4))
+					{
+						// Got a point. Add the flag and break the loop.
+						info.selected |= ACT_SELECT_VERT;
+						info.vertex = v;
+						break;
+					}
 				}
-			}
 		}
 
 		if (findFlags & ACT_SELECT_WALL || findFlags & ACT_SELECT_SIDE)
 		{
 			bool foundSomething = false;
 			// Side's walls check
-			for (int j = 0; j < node->m_sideCount; j++)
+			for (auto p : node->m_mesh.parts)
 			{
-				nodeSide_t* side = &node->m_sides[j];
-
 				// Are we on the side?
-				if (IsPointOnLine2D(side->vertex1->origin + node->m_origin, side->vertex2->origin + node->m_origin, mousePos, 2))
+				//mousePos.y = node->Origin().y;
+
+				testRayPlane_t t = pointOnPart(p, mousePos);
+				
+				if (t.hit && glm::distance(t.intersect + node->Origin(), mousePos) <= 1.25f)
 				{
+					printf("HIT\n");
+
 					if (findFlags & ACT_SELECT_SIDE)
 					{
 						info.selected |= ACT_SELECT_SIDE;
-						info.side = &node->m_sides[j];
+						info.side = p;
 						
 						foundSomething = true;
 					}
 
-
+					/*
 					if (findFlags & ACT_SELECT_WALL)
 					{
 						// Which wall are we selecting?
-						for (int k = 0; k < side->walls.size(); k++)
+						for(auto f : p->faces)
 						{
-							nodeWall_t wall = side->walls[k];
-							if (IsPointOnLine2D(wall.bottomPoints[0] + node->m_origin, wall.bottomPoints[1] + node->m_origin, mousePos, 2))
+							if (f->verts.size() == 3)
 							{
-								info.selected |= ACT_SELECT_WALL;
-								info.wall = &side->walls[k];
+								if (testPointInTri(mousePos, *f->verts[0]->vert, *f->verts[1]->vert, *f->verts[2]->vert))
+								{
 
-								// If they're asking for a wall, they're going to want a side too
-								info.side = &node->m_sides[j];
+									info.selected |= ACT_SELECT_WALL;
+									info.wall = f;
 
-								foundSomething = true;
-								break;
+									// If they're asking for a wall, they're going to want a side too
+									info.side = p;
+
+									foundSomething = true;
+									break;
+								}
 							}
 						}
 					}
+					*/
 
 					if (foundSomething)
 						break;

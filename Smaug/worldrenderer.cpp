@@ -4,7 +4,7 @@
 #include <bgfx/bgfx.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-
+#if 0
 bgfx::VertexLayout CreateVertexLayout()
 {
 	bgfx::VertexLayout layout;
@@ -23,13 +23,15 @@ static const uint16_t g_triTriIndexList[] = { 0, 1, 2 };
 static bgfx::IndexBufferHandle g_triTriIndexBuffer;
 
 static const uint16_t g_wallTriIndexList[] = { 0, 2, 3, 3, 1, 0 };
-
+#endif
 
 void CWorldRenderer::Init()
 {
+#if 0
 	g_vertexLayout = CreateVertexLayout();
 	g_quadTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_quadTriIndexList, sizeof(g_quadTriIndexList)));
 	g_triTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_triTriIndexList, sizeof(g_triTriIndexList)));
+#endif
 }
 
 void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
@@ -38,7 +40,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 	CWorldEditor& world = GetWorldEditor();
 	for (int i = 0; i < world.m_nodes.size(); i++)
 	{
-		world.m_nodes[i]->m_renderData.Draw2D();
+		world.m_nodes[i]->m_renderData.Render();
 		bgfx::submit(viewId, shaderProgram);
 	}
 }
@@ -49,11 +51,11 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 	CWorldEditor& world = GetWorldEditor();
 	for (int i = 0; i < world.m_nodes.size(); i++)
 	{
-		world.m_nodes[i]->m_renderData.Draw3D();
+		world.m_nodes[i]->m_renderData.Render();
 		bgfx::submit(viewId, shaderProgram);
 	}
 }
-
+#if 0
 void CNodeRenderData::Setup(CNode* node)
 {
 	m_parentNode = node;
@@ -188,7 +190,7 @@ void CNodeRenderData::Draw3D(glm::vec3 origin)
 void CNodeRenderData::Shutdown()
 {
 }
-
+#endif
 
 CWorldRenderer& GetWorldRenderer()
 {

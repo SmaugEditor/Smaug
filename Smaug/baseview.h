@@ -32,4 +32,6 @@ public:
 
 	// Width/Height
 	float m_aspectRatio;
+
+	bool m_focused;
 };

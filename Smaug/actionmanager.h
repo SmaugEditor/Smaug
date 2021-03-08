@@ -14,9 +14,9 @@ struct selectionInfo_t
 {
 	int selected = ACT_SELECT_NONE;
 	CNode* node = nullptr;
-	nodeVertex_t* vertex = nullptr;
-	nodeSide_t* side = nullptr;
-	nodeWall_t* wall = nullptr;
+	vertex_t* vertex = nullptr;
+	meshPart_t* side = nullptr;
+	face_t* wall = nullptr;
 };
 
 enum class SolveToLine2DSnap;
@@ -31,6 +31,7 @@ class CActionManager;
 class IAction
 {
 public:
+	virtual ~IAction() {};
 	virtual const char* GetName() = 0;
 
 	virtual void Preview() = 0;
@@ -66,6 +67,7 @@ protected:
 class CBaseDragAction : public CBaseSelectionAction
 {
 public:
+
 
 	virtual void SetMoveDelta(glm::vec3 moveDelta) { m_moveDelta = moveDelta; }
 

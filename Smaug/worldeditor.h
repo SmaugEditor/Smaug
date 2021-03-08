@@ -1,10 +1,12 @@
 #pragma once
 #include "worldrenderer.h"
 #include "mesh.h"
+#include "meshrenderer.h"
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <vector>
 
+#if 0
 struct nodeSide_t;
 class CNode;
 struct nodeVertex_t;
@@ -80,14 +82,17 @@ enum class NodeType
 	TRI,
 };
 
+#endif
 
 class CNode
 {
 public:
+	CNode();
+
 	void Init();
 	void PreviewUpdate();
 	void Update();
-	void ConstructWalls();
+	//void ConstructWalls();
 	bool IsPointInAABB(glm::vec3 point);
 
 	// Absolute to world
@@ -95,11 +100,15 @@ public:
 	// Local to node's origin
 	aabb_t GetLocalAABB() { return m_aabb; }
 
+	glm::vec3 Origin() { return m_mesh.origin; }
 protected:
-	void LinkSides();
+	//void LinkSides();
 	void CalculateAABB();
 public:
 
+	cuttableMesh_t m_mesh;
+	CMeshRenderer m_renderData;
+#if 0
 	nodeVertex_t* m_vertexes;
 	nodeSide_t* m_sides;
 	int m_sideCount;
@@ -121,6 +130,7 @@ public:
 	bool m_useCalculatedNodeHeight;
 	float m_nodeHeight;
 
+#endif
 protected:
 	aabb_t m_aabb;
 };
@@ -134,12 +144,14 @@ public:
 
 };
 
+/*
 class CTriNode : public CNode
 {
 public:
 	CTriNode();
 
 };
+*/
 
 
 class CWorldEditor
@@ -149,7 +161,7 @@ public:
 
 	void RegisterNode(CNode* node);
 	CQuadNode* CreateQuad();
-	CTriNode* CreateTri();
+	//CTriNode* CreateTri();
 
 	std::vector<CNode*> m_nodes;
 
