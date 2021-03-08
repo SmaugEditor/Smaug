@@ -106,7 +106,7 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, verte
 }
 
 // Returns the unnormalized normal of a face
-glm::vec3 faceNormal(face_t* face)
+glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr)
 {
 	// Not fond of this
 
@@ -121,6 +121,9 @@ glm::vec3 faceNormal(face_t* face)
 	{
 		faceNormal += glm::cross((center - (*face->verts[i]->vert)), (*face->verts[i - 1]->vert) - center);
 	}
+
+	if (outCenter)
+		*outCenter = center;
 
 	return faceNormal;
 }
@@ -269,6 +272,10 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// This might have horrible performance...
 	for (auto v1 : target->verts)
 	{
+		// Skip out of existing cracks
+		if (v1->edge->pair != nullptr)
+			continue;
+
 		int v2i = 0;
 		for (auto v2 : cutterVerts)
 		{
@@ -373,10 +380,15 @@ void applyCuts(cuttableMesh_t& mesh)
 	mesh.cutVerts.clear();
 
 	// Precompute the normals
-	glm::vec3* norms = new glm::vec3[mesh.parts.size()];
+	struct precomputed_t
+	{
+		glm::vec3 norm, center;
+	};
+	precomputed_t* precomp = new precomputed_t[mesh.parts.size()];
 	for (int i = 0; auto p : mesh.parts)
 	{
-		norms[i] = glm::normalize(faceNormal(p));
+		precomp[i].norm = glm::normalize(faceNormal(p, &precomp[i].center));
+		precomp[i].center += mesh.origin; // Offset all by origin
 		i++;
 	}
 	
@@ -384,15 +396,27 @@ void applyCuts(cuttableMesh_t& mesh)
 	{
 		for (auto cutP : cutter->parts)
 		{
-			glm::vec3 cutNorm = glm::normalize(faceNormal(cutP));
+			glm::vec3 cutCenter;
+			glm::vec3 cutNorm = glm::normalize(faceNormal(cutP, &cutCenter));
+			cutCenter += cutter->origin;
+
 			// Iterate over faces and check if we have ones with opposing norms
 			for (int i = 0; auto p : mesh.parts)
 			{
-				glm::vec3& pN = norms[i];
+				precomputed_t& pc = precomp[i];
 				i++;
-				if (glm::dot(cutNorm, pN) < 0)
+				
+				glm::vec3 centerDiff = pc.center - cutCenter;
+
+				// Do we share an axis?
+				if (fabs(centerDiff.x) < 0.001f || fabs(centerDiff.y) < 0.001f || fabs(centerDiff.z) < 0.001f)
 				{
-					opposingFaceCrack(mesh, p, cutP);
+
+					// Are our norms opposing?
+					if (glm::dot(cutNorm, pc.norm) < 0)
+					{
+						opposingFaceCrack(mesh, p, cutP);
+					}
 				}
 
 			}
