@@ -184,7 +184,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 					for (vertex_t* c = v0->edge->vert; c != end; c = c->edge->vert)
 					{
 						glm::vec3 ptt = *c->vert;
-						if (testPointInTri<false>(ptt, *end->vert, *between->vert, *v0->vert))//(ptt[nU], ptt[nV], u, v))
+						if (testPointInTriNoEdges(ptt, *end->vert, *between->vert, *v0->vert))//(ptt[nU], ptt[nV], u, v))
 						{
 							shift = true;
 							break;

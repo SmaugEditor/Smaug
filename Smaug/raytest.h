@@ -62,10 +62,19 @@ struct tri_t
 	glm::vec3& operator[](int i) { return verts[i]; }
 };
 
+/////////////////////
+// World Geo Tests //
+/////////////////////
+
+
 // Test if a ray hits any geo in the world
 testRayPlane_t testRay(ray_t ray);
 // Test if a line hits any geo in the world before running out
 testRayPlane_t testLine(line_t line);
+
+/////////////////////
+// Local Geo Tests //
+/////////////////////
 
 bool testPointInAABB(glm::vec3 point, aabb_t aabb);
 // sizes up the aabb by aabbBloat units before testing
@@ -74,16 +83,7 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
 
 
-// Use these three together for bulk testing
-void findDominantAxis(glm::vec3 normal, int& uAxis, int& vAxis);
-// triU and triV should be tri0[axis], tri1[axis], tri3[axis]
-inline glm::vec3 tritod(glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2, int axis) { return { tri0[axis], tri1[axis], tri2[axis] }; }
-
-template<bool testEdges = true>
-bool testPointInTri(float pU, float pV, glm::vec3 triU, glm::vec3 triV);
-template<bool testEdges = true>
-bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
-
-
 testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p);
 
+// Wish this could be a template...
+bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);

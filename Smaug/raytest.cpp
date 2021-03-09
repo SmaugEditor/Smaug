@@ -482,6 +482,7 @@ bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
     return true;
 }
 
+bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<false>(p, tri0, tri1, tri2); }
 
 testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p)
 {
