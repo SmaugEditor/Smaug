@@ -14,7 +14,7 @@ public:
 	virtual void Update(float dt, float mx, float my);
 //private:
 	bool m_drawEditView;
-	CEditView m_editViews[2];
+	CEditView m_editViews[3];
 	bool m_drawPreviewView;
 	C3DView m_previewView;
 	bool m_drawSelectedView;

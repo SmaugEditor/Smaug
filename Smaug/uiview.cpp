@@ -21,8 +21,9 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 
 	m_editViews[0].m_editPlaneAngle = { 0, 0, 0 };
 	m_editViews[1].m_editPlaneAngle = { -PI / 2, 0, 0 };
+	m_editViews[2].m_editPlaneAngle = { -PI / 2, PI / 2, 0 };
 
-	for(int i = 0; i < 2; i++)
+	for(int i = 0; i < 3; i++)
 		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x383838FF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
 	m_selectedView.Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
@@ -42,7 +43,7 @@ void CUIView::Draw(float dt)
 
 
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 		m_editViews[i].Draw(dt);
 	if (m_drawPreviewView)
 		m_previewView.Draw(dt);
@@ -97,36 +98,35 @@ void CUIView::Update(float dt, float mx, float my)
 
 		ImGui::EndMainMenuBar();
 	}
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 	{
-
-	if(ImGui::Begin(i == 0 ? "2D Editor" : "2D Editor 2"))
-	{
-		m_drawEditView = !ImGui::IsWindowCollapsed();
+		if(ImGui::Begin(i == 0 ? "2D Editor" : i == 1 ? "2D Editor 2" : "2D Editor 3"))
+		{
+			m_drawEditView = !ImGui::IsWindowCollapsed();
 	
-		ImVec2 imageSize = ImGui::GetContentRegionAvail();
-		m_editViews[i].m_aspectRatio = imageSize.x / imageSize.y;
-		ImGui::Image(m_editViews[i].GetImTextureID(), imageSize);
+			ImVec2 imageSize = ImGui::GetContentRegionAvail();
+			m_editViews[i].m_aspectRatio = imageSize.x / imageSize.y;
+			ImGui::Image(m_editViews[i].GetImTextureID(), imageSize);
 
-		bool hoveredOn2DEditor = ImGui::IsItemHovered();
-		ImVec2 inv = ImGui::GetItemRectMin();
-		ImVec2 ixv = ImGui::GetItemRectMax();
+			bool hoveredOn2DEditor = ImGui::IsItemHovered();
+			ImVec2 inv = ImGui::GetItemRectMin();
+			ImVec2 ixv = ImGui::GetItemRectMax();
 		
 
-		if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
-		{
-			float x = (mv.x - inv.x) / (ixv.x - inv.x);
-			float y = (mv.y - inv.y) / (ixv.y - inv.y);
+			if (m_drawEditView && hoveredOn2DEditor && !m_previewView.m_controllingCamera)
+			{
+				float x = (mv.x - inv.x) / (ixv.x - inv.x);
+				float y = (mv.y - inv.y) / (ixv.y - inv.y);
 
-			m_editViews[i].m_focused = true;
-			m_editViews[i].Update(dt, x, y);
-			m_toolBox.Update(dt, m_editViews[i].TransformMousePos(x, y));
+				m_editViews[i].m_focused = true;
+				m_editViews[i].Update(dt, x, y);
+				m_toolBox.Update(dt, m_editViews[i].TransformMousePos(x, y));
 
+			}
+			else
+				m_editViews[i].m_focused = false;
 		}
-		else
-			m_editViews[i].m_focused = false;
-	}
-	ImGui::End();
+		ImGui::End();
 	}
 
 	if(ImGui::Begin("3D Preview"))
