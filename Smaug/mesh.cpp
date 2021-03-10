@@ -252,7 +252,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	vertex_t* v2Closest = nullptr;
 	int v2Index = 0;
 
-	glm::vec3 cutterToLocal = mesh.origin - cutter->mesh->origin;
+	glm::vec3 cutterToLocal = +cutter->mesh->origin - mesh.origin;
 	
 	// We don't want to break this face's self representation
 	// We're going to be editing child face #0
