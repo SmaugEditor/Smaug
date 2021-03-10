@@ -20,7 +20,7 @@ void CSettingsMenu::DrawMenu()
     if (!m_shouldShow)
         return;
     
-    if (ImGui::Begin("Settings"))
+    if (ImGui::Begin("Settings", &m_shouldShow, ImGuiWindowFlags_NoCollapse))
     {
         std::vector<CSettingsLink*>& linkList = GetSettingsRegister().m_linkList;
         
