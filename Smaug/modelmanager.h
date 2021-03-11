@@ -13,6 +13,7 @@ class CModelTransform
 {
 public:
 	CModelTransform();
+	CModelTransform(glm::vec3 pos, glm::vec3 rotation, glm::vec3 scale) { SetAbsOrigin(pos); SetAbsAngles(rotation); SetAbsScale(scale); }
 
 	void SetParent(CModelTransform* parent);
 
@@ -20,6 +21,7 @@ public:
 	void SetLocalAngles(glm::vec3 ang) { m_angles = ang; }
 	void SetLocalOrigin(glm::vec3 pos) { m_position = pos; }
 	void SetLocalScale(glm::vec3 scale) { m_scale = scale; }
+	void SetLocalScale(float scale) { m_scale = { scale, scale, scale }; }
 
 	glm::vec3 GetLocalAngles() { return m_angles; }
 	glm::vec3 GetLocalOrigin() { return m_position; }
@@ -29,6 +31,7 @@ public:
 	void SetAbsAngles(glm::vec3 ang);
 	void SetAbsOrigin(glm::vec3 pos);
 	void SetAbsScale(glm::vec3 scale);
+	void SetAbsScale(float scale) { SetAbsScale({ scale, scale, scale }); }
 
 	glm::vec3 GetAbsAngles();
 	glm::vec3 GetAbsOrigin();
