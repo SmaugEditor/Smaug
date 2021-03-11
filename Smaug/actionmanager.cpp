@@ -230,6 +230,8 @@ void CActionManager::Redo()
 
 void CActionManager::Update()
 {
+	int redoTo = INT_MAX;
+	int undoTo = INT_MAX;
 
 	if (ImGui::Begin("Edit History"))
 	{
@@ -238,15 +240,35 @@ void CActionManager::Update()
 			for (int i = m_redoStack.size() - 1; i >= 0; i--)
 			{
 				ImGui::Text(m_redoStack[i]->GetName());
+				if (ImGui::IsItemClicked())
+				{
+					redoTo = i;
+				}
 			}
 			ImGui::Separator();
 		}
 		for (int i = m_actionHistory.size() - 1; i >= 0; i--)
 		{
 			ImGui::Text(m_actionHistory[i]->GetName());
+			if (ImGui::IsItemClicked())
+			{
+				undoTo = i;
+			}
 		}
 	}
 	ImGui::End();
+
+	if(m_actionHistory.size())
+		for (int i = m_actionHistory.size() - 1; i >= undoTo; i--)
+		{
+			Undo();
+		}
+	
+	if (m_redoStack.size())
+		for (int i = 0; i < redoTo+1; i++)
+		{
+			Redo();
+		}
 
 
 	static bool keyUp = true;
