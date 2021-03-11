@@ -101,6 +101,10 @@ public:
 	aabb_t GetLocalAABB() { return m_aabb; }
 
 	glm::vec3 Origin() { return m_mesh.origin; }
+
+	void SetVisible(bool visible) { m_visible = visible; }
+	bool IsVisible() { return m_visible; }
+
 protected:
 	//void LinkSides();
 	void CalculateAABB();
@@ -133,6 +137,7 @@ public:
 #endif
 protected:
 	aabb_t m_aabb;
+	bool m_visible;
 };
 
 // I've been told hammer only likes triangles and quads. How sad!
