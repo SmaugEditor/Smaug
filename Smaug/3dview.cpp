@@ -75,14 +75,9 @@ void C3DView::Draw(float dt)
 	GetCursor().Draw();
 	//bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 
-
-	testRayPlane_t t = testRay({ m_cameraPos, forwardDir });
-	if (t.hit)
-	{
-		CModelTransform r;
-		r.SetAbsOrigin(t.intersect);
-		ModelManager().ErrorModel()->Render(&r);
-	}
+	CModelTransform r;
+	r.SetAbsOrigin(CEditView::m_cameraPos);
+	ModelManager().ErrorModel()->Render(&r);
 
 
 	// Grid gets drawn before all else
