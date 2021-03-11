@@ -30,13 +30,18 @@ DEFINE_SETTINGS_MENU("Edit View", s_editViewSettings);
 glm::vec3 CEditView::m_cameraPos = glm::vec3(0, 0, 0);
 float CEditView::m_viewZoom = 80;
 
+IModel* CEditView::m_cameraModel = nullptr;
+IModel* CEditView::m_tickModel = nullptr;
 void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
 
 	m_shaderProgram = ShaderManager::GetShaderProgram(Shader::EDIT_VIEW_SHADER);
-	m_cameraModel = ModelManager().LoadModel("assets/camera.obj");
+	if(!m_cameraModel)
+		m_cameraModel = ModelManager().LoadModel("assets/camera.obj");
+	if(!m_tickModel)
+		m_tickModel = ModelManager().LoadModel("assets/tick.obj");
 
 	// Zoom and pan
 	m_viewZoom = 80;
@@ -139,12 +144,10 @@ void CEditView::Draw(float dt)
 
 	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 	{
-		glm::mat4 mtx = glm::identity<glm::mat4>();
-		mtx = glm::translate(mtx, GetWorldEditor().m_nodes[i]->Origin());
-		mtx = glm::scale(mtx, glm::vec3(2.5f, 2.5f, 2.5f));
-		mtx *= glm::yawPitchRoll(1.37f * t, t, 0.0f);	
-		BasicDraw().Cube(mtx);
-		bgfx::submit(m_viewId, m_shaderProgram);
+		CModelTransform mt;
+		mt.SetAbsOrigin(GetWorldEditor().m_nodes[i]->Origin());
+		mt.SetAbsScale(min(m_viewZoom / 16.0f, 4.0f));
+		m_tickModel->Render(&mt);
 	}
 
 

@@ -17,6 +17,7 @@ public:
 	glm::vec3 TransformMousePos(float mx, float my);
 	glm::vec3 m_editPlaneAngle;
 
+	static glm::vec3 m_cameraPos;
 private:
 
 	glm::vec3 TransformMousePos(float mx, float my, glm::vec3 cameraPos);
@@ -25,7 +26,6 @@ private:
 
 	static float m_viewZoom;
 
-	static glm::vec3 m_cameraPos;
 	
 	struct
 	{
@@ -34,7 +34,8 @@ private:
 		glm::vec3 cameraStartPos;
 	} m_panView;
 
-	IModel* m_cameraModel;
+	static IModel* m_cameraModel;
+	static IModel* m_tickModel;
 
 
 };
