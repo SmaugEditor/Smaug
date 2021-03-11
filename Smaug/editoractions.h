@@ -123,6 +123,7 @@ public:
 	{
 		for (int i = 0; auto v : m_selectInfo.side->verts)
 			*v->vert += m_finalMoveDelta;
+		m_node->Update();
 	}
 
 	virtual void Cancel()

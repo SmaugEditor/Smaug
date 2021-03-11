@@ -164,16 +164,7 @@ void CUIView::Update(float dt, float mx, float my)
 	}
 	ImGui::End();
 
-	if (ImGui::Begin("Edit History"))
-	{
-		std::vector<IAction*>& actionHistory = GetActionManager().m_actionHistory;
-
-		for (int i = 0; i < actionHistory.size(); i++)
-		{
-			ImGui::Text(actionHistory[i]->GetName());
-		}
-	}
-	ImGui::End();
+	GetActionManager().Update();
 
 	 
 	m_toolBox.ShowToolBox();

@@ -72,10 +72,18 @@ void CActionManager::CommitAction(IAction* action)
 {
 	action->Act();
 	m_actionHistory.push_back(action);
+	
+	for (auto a : m_redoStack)
+		delete a;
+	m_redoStack.clear();
 }
 
 bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags)
 {
+	// Flatten out our mousePos
+	mousePos *= GetCursor().GetWorkingAxisMask();
+
+
 	// If this isn't 0, ACT_SELECT_NONE, we might have issues down the line
 	info.selected = ACT_SELECT_NONE;
 	
@@ -90,6 +98,9 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 
 		// Check if we're in the AABB
 		// Note: Maybe add a threshold to this?
+		
+		// Put the mouse within the node
+		mousePos = mousePos * GetCursor().GetWorkingAxisMask() + node->Origin() * GetCursor().GetWorkingAxis();
 
 		if (!node->IsPointInAABB(mousePos))
 			continue; // Not in bounds!
@@ -99,10 +110,13 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		{
 			// Corner check
 			//for (int j = 0; j < node->m_sideCount; j++)
-			for(auto p : node->m_mesh.parts)
+			for (auto p : node->m_mesh.parts)
+			{
+
 				for (auto v : p->verts)
 				{
-					if (IsPointNearPoint2D(node->Origin() + *v->vert, mousePos, 4))
+					if (glm::distance((node->Origin() + *v->vert) * GetCursor().GetWorkingAxisMask(), mousePos) <= 4
+					 && glm::distance((node->Origin() + *v->edge->vert->vert) * GetCursor().GetWorkingAxisMask(), mousePos) <= 4)
 					{
 						// Got a point. Add the flag and break the loop.
 						info.selected |= ACT_SELECT_VERT;
@@ -110,6 +124,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 						break;
 					}
 				}
+			}
 		}
 
 		if (findFlags & ACT_SELECT_WALL || findFlags & ACT_SELECT_SIDE)
@@ -189,4 +204,66 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 	}
 
 	return false;
+}
+
+void CActionManager::Undo()
+{
+	if (m_actionHistory.size() == 0)
+		return;
+
+	IAction* a = m_actionHistory.back();
+	m_actionHistory.pop_back();
+	a->Undo();
+	m_redoStack.push_back(a);
+}
+
+void CActionManager::Redo()
+{
+	if (m_redoStack.size() == 0)
+		return;
+
+	IAction* a = m_redoStack.back();
+	m_redoStack.pop_back();
+	a->Redo();
+	m_actionHistory.push_back(a);
+}
+
+void CActionManager::Update()
+{
+
+	if (ImGui::Begin("Edit History"))
+	{
+		if (m_redoStack.size())
+		{
+			for (int i = m_redoStack.size() - 1; i >= 0; i--)
+			{
+				ImGui::Text(m_redoStack[i]->GetName());
+			}
+			ImGui::Separator();
+		}
+		for (int i = m_actionHistory.size() - 1; i >= 0; i--)
+		{
+			ImGui::Text(m_actionHistory[i]->GetName());
+		}
+	}
+	ImGui::End();
+
+
+	static bool keyUp = true;
+	if (Input().IsDown({ GLFW_KEY_LEFT_CONTROL, false }) && Input().IsDown({ GLFW_KEY_Z, false }))
+	{
+		if(keyUp)
+			Undo();
+		keyUp = false;
+	}
+	else if (Input().IsDown({ GLFW_KEY_LEFT_CONTROL, false }) && Input().IsDown({ GLFW_KEY_Y, false }))
+	{
+		if (keyUp)
+			Redo();
+		keyUp = false;
+	}
+	else
+	{
+		keyUp = true;
+	}
 }

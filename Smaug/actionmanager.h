@@ -84,7 +84,13 @@ public:
 	void CommitAction(IAction* action);
 	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags);
 
+	void Undo();
+	void Redo();
+
+	void Update();
+
 	std::vector<IAction*> m_actionHistory;
+	std::vector<IAction*> m_redoStack;
 	IAction* m_selectedAction;
 };
 
