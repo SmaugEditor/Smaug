@@ -82,7 +82,10 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	int indexCount = 0;
 	for (auto p : m_mesh.parts)
 	{
-		indexCount += p->faces.size() * 3; // 3 indexes per tri
+		if(p->isCut)
+			indexCount += p->cutFaces.size() * 3; // 3 indexes per tri
+		else
+			indexCount += p->fullFaces.size() * 3; // 3 indexes per tri
 	}
 
 	// Allocate our buffers
@@ -108,7 +111,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	int iOffset = 0;
 
 	for (auto p : m_mesh.parts)
-		for (auto f : p->faces)
+		for (auto f : p->isCut ? p->cutFaces : p->fullFaces)
 		{
 			/*
 			// If our verts are out of order, this will fail. Should we use the HE data to determine this?

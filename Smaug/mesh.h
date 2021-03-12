@@ -81,8 +81,14 @@ struct meshPart_t : public face_t
 {
 	~meshPart_t();
 
-	std::vector<face_t*> faces;
+	// Triangles of the mesh. Use for geo testing and etc.
+	std::vector<face_t*> fullFaces;
+
+	// Cut faces of the mesh. This is what gets rendered. Use faces if size = 0. 
+	std::vector<face_t*> cutFaces;
 	
+	bool isCut = false;
+
 	// Calculated from face verts
 	//aabb_t aabb;
 
@@ -152,9 +158,10 @@ glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
 // Does not add points to mesh! Only adds face
 void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 
-void triangluateMeshPartFaces(meshPart_t& mesh);
+void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec);
 void defineMeshPartFaces(meshPart_t& mesh);
-face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end);
+face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end);
+face_t* cloneFace(face_t* f);
 
 void applyCuts(cuttableMesh_t& mesh);
 

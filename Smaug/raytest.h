@@ -87,3 +87,4 @@ testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p);
 
 // Wish this could be a template...
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
+bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);

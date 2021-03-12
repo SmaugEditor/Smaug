@@ -275,7 +275,7 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
     // Test mesh
     vec3 origin = node->m_mesh.origin;
     for (auto p : node->m_mesh.parts)
-        for (auto f : p->faces)
+        for (auto f : p->fullFaces)
         {
             if (f->verts.size() == 3)
             {
@@ -483,13 +483,14 @@ bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
 }
 
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<false>(p, tri0, tri1, tri2); }
+bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<true>(p, tri0, tri1, tri2); }
 
 testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p)
 {
     // To Abs
     p -= part->mesh->origin;
     //glm::vec3 origin = part->mesh->origin;
-    for (auto f : part->faces)
+    for (auto f : part->fullFaces)
     {
         if (f->verts.size() == 3)
         {

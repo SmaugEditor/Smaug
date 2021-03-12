@@ -103,13 +103,15 @@ void CNode::Update()
 	for (auto pa : m_mesh.parts)
 	{
 		defineMeshPartFaces(*pa);
+		triangluateMeshPartFaces(*pa, pa->fullFaces);
 	}
 
 	applyCuts(m_mesh);
+	
 
 	for (auto pa : m_mesh.parts)
 	{
-		triangluateMeshPartFaces(*pa);
+		triangluateMeshPartFaces(*pa, pa->cutFaces);
 	}
 
 	m_renderData.RebuildRenderData();

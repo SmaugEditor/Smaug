@@ -18,11 +18,11 @@ void swap(T& a, T& b)
 
 // For use where we know which side's going to end up larger
 // Returns the new face
-face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end)
+face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end)
 {
 	face_t* newFace = new face_t;
 	newFace->meshPart = &mesh;
-	mesh.faces.push_back(newFace);
+	faceVec.push_back(newFace);
 
 	halfEdge_t* heStart = start->edge;
 	halfEdge_t* heEnd   = end->edge;
@@ -77,7 +77,7 @@ face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, face_t* face, vertex_t* start,
 // This will subdivide a mesh's face from start to end
 // It will return the new face
 // This cut will only occur on ONE face
-face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, vertex_t* end)
+face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end)
 {
 	// No slice
 	if (start == end || !start || !end || !face)
@@ -98,7 +98,7 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, face_t* face, vertex_t* start, verte
 	}
 
 	// Now that we know which side's larger, we can safely slice
-	return sliceMeshPartFaceUnsafe(mesh, face, start, end);
+	return sliceMeshPartFaceUnsafe(mesh, faceVec, face, start, end);
 }
 
 // Returns the unnormalized normal of a face
@@ -126,14 +126,14 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 
 // Clean this all up!!
 // Takes in a mesh part and triangulates every face within the part
-void triangluateMeshPartFaces(meshPart_t& mesh)
+void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 {
 	// As we'll be walking this, we wont want to walk over our newly created faces
 	// Store our len so we only get to the end of the predefined faces
-	size_t len = mesh.faces.size();
+	size_t len = faceVec.size();
 	for (size_t i = 0; i < len; i++)
 	{
-		face_t* face = mesh.faces[i];
+		face_t* face = faceVec[i];
 		if (!face)
 			continue;
 		
@@ -203,7 +203,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh)
 			while (shift && attempts < 10);
 
 			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
-			sliceMeshPartFaceUnsafe(mesh, face, v0, end);
+			sliceMeshPartFaceUnsafe(mesh, faceVec, face, v0, end);
 
 			alternate++;
 		};
@@ -259,7 +259,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// This means cracking *must* be done before triangulation
 	// Which really sucks cause point testing is going to be waaay harder
 	// We might want a representation below the mesh face for this...
-	face_t* target = part->faces[0];
+	face_t* target = part->cutFaces[0];
 	
 	// This might have horrible performance...
 	for (auto v1 : target->verts)
@@ -371,6 +371,15 @@ void applyCuts(cuttableMesh_t& mesh)
 		delete v;
 	mesh.cutVerts.clear();
 
+	// Clear out our old faces
+	for (auto p : mesh.parts)
+	{
+		for (auto f : p->cutFaces)
+			delete f;
+		p->cutFaces.clear();
+		p->isCut = false;
+	}
+
 	if (mesh.cutters.size() == 0)
 		return;
 
@@ -396,7 +405,7 @@ void applyCuts(cuttableMesh_t& mesh)
 			cutCenter += cutter->origin;
 
 			// Iterate over faces and check if we have ones with opposing norms
-			for (int i = 0; auto p : mesh.parts)
+			for (int i = 0; auto self : mesh.parts)
 			{
 				precomputed_t& pc = precomp[i];
 				i++;
@@ -412,7 +421,54 @@ void applyCuts(cuttableMesh_t& mesh)
 					// Are our norms opposing?
 					if (glm::dot(cutNorm, pc.norm) < 0)
 					{
-						opposingFaceCrack(mesh, p, cutP);
+						// Are all of our points in the other cutter?
+						bool engulfed = true;
+						for (auto v : self->verts)
+						{
+							bool isOut = true;
+							// Full faces for collision testing
+							for (auto t : cutP->fullFaces)
+							{
+								if (t->verts.size() != 3)
+									continue;
+								// This should get turned into a bulk tester...
+								if (testPointInTriEdges(*v->vert + mesh.origin, *t->verts[0]->vert + cutter->origin, *t->verts[1]->vert + cutter->origin, *t->verts[2]->vert + cutter->origin))
+								{
+									isOut = false;
+									break;
+								}
+							}
+
+							if (isOut)
+							{
+								engulfed = false;
+								break;
+							}
+						}
+
+						if (engulfed)
+						{
+							// Clear the face
+							for (auto f : self->cutFaces)
+								delete f;
+							self->cutFaces.clear();
+							self->isCut = true;
+							// Not worth doing any more cuts...
+							break;
+						}
+						else
+						{
+							if (self->cutFaces.size() == 0)
+							{
+								// Give ourselves a face to crack
+								self->cutFaces.push_back(cloneFace(self));
+							}
+
+							opposingFaceCrack(mesh, self, cutP);
+
+							self->isCut = true;
+
+						}
 					}
 				}
 
@@ -501,12 +557,15 @@ void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 void defineMeshPartFaces(meshPart_t& mesh)
 {
 	// Clear out our old faces
-	for (auto v : mesh.faces)
-		if(v) delete v;
-	mesh.faces.clear();
+	for (auto f : mesh.fullFaces)
+		delete f;
+	for (auto f : mesh.cutFaces)
+		delete f;
+	mesh.fullFaces.clear();
+	mesh.cutFaces.clear();
 
 	face_t* f = new face_t;
-	mesh.faces.push_back(f);
+	mesh.fullFaces.push_back(f);
 	f->meshPart = &mesh;
 	
 	if (mesh.verts.size() == 0)
@@ -517,6 +576,18 @@ void defineMeshPartFaces(meshPart_t& mesh)
 	defineFace(*f, skip, mesh.verts.size());
 
 
+}
+// Terrible
+glm::vec3*& vertVectorAccessor(void* vec, size_t i)
+{
+	std::vector<vertex_t*>* verts = (std::vector<vertex_t*>*)vec;
+	return verts->at(i)->vert;
+}
+face_t* cloneFace(face_t* f)
+{
+	face_t* clone = new face_t;
+	defineFace(*clone, { (void*)&f->verts, &vertVectorAccessor }, f->verts.size());
+	return clone;
 }
 
 
@@ -584,7 +655,10 @@ face_t::~face_t()
 
 meshPart_t::~meshPart_t()
 {
-	for (auto f : faces)
+	for (auto f : fullFaces)
+		delete f;
+
+	for (auto f : cutFaces)
 		delete f;
 }
 
