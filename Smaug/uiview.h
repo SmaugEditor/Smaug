@@ -18,7 +18,6 @@ public:
 	bool m_drawPreviewView;
 	C3DView m_previewView;
 	bool m_drawSelectedView;
-	CSelectedView m_selectedView;
 	CToolBox m_toolBox;
 	CSettingsMenu m_settingsMenu;
 };

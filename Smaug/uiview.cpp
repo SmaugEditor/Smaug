@@ -26,7 +26,7 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	for(int i = 0; i < 3; i++)
 		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x383838FF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
-	m_selectedView.Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
+	SelectedView().Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
 
 	m_drawPreviewView = true;
 	m_drawEditView = true;
@@ -48,7 +48,7 @@ void CUIView::Draw(float dt)
 	if (m_drawPreviewView)
 		m_previewView.Draw(dt);
 	if (m_drawSelectedView)
-		m_selectedView.Draw(dt);
+		SelectedView().Draw(dt);
 
 
 }
@@ -59,7 +59,8 @@ void CUIView::Update(float dt, float mx, float my)
 	ImVec2 mv = ImGui::GetMousePos();
 
 	// UI
-
+	ImGui::ShowDemoWindow();
+	 
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -154,15 +155,7 @@ void CUIView::Update(float dt, float mx, float my)
 	}
 	ImGui::End();
 
-	if (ImGui::Begin("Object Editor"))
-	{
-		m_drawSelectedView = !ImGui::IsWindowCollapsed();
-		ImVec2 imageSize = ImGui::GetContentRegionAvail();
-		m_selectedView.m_aspectRatio = imageSize.x / imageSize.y;
-		ImGui::Image(m_selectedView.GetImTextureID(), imageSize);
-		bool hoveredOnSelectionEditor = ImGui::IsItemHovered();
-	}
-	ImGui::End();
+	m_drawSelectedView = SelectedView().Show();
 
 	GetActionManager().Update();
 
