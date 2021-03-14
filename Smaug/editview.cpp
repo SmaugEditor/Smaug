@@ -68,12 +68,13 @@ void CEditView::Update(float dt, float mx, float my)
 		else
 			m_viewZoom -= scrollDelta;
 
-		/*
 		// Run TransformMousePos backwards to keep our mouse pos stable
-		m_cameraPos.x = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio) - startMouseStartPos.x;
-		m_cameraPos.z = (my * 2 - 1) * (m_viewZoom) - startMouseStartPos.z;
+		float nx = -(mx * 2 - 1) * (m_viewZoom * m_aspectRatio);
+		float ny = (my * 2 - 1) * (m_viewZoom);
 
-		*/
+		glm::vec3 forward, right, up;
+		Directions(m_editPlaneAngle, &forward, &right, &up);
+		m_cameraPos = nx * right + ny * forward + startMouseStartPos;
 	}
 
 	if (m_viewZoom <= 0)
@@ -181,6 +182,6 @@ glm::vec3 CEditView::TransformMousePos(float mx, float my, glm::vec3 cameraPos)
 	my = -(my * 2 - 1) * (m_viewZoom);
 
 
-	printf("%f, %f, { %f, %f, %f } - { %f, %f, %f }\n", mx, my, forward.x, forward.y, forward.z, right.x, right.y, right.z);
+	//printf("%f, %f, { %f, %f, %f } - { %f, %f, %f }\n", mx, my, forward.x, forward.y, forward.z, right.x, right.y, right.z);
 	return mx * right + my * forward + cameraPos;
 }
