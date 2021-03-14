@@ -36,7 +36,14 @@ void CWorldRenderer::Init()
 
 void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 {
-	Draw3D(viewId, shader);
+	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
+	CWorldEditor& world = GetWorldEditor();
+	for (int i = 0; i < world.m_nodes.size(); i++)
+	{
+		world.m_nodes[i]->m_renderData.Render();
+		bgfx::setState(BGFX_STATE_DEFAULT );
+		bgfx::submit(viewId, shaderProgram);
+	}
 }
 
 void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
