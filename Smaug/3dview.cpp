@@ -69,7 +69,6 @@ void C3DView::Draw(float dt)
 
 
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
-	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 
 	// Draw the Cursor
 	GetCursor().Draw();
