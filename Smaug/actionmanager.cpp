@@ -104,7 +104,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 
 		if (!node->IsPointInAABB(mousePos))
 			continue; // Not in bounds!
-		printf("IN BOUND");
+		//printf("IN BOUND");
 		// Do we want vertex selecting?
 		if (findFlags & ACT_SELECT_VERT)
 		{
@@ -140,7 +140,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 				
 				if (t.hit && glm::distance(t.intersect + node->Origin(), mousePos) <= 1.25f)
 				{
-					printf("HIT\n");
+					//printf("HIT\n");
 
 					if (findFlags & ACT_SELECT_SIDE)
 					{
