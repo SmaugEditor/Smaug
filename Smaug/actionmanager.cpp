@@ -80,9 +80,7 @@ void CActionManager::CommitAction(IAction* action)
 
 bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags)
 {
-	// Flatten out our mousePos
-	mousePos *= GetCursor().GetWorkingAxisMask();
-
+	
 
 	// If this isn't 0, ACT_SELECT_NONE, we might have issues down the line
 	info.selected = ACT_SELECT_NONE;
@@ -100,7 +98,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		// Note: Maybe add a threshold to this?
 		
 		// Put the mouse within the node
-		mousePos = mousePos * GetCursor().GetWorkingAxisMask() + node->Origin() * GetCursor().GetWorkingAxis();
+		mousePos = mousePos + node->Origin();
 
 		if (!node->IsPointInAABB(mousePos))
 			continue; // Not in bounds!
@@ -115,8 +113,8 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 
 				for (auto v : p->verts)
 				{
-					if (glm::distance((node->Origin() + *v->vert) * GetCursor().GetWorkingAxisMask(), mousePos) <= 4
-					 && glm::distance((node->Origin() + *v->edge->vert->vert) * GetCursor().GetWorkingAxisMask(), mousePos) <= 4)
+					if (glm::distance((node->Origin() + *v->vert), mousePos) <= 4
+					 && glm::distance((node->Origin() + *v->edge->vert->vert), mousePos) <= 4)
 					{
 						// Got a point. Add the flag and break the loop.
 						info.selected |= ACT_SELECT_VERT;
