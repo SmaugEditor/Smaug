@@ -1,5 +1,6 @@
 #include "worldrenderer.h"
 #include "worldeditor.h"
+#include "utils.h"
 
 #include <bgfx/bgfx.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -32,6 +33,8 @@ void CWorldRenderer::Init()
 	g_quadTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_quadTriIndexList, sizeof(g_quadTriIndexList)));
 	g_triTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_triTriIndexList, sizeof(g_triTriIndexList)));
 #endif
+	// This will leak memory. Clean it up!
+	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
 }
 
 void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
@@ -41,7 +44,14 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 	for (int i = 0; i < world.m_nodes.size(); i++)
 	{
 		world.m_nodes[i]->m_renderData.Render();
-		bgfx::setState(BGFX_STATE_DEFAULT );
+
+		// Set the color
+		// Precompute this?
+		glm::vec3 origin = glm::normalize(world.m_nodes[i]->m_mesh.origin);
+		float theta = atan2(origin.z, origin.x) + PI;
+		glm::vec4 color = glm::vec4(colorHSV(theta, 1.0f, 1.0f), 1);
+		bgfx::setUniform(m_colorUniform, &color);
+
 		bgfx::submit(viewId, shaderProgram);
 	}
 }
@@ -55,6 +65,14 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 		if(world.m_nodes[i]->IsVisible())
 		{
 			world.m_nodes[i]->m_renderData.Render();
+
+			// Set the color
+			// Precompute this?
+			glm::vec3 origin = glm::normalize(world.m_nodes[i]->m_mesh.origin);
+			float theta = atan2(origin.z, origin.x) + PI;
+			glm::vec4 color = glm::vec4(colorHSV(theta, 1.0f, 1.0f),1);
+			bgfx::setUniform(m_colorUniform, &color);
+
 			bgfx::submit(viewId, shaderProgram);
 		}
 	}

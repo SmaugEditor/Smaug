@@ -28,7 +28,7 @@ glm::vec3 Angles(glm::vec3 forward, glm::vec3* up = nullptr);
 
 
 template<typename T>
-T max(T a, T b)
+constexpr T max(T a, T b)
 {
 	if (a > b)
 		return a;
@@ -36,7 +36,7 @@ T max(T a, T b)
 }
 
 template<typename T>
-T min(T a, T b)
+constexpr T min(T a, T b)
 {
 	if (a < b)
 		return a;
@@ -45,7 +45,7 @@ T min(T a, T b)
 
 
 template<typename T>
-T clamp(T min, T max, T value)
+constexpr T clamp(T value, T min, T max)
 {
 	if (value > max)
 		return max;
@@ -54,7 +54,22 @@ T clamp(T min, T max, T value)
 	return value;
 }
 
-inline glm::vec3 dirMask(glm::vec3 vec)
+inline constexpr glm::vec3 dirMask(glm::vec3 vec)
 {
 	return { 1.0f - fabs(vec.x), 1.0f - fabs(vec.y), 1.0f - fabs(vec.z) };
+}
+
+
+
+inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
+{
+	const float hueRange = 2 * PI;
+	const float onesixth = hueRange / 6;
+	float oR = clamp<float>((fabs(hue - hueRange / 2.0f) - onesixth) / onesixth, 0.0f, 1.0f);
+	oR = (oR * saturation + (1.0f - saturation)) * value;
+	float oG = clamp<float>((onesixth * 2.0f - fabs(hue - onesixth * 2)) / onesixth, 0.0f, 1.0f);
+	oG = (oG * saturation + (1.0f - saturation)) * value;
+	float oB = clamp<float>((onesixth * 2.0f - fabs(hue - onesixth * 4)) / onesixth, 0.0f, 1.0f);
+	oB = (oB * saturation + (1.0f - saturation)) * value;
+	return glm::vec3(oR, oG, oB);
 }

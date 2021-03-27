@@ -10,7 +10,9 @@ public:
 	void Init();
 	void Draw2D(bgfx::ViewId viewId, Shader shader);
 	void Draw3D(bgfx::ViewId viewId, Shader shader);
-
+	
+private:
+	bgfx::UniformHandle m_colorUniform;
 };
 
 /*
