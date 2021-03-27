@@ -106,6 +106,12 @@ void CCursor::SetMode(CursorMode mode)
 	m_cursorMode = mode;
 }
 
+void CCursor::SetWorkingAxis(glm::vec3 vecAxis)
+{
+	m_workingAxis = vecAxis;
+	m_workingAxisMask = dirMask(vecAxis);
+}
+
 CCursor& GetCursor()
 {
 	static CCursor s_cursor;

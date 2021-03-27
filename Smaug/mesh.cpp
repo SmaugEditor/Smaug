@@ -105,7 +105,8 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_
 glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 {
 	// Not fond of this
-
+	// TODO: We should probably cache this data and/or add a quick route for triangulated faces!
+	
 	glm::vec3 center = faceCenter(face);
 
 	glm::vec3 faceNormal = { 0,0,0 };

@@ -83,7 +83,7 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
 
 
-testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p);
+testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p);
 
 // Wish this could be a template...
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);

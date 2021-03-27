@@ -82,7 +82,7 @@ class CActionManager
 public:
 
 	void CommitAction(IAction* action);
-	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags);
+	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
 
 	void Undo();
 	void Redo();

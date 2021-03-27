@@ -78,31 +78,42 @@ void CActionManager::CommitAction(IAction* action)
 	m_redoStack.clear();
 }
 
-bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags)
+bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect)
 {
-	
+
 
 	// If this isn't 0, ACT_SELECT_NONE, we might have issues down the line
 	info.selected = ACT_SELECT_NONE;
-	
+
 	// We successfully found nothing! Woo!
 	if (findFlags == ACT_SELECT_NONE)
 		return true;
+
+	// What plane are we editing on?
+	glm::vec3 workingAxis = GetCursor().GetWorkingAxis();
+	glm::vec3 workingAxisMask = GetCursor().GetWorkingAxisMask();
+
+	glm::vec3 pointOfIntersect = {0, 0, 0};
 
 	// Find the selected item
 	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
 	{
 		CNode* node = GetWorldEditor().m_nodes[i];
 
-		// Check if we're in the AABB
-		// Note: Maybe add a threshold to this?
 		
-		// Put the mouse within the node
-		mousePos = mousePos + node->Origin();
+		// Put the mouse on level with the node
+		glm::vec3 localMouse = mousePos - node->Origin();
+		localMouse *= workingAxisMask; // Flatten it out to just this plane
+		aabb_t aabb = node->GetLocalAABB();
+		localMouse += (aabb.max - aabb.min) * workingAxis / 2.0f; // Put our cursor in the middle
 
-		if (!node->IsPointInAABB(mousePos))
+		// Check if we're in the AABB
+		if (!testPointInAABB(localMouse, aabb, 1.5f))
 			continue; // Not in bounds!
-		//printf("IN BOUND");
+		
+//		printf("IN BOUND");
+		
+					  
 		// Do we want vertex selecting?
 		if (findFlags & ACT_SELECT_VERT)
 		{
@@ -113,8 +124,8 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 
 				for (auto v : p->verts)
 				{
-					if (glm::distance((node->Origin() + *v->vert), mousePos) <= 4
-					 && glm::distance((node->Origin() + *v->edge->vert->vert), mousePos) <= 4)
+					if (glm::distance(*v->vert, localMouse) <= 4
+					 && glm::distance(*v->edge->vert->vert, localMouse) <= 4)
 					{
 						// Got a point. Add the flag and break the loop.
 						info.selected |= ACT_SELECT_VERT;
@@ -134,10 +145,18 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 				// Are we on the side?
 				//mousePos.y = node->Origin().y;
 
-				testRayPlane_t t = pointOnPart(p, mousePos);
+				testRayPlane_t t = pointOnPartLocal(p, localMouse);
 				
-				if (t.hit && glm::distance(t.intersect + node->Origin(), mousePos) <= 1.25f)
+
+				if (t.hit && glm::distance(t.intersect * workingAxisMask, localMouse * workingAxisMask) <= 1.5f)
 				{
+					// Discard parts with norms we don't like
+					// TODO: Do this earlier! Ideally before the ray test!
+					if (fabs(glm::dot(glm::normalize(t.normal), workingAxis)) > 0.89)
+					{
+						//printf("Skip\n");
+						continue;
+					}
 					//printf("HIT\n");
 
 					if (findFlags & ACT_SELECT_SIDE)
@@ -174,8 +193,10 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 					*/
 
 					if (foundSomething)
+					{
+						pointOfIntersect = t.intersect + node->Origin();
 						break;
-
+					}
 				}
 
 			}
@@ -188,6 +209,9 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 			info.selected |= ACT_SELECT_NODE;
 			info.node = node;
 
+			if (outPointOfIntersect)
+				*outPointOfIntersect = pointOfIntersect;
+
 			// We got our selected item(s). Let's dip
 			return true;
 		}
@@ -196,6 +220,9 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 			// They just want a node
 			info.selected |= ACT_SELECT_NODE;
 			info.node = node;
+
+			if (outPointOfIntersect)
+				*outPointOfIntersect = pointOfIntersect;
 
 			return true;
 		}

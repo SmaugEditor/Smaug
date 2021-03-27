@@ -4,6 +4,7 @@
 #include "smaugapp.h"
 #include "cursor.h"
 #include "texturemanager.h"
+#include "grid.h"
 
 #include <GLFW/glfw3.h>
 
@@ -33,7 +34,7 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 		else if (fabs(delta.y) < 2)
 			delta.y = 0;
 
-
+		delta *= GetCursor().GetWorkingAxisMask();
 		mousePosSnapped = delta + m_mouseStartDragPos;
 
 		GetCursor().SetEditPosition(mousePosSnapped);
@@ -58,13 +59,17 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 
 		// Check if we're hovering on anything
 		selectionInfo_t info;
-		bool found = GetActionManager().FindFlags(mousePosRaw, info, GetSelectionType());
+		glm::vec3 poi = {0,0,0};
+		bool found = GetActionManager().FindFlags(mousePosRaw, info, GetSelectionType(), &poi);
 		
 		if (found && info.selected != ACT_SELECT_NONE)
 		{
 			// Got something! We can use this for our cursor if we have something
-			glm::vec3 solvedPos = GetCursor().SetSelection(mousePosRaw, info);
-			
+			// Move this all back into the cursor!
+			glm::vec3 solvedPos = poi;// GetCursor().SetSelection(mousePosRaw, info);
+			solvedPos = Grid().Snap(solvedPos);
+			GetCursor().SetMode(CursorMode::HOVERING);
+			GetCursor().SetPositionForce(solvedPos);
 
 			// If we found something, and we're clicking, we can start dragging!
 			// Using glfw input until something is figured out about ImGui's overriding
@@ -72,7 +77,7 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 			{
 				m_selectionInfo = info;
 				m_inDrag = true;
-				m_mouseStartDragPos = solvedPos;// GetSelectionPos(info);
+				m_mouseStartDragPos = solvedPos * GetCursor().GetWorkingAxisMask();// GetSelectionPos(info);
 				m_mouseDragDelta = glm::vec3(0, 0, 0);
 
 				StartDrag();

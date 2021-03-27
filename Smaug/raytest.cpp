@@ -485,16 +485,15 @@ bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<false>(p, tri0, tri1, tri2); }
 bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<true>(p, tri0, tri1, tri2); }
 
-testRayPlane_t pointOnPart(meshPart_t* part, glm::vec3 p)
+testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p)
 {
-    // To Abs
-    p -= part->mesh->origin;
     //glm::vec3 origin = part->mesh->origin;
     for (auto f : part->fullFaces)
     {
         if (f->verts.size() == 3)
         {
             glm::vec3 norm = faceNormal(f);
+            norm = glm::normalize(norm);
 
             testRayPlane_t t = rayTriangleTest<false>({ p, -norm }, { *f->verts[0]->vert, *f->verts[1]->vert, *f->verts[2]->vert }, FLT_MAX);
 

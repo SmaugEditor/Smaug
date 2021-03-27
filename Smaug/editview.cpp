@@ -164,6 +164,10 @@ void CEditView::Draw(float dt)
 	
 	// Grid gets drawn last. Figure out transparency!
 	Grid().Draw({ width, height }, m_cameraPos, m_editPlaneAngle, m_focused, up * -200.0f);
+
+
+	if (m_focused)
+		GetCursor().SetWorkingAxis(up);
 }
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)
