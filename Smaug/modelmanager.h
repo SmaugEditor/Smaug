@@ -13,7 +13,7 @@ class CModelTransform
 {
 public:
 	CModelTransform();
-	CModelTransform(glm::vec3 pos, glm::vec3 rotation, glm::vec3 scale) { SetAbsOrigin(pos); SetAbsAngles(rotation); SetAbsScale(scale); }
+	CModelTransform(glm::vec3 pos, glm::vec3 rotation = { 0,0,0 }, glm::vec3 scale = { 1,1,1 }, CModelTransform* parent = nullptr) { m_pParent = parent; SetAbsOrigin(pos); SetAbsAngles(rotation); SetAbsScale(scale); }
 
 	void SetParent(CModelTransform* parent);
 
