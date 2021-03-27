@@ -51,38 +51,25 @@ void C3DView::Draw(float dt)
 {
 	CBaseView::Draw(dt);
 
-	glm::mat4 view = glm::identity<glm::mat4>();
-	//view = glm::orientate4(m_cameraAngle); not sure why but this doesn't work...
-	//view *= glm::eulerAngleX(-m_cameraAngle.x);
-	//view *= glm::eulerAngleY(-m_cameraAngle.y);
-	//view *= glm::eulerAngleZ(-m_cameraAngle.z);
 	glm::vec3 forwardDir;
-
 	Directions(m_cameraAngle, &forwardDir);
 
-
-	view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, glm::vec3(0.0f, 1.0f, 0.0f));
-	//view = glm::translate(view, m_cameraPos * -1.0f);
-
+	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
-
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
+	
+	Grid().Draw();
 
 	// Draw the Cursor
 	GetCursor().Draw();
-	//bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::CURSOR_SHADER));
 
+	// Draw center of the edit view
 	CModelTransform r;
 	r.SetAbsOrigin(CEditView::m_cameraPos);
 	ModelManager().ErrorModel()->Render(&r);
 
-
-	// Grid gets drawn before all else
-	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-	Grid().Draw();
-	bgfx::setState(BGFX_STATE_DEFAULT);
 }
 
 void C3DView::Update(float dt, float mx, float my)
@@ -103,14 +90,7 @@ void C3DView::Update(float dt, float mx, float my)
 		m_cameraAngle += angleDelta;
 
 		// Lock the view to prevent having upsidedown eyes
-		if (m_cameraAngle.x >= glm::radians(89.9f))
-		{
-			m_cameraAngle.x = glm::radians(89.9f);
-		}
-		else if (m_cameraAngle.x <= glm::radians(-89.9f))
-		{
-			m_cameraAngle.x = glm::radians(-89.9f);
-		}
+		m_cameraAngle.x = clamp(m_cameraAngle.x, glm::radians(-89.9f), glm::radians(89.9f));
 	}
 	
 	// We can always control the position
@@ -197,11 +177,14 @@ void C3DView::Update(float dt, float mx, float my)
 
 #ifdef _DEBUG
 	// Nice little debug view for testing
-	if (ImGui::Begin("Camera Debug"))
+	ImGui::SetNextWindowFocus();
+	if (ImGui::Begin("Camera Debug", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration))
 	{
 		ImGui::InputFloat3("Angle", (float*)&m_cameraAngle);
 		ImGui::InputFloat3("Position", (float*)&m_cameraPos);
 		ImGui::InputFloat3("MoveDelta", (float*)&moveDelta);
+		ImVec2 size = ImGui::GetItemRectSize();
+		ImGui::SetWindowSize({ size.x, size.y * 30 });
 	}
 	ImGui::End();
 
