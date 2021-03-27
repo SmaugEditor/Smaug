@@ -47,9 +47,12 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 
 		// Set the color
 		// Precompute this?
-		glm::vec3 origin = glm::normalize(world.m_nodes[i]->m_mesh.origin);
+		glm::vec3 origin = world.m_nodes[i]->m_mesh.origin;
+		float mag = glm::length(origin);
+		origin = glm::normalize(origin);
 		float theta = atan2(origin.z, origin.x) + PI;
-		glm::vec4 color = glm::vec4(colorHSV(theta, 1.0f, 1.0f), 1);
+		float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
+		glm::vec4 color = glm::vec4(colorHSV(theta, saturation, 1.0f), 1);
 		bgfx::setUniform(m_colorUniform, &color);
 
 		bgfx::submit(viewId, shaderProgram);
@@ -68,9 +71,12 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 
 			// Set the color
 			// Precompute this?
-			glm::vec3 origin = glm::normalize(world.m_nodes[i]->m_mesh.origin);
+			glm::vec3 origin = world.m_nodes[i]->m_mesh.origin;
+			float mag = glm::length(origin);
+			origin = glm::normalize(origin);
 			float theta = atan2(origin.z, origin.x) + PI;
-			glm::vec4 color = glm::vec4(colorHSV(theta, 1.0f, 1.0f),1);
+			float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
+			glm::vec4 color = glm::vec4(colorHSV(theta, saturation, 1.0f), 1);
 			bgfx::setUniform(m_colorUniform, &color);
 
 			bgfx::submit(viewId, shaderProgram);
