@@ -56,8 +56,10 @@ void CWallExtrudeAction::Act()
 	// HACK HACK
 	// For some reason we have to update the parent... Even though we just updated them...
 	//m_selectInfo.node->m_mesh.cutters.push_back(&quad->m_mesh);
+	m_selectInfo.node->m_mesh.cutters.push_back(&quad->m_mesh);
+	quad->m_mesh.cutters.push_back(&m_selectInfo.node->m_mesh);
 	quad->Update();
-	//m_selectInfo.node->Update();
+	m_selectInfo.node->Update();
 
 	printf("Created New Node\n");
 }
