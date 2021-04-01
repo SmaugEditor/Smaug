@@ -317,35 +317,35 @@ testRayPlane_t testLine(line_t line)
 
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
 {
-
-    vec3 cross = glm::cross(a.delta, a.delta);
+    vec3 cross = glm::cross(a.delta, b.delta);
     if (cross.x == 0.0f && cross.y == 0.0f && cross.z == 0.0f)
         return {false};
 
-    vec3 aDir = glm::normalize(a.delta);
-    vec3 bDir = glm::normalize(b.delta);
-
     // Defined for reuse in t1 & t2
     float crossPow = pow(glm::length(cross), 2);
-    vec3 dirCross = glm::cross(aDir, bDir);
+    vec3 dirCross = glm::cross(a.delta, b.delta);
     vec3 originDelta = b.origin - a.origin;
     
-    float t1 = glm::dot(glm::cross(originDelta, bDir), dirCross) / crossPow;
-    float t2 = glm::dot(glm::cross(originDelta, aDir), dirCross) / crossPow;
+    float t1 = glm::dot(glm::cross(originDelta, b.delta), dirCross) / crossPow;
+    float t2 = glm::dot(glm::cross(originDelta, a.delta), dirCross) / crossPow;
 
-    vec3 p1 = a.origin + t1 * aDir;
-    vec3 p2 = b.origin + t2 * bDir;
+    // Discard negatives, they go behind the delta
+    if (t1 < 0 || t2 < 0)
+        return { false };
+
+    vec3 p1 = a.origin + t1 * a.delta;
+    vec3 p2 = b.origin + t2 * b.delta;
 
     // Are the points valid?
     if (glm::distance(p1, p2) > tolerance)
         return { false };
-
+    
     // Unnecessary floating point error introduction? Maybe...
     vec3 point = (p1 + p2) / 2.0f;
 
     // Check if we're too long
-    if (glm::distance(a.origin, point) > glm::distance(a.origin, a.delta)
-        || glm::distance(b.origin, point) > glm::distance(b.origin, b.delta))
+    if (glm::distance(a.origin, point) > glm::length(a.delta)
+        || glm::distance(b.origin, point) > glm::length(b.delta))
         return { false };
 
     return { true, point };
