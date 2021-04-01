@@ -73,3 +73,4 @@ inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 	oB = (oB * saturation + (1.0f - saturation)) * value;
 	return glm::vec3(oR, oG, oB);
 }
+inline constexpr glm::vec3 colorHSV(glm::vec3 vec) { return colorHSV(vec.x, vec.y, vec.z); }
