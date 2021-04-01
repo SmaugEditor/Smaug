@@ -19,9 +19,15 @@ public:
 
 	// Local to parent
 	void SetLocalAngles(glm::vec3 ang) { m_angles = ang; }
+	void SetLocalAngles(float pitch, float yaw, float roll) { m_angles = { pitch, yaw, roll }; }
+	void SetLocalPitch(float pitch) { m_angles.x = pitch; }
+	void SetLocalYaw(float yaw)     { m_angles.y = yaw; }
+	void SetLocalRoll(float roll)   { m_angles.z = roll; }
 	void SetLocalOrigin(glm::vec3 pos) { m_position = pos; }
+	void SetLocalOrigin(float x, float y, float z) { m_position = { x, y, z }; }
 	void SetLocalScale(glm::vec3 scale) { m_scale = scale; }
 	void SetLocalScale(float scale) { m_scale = { scale, scale, scale }; }
+	void SetLocalScale(float x, float y, float z) { m_scale = { x, y, z }; }
 
 	glm::vec3 GetLocalAngles() { return m_angles; }
 	glm::vec3 GetLocalOrigin() { return m_position; }
@@ -29,9 +35,12 @@ public:
 
 	// Absolute position in the world
 	void SetAbsAngles(glm::vec3 ang);
+	void SetAbsAngles(float pitch, float yaw, float roll) { SetAbsOrigin({ pitch, yaw, roll }); }
 	void SetAbsOrigin(glm::vec3 pos);
+	void SetAbsOrigin(float x, float y, float z) { SetAbsOrigin({ x, y, z }); }
 	void SetAbsScale(glm::vec3 scale);
 	void SetAbsScale(float scale) { SetAbsScale({ scale, scale, scale }); }
+	void SetAbsScale(float x, float y, float z) { SetAbsScale({ x, y, z }); }
 
 	glm::vec3 GetAbsAngles();
 	glm::vec3 GetAbsOrigin();
