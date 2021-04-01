@@ -52,13 +52,7 @@ void CMeshRenderer::RebuildRenderData()
 void CMeshRenderer::Render()
 {
 	CModelTransform t;
-	t.SetLocalOrigin(m_mesh.origin);
-	glm::mat4 mtx = t.Matrix();
-
-	bgfx::setTransform(&mtx[0][0]);
-	bgfx::setVertexBuffer(0, m_vertexBuf);
-	bgfx::setIndexBuffer(m_indexBuf, 0, m_indexCount);
-	// This does not bgfx::submit!!
+	Render(t);
 }
 
 void CMeshRenderer::Render(CModelTransform trnsfm)
