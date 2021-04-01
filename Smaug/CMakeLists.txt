@@ -14,6 +14,7 @@ set( SOURCES
 	texturemanager.cpp
 	modelmanager.cpp
 	basicdraw.cpp 
+	debugdraw.cpp
 
 	3dview.cpp
 	uiview.cpp
@@ -53,8 +54,8 @@ set( SOURCES
 	input.cpp
 )
 
-set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc shaders/vs_grid.sc )
-set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc shaders/fs_grid.sc )
+set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc shaders/vs_grid.sc shaders/vs_line.sc )
+set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc shaders/fs_grid.sc shaders/fs_line.sc )
 
 set( SHADER_OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders" )
 set( GLSL_VERSION 430 )

@@ -1,4 +1,7 @@
 #include "basicdraw.h"
+#include "modelmanager.h"
+#include "utils.h"
+#include "shadermanager.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -79,17 +82,65 @@ static TexturedPlanePosColorVertex s_texturedPlaneVertices[] =
 static const uint16_t s_texturedPlaneTriList[] = { 2, 1, 0, 0, 3, 2 };
 
 
+struct LineFormat
+{
+	static void init()
+	{
+		ms_layout
+			.begin()
+			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+			.end();
+	}
+	static bgfx::VertexLayout ms_layout;
+};
+bgfx::VertexLayout LineFormat::ms_layout;
+
+static glm::vec3 s_lineVertices[] =
+{
+	{ -0.5, 0, 0},
+	{  0.5, 0, 0},
+	{  0.5, 0, 1},
+	{ -0.5, 0, 1},
+
+
+	{ 0, -0.5, 0},
+	{ 0,  0.5, 0},
+	{ 0,  0.5, 1},
+	{ 0, -0.5, 1},
+};
+static const uint16_t s_lineTriList[] = { 0, 3, 2, 2, 1, 0, 4, 7, 6, 6, 5, 4 };
+
+
 CBasicDraw::CBasicDraw()
 {
 	CubePosColorVertex::init();
 	TexturedPlanePosColorVertex::init();
+	LineFormat::init();
 
 	m_cubeVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), CubePosColorVertex::ms_layout);
 	m_cubeIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 
 	m_planeVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_texturedPlaneVertices, sizeof(s_texturedPlaneVertices)), TexturedPlanePosColorVertex::ms_layout);
 	m_planeIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_texturedPlaneTriList, sizeof(s_texturedPlaneTriList)));
-	
+
+	 m_lineVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_lineVertices, sizeof(s_lineVertices)), LineFormat::ms_layout);
+	 m_lineIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_lineTriList, sizeof(s_lineTriList)));
+
+	 m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
+}
+
+CBasicDraw::~CBasicDraw()
+{
+	bgfx::destroy(m_cubeVertexBuf);
+	bgfx::destroy(m_cubeIndexBuf);
+
+	bgfx::destroy(m_planeVertexBuf);
+	bgfx::destroy(m_planeIndexBuf);
+
+	bgfx::destroy(m_lineVertexBuf);
+	bgfx::destroy(m_lineIndexBuf);
+
+	bgfx::destroy(m_colorUniform);
 }
 
 
@@ -118,6 +169,31 @@ void CBasicDraw::Plane(glm::vec3 origin, glm::vec3 scale, glm::vec3 angle)
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_planeVertexBuf);
 	bgfx::setIndexBuffer(m_planeIndexBuf);
+}
+
+void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width)
+{
+	glm::vec4 color4 = glm::vec4(color, 1.0f);
+	CModelTransform mt;
+	mt.SetLocalOrigin(start);
+	mt.SetLocalScale(width, width, glm::distance(start, end));
+	glm::vec3 ang = Angles(end - start);
+	//ang.z = PI / 4.0f;
+	mt.SetLocalAngles(ang);
+
+	bgfx::setTransform(&mt.Matrix()[0][0]);
+	bgfx::setVertexBuffer(0, m_lineVertexBuf);
+	bgfx::setIndexBuffer(m_lineIndexBuf);
+
+	bgfx::setUniform(m_colorUniform, &color4);
+	bgfx::setState(0
+		| BGFX_STATE_WRITE_RGB
+		| BGFX_STATE_WRITE_A
+		| BGFX_STATE_WRITE_Z 
+		| BGFX_STATE_DEPTH_TEST_LESS 
+		| BGFX_STATE_MSAA);
+
+	bgfx::submit(ModelManager().CurrentView(), ShaderManager::GetShaderProgram(Shader::LINE));
 }
 
 CBasicDraw& BasicDraw()

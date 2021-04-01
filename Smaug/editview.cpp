@@ -16,6 +16,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp> 
 #include <numbers>
+#include <debugdraw.h>
 
 BEGIN_SVAR_TABLE(CEditViewSettings)
 	DEFINE_TABLE_SVAR(scrollSpeed,              5.0f)
@@ -168,6 +169,11 @@ void CEditView::Draw(float dt)
 
 	if (m_focused)
 		GetCursor().SetWorkingAxis(up);
+
+
+#ifdef _DEBUG
+	DebugDraw().Draw();
+#endif
 }
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)

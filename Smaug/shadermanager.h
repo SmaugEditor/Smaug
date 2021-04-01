@@ -13,6 +13,7 @@ enum class Shader
 	MODEL_SHADER,
 	ERROR_MODEL_SHADER,
 	GRID,
+	LINE,
 
 	COUNT,
 };

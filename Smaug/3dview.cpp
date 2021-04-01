@@ -17,6 +17,7 @@
 #include <glm/geometric.hpp>
 #include <GLFW/glfw3.h>
 #include <grid.h>
+#include <debugdraw.h>
 
 
 BEGIN_SVAR_TABLE(C3DViewSettings)
@@ -69,6 +70,11 @@ void C3DView::Draw(float dt)
 	CModelTransform r;
 	r.SetAbsOrigin(CEditView::m_cameraPos);
 	ModelManager().ErrorModel()->Render(&r);
+
+
+#ifdef _DEBUG
+	DebugDraw().Draw();
+#endif
 
 }
 
