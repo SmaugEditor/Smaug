@@ -81,6 +81,13 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb);
 bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);
 
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
+inline testLineLine_t testLineLine(halfEdge_t* a, halfEdge_t* b, glm::vec3 aOrigin, glm::vec3 bOrigin, float tolerance = 0.01f)
+{
+	glm::vec3 aStem = *a->vert->vert;
+	glm::vec3 bStem = *b->vert->vert;
+
+	return testLineLine({aStem + aOrigin, *a->next->vert->vert - aStem}, { bStem + bOrigin, *b->next->vert->vert - bStem }, tolerance);
+}
 
 
 testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p);
