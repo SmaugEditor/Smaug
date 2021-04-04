@@ -74,3 +74,8 @@ inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 	return glm::vec3(oR, oG, oB);
 }
 inline constexpr glm::vec3 colorHSV(glm::vec3 vec) { return colorHSV(vec.x, vec.y, vec.z); }
+
+inline glm::vec3 randColorHue()
+{
+	return colorHSV(rand() % 1000 / 1000.0f * PI * 2, 1, 1);
+}
