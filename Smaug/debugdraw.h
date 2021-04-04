@@ -8,7 +8,8 @@ class CDebugDraw
 public:
 	class ITempItem;
 
-	void Line(glm::vec3 start, glm::vec3 end, glm::vec3 color = {1.0f,0.0f,1.0f}, float width = 1.0f, float decay = 5.0f);
+	void Line(glm::vec3 start, glm::vec3 end, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
+	void LineDelta(glm::vec3 start, glm::vec3 delta, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
 //	void Cube();
 	void Draw();
 private:

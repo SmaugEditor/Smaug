@@ -41,6 +41,11 @@ void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
     m_itemsToDraw.push_back(new CTempLine{start,end,color,width,(float)glfwGetTime() + decay});
 }
 
+void CDebugDraw::LineDelta(glm::vec3 start, glm::vec3 delta, glm::vec3 color, float width, float decay)
+{
+    Line(start, start + delta, color, width, decay);
+}
+
 void CDebugDraw::Draw()
 {
     float curtime = glfwGetTime();
