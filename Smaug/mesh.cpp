@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include "raytest.h"
 #include "containerutil.h"
+#include "utils.h"
 #include <glm/geometric.hpp>
 
 // Move this to util or something?
@@ -127,6 +128,7 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 
 // Clean this all up!!
 // Takes in a mesh part and triangulates every face within the part
+// TODO: This might need a check for parallel lines!
 void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 {
 	// As we'll be walking this, we wont want to walk over our newly created faces
@@ -152,6 +154,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		// On odd numbers, we use start + 1, end instead of start, end - 1
 		// Makes it look a bit like we're fitting quads instead of tris
 		int alternate = 0;
+
 
 		// In these loop, we'll progressively push the original face to become smaller and smaller
 		while (face->verts.size() > 3)
@@ -245,7 +248,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// This fails if either parts have < 3 verts
 	if (part->verts.size() < 3 || cutter->verts.size() < 3)
 		return;
-	std::vector<vertex_t*> cutterVerts = cutter->verts;
+	std::vector<vertex_t*>& cutterVerts = cutter->verts;
 
 	// Find the closest two points
 	float distClosest = FLT_MAX;
@@ -361,6 +364,426 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	v1Closest->edge = crackIn;
 }
 
+
+struct snipIntersect_t
+{
+	bool entering;
+	float cutterT;
+	glm::vec3 intersect;
+	halfEdge_t* edge;
+};
+
+typedef face_t inCutFace_t;
+/*
+struct inCutFace_t : public face_t
+{
+	int cullDepth = 0; // How many times has this been marked for culling?
+};
+*/
+
+// Pair of edges that can be dragged from the inner vert
+// Could just deref out of right I guess...
+struct draggable_t
+{
+	halfEdge_t* into;  // leads into vert
+	vertex_t* vert;    // leads into left
+	halfEdge_t* outof; // leads out of vert
+};
+
+void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill)
+{
+	halfEdge_t* he = startEdge;
+	do {
+		faceToFill->edges.push_back(he);
+		faceToFill->verts.push_back(he->vert);
+		
+		he->face = faceToFill;
+
+		he = he->next;
+	} while (he != startEdge);
+
+}
+
+// Intersect must exist within cut points!
+draggable_t splitHalfEdgeAtPoint(halfEdge_t* he, glm::vec3* intersect)
+{
+	halfEdge_t* splitEdge = new halfEdge_t;
+	vertex_t* splitVert = new vertex_t;
+
+	// Split stems out of the vert
+	splitVert->edge = splitEdge;
+	splitVert->vert = intersect;
+
+	// Split comes after original
+	splitEdge->next = he->next;
+	splitEdge->vert = he->vert;
+
+	he->next = splitEdge;
+	// splitVert stems OUT of he
+	he->vert = splitVert;
+
+	// Share the pair for now
+	splitEdge->pair = he->pair;
+
+	// Register up the parts
+	face_t* face = he->face;
+	face->edges.push_back(splitEdge);
+	face->verts.push_back(splitVert);
+	splitEdge->face = face;
+
+	return { he, splitVert, splitEdge };
+}
+
+// Intersect must exist within cut points!
+// Splits the other side too!
+// Returns the new edge split off of the input
+halfEdge_t* splitEdgeAtPoint(halfEdge_t* he, glm::vec3* intersect)
+{
+	halfEdge_t* pair = he->pair;
+
+	if (pair)
+	{
+		// We need to alternate the pairs!
+		//
+		// O--.-->
+		//    X      swap the pairs
+		// <--.--O
+
+		halfEdge_t* splitOrig = splitHalfEdgeAtPoint(he, intersect).outof;
+		halfEdge_t* splitPair = splitHalfEdgeAtPoint(pair, intersect).outof;
+
+		pair->pair = splitOrig;
+		he->pair = splitPair;
+
+		return splitOrig;
+	}
+	else
+	{
+		return splitHalfEdgeAtPoint(he, intersect).outof;
+
+	}
+
+
+}
+
+halfEdge_t* addEdge(face_t* face)
+{
+	halfEdge_t* edge = new halfEdge_t;
+	edge->face = face;
+	face->edges.push_back(edge);
+	return edge;
+}
+
+// Cracks a vertex in two and returns the opposing vert
+// New vertex is floating! Requires linking to the list!
+vertex_t* splitVertex(vertex_t* in, face_t* face)
+{
+	vertex_t* vert = new vertex_t;
+
+	vert->edge = in->edge;
+	vert->vert = in->vert;
+
+	face->verts.push_back(vert);
+
+	return vert;
+}
+
+
+
+// Takes in a split from splitHalfEdgeAtPoint
+// Drags the split out to the selected position
+//
+//     | ^
+//     | |
+//  L  v |  R
+//  <---.<---
+//
+// R is the original after a split and L is the new
+void dragEdgeInto(draggable_t draggable, draggable_t target)
+{
+	halfEdge_t* edgeLeft = draggable.outof;
+	halfEdge_t* edgeRight = draggable.into;
+	vertex_t* vert = draggable.vert;
+
+	face_t* face = edgeLeft->face;
+
+	// Crack the target so intoTarget can stick into it
+	// intoVert will stick out of target
+	vertex_t* splitTarget = splitVertex(target.vert, face);
+	// Crack the vert so intoTarget can stick out of it
+	// intoVert will stick into vert
+	vertex_t* splitVert = splitVertex(vert, face);
+	
+	// Points out of the right hand split
+	halfEdge_t* intoVert = addEdge(face);
+	// Points in to the left hand split
+	halfEdge_t* intoTarget = addEdge(face);
+
+	// Link the pairs as this is a full edge
+	intoVert->pair = intoTarget;
+	intoTarget->pair = intoVert;
+
+	// Link up intoVert
+	target.into->next = intoVert;
+	target.vert->edge = intoVert;
+	intoVert->vert = vert;
+	intoVert->next = edgeLeft;
+
+	// Link up intoTarget
+	edgeRight->next = intoTarget;
+	edgeRight->vert = splitVert;
+	splitVert->edge = intoTarget;
+	intoTarget->vert = splitTarget;
+	intoTarget->next = splitTarget->edge;
+
+}
+draggable_t dragEdge(draggable_t draggable, glm::vec3* point)
+{
+	halfEdge_t* edgeLeft = draggable.outof;
+	halfEdge_t* edgeRight = draggable.into;
+	vertex_t* vert = draggable.vert;
+
+	face_t* face = edgeLeft->face;
+
+	// Crack the vert so edgeLeft can stick out of it
+	vertex_t* splitVert = splitVertex(vert, face);
+
+	// Points out of the right hand split
+	halfEdge_t* out = addEdge(face);
+	// Points in to the left hand split
+	halfEdge_t* in = addEdge(face);
+	
+	// Link the pairs as this is a full edge
+	in->pair = out;
+	out->pair = in;
+
+	// In needs a vert to stem out of and for out to lead into 
+	vertex_t* inStem = new vertex_t;
+	inStem->edge = in;
+	inStem->vert = point;
+	face->verts.push_back(inStem);
+
+	// Link up the right side into out
+	// edgeRight's vert stays the same, but the vert now points into out
+	vert->edge = out;
+	edgeRight->next = out;
+
+	// Link out into in
+	out->vert = inStem;
+	out->next = in;
+
+	// Link up in into left
+	in->next = edgeLeft;
+	in->vert = splitVert;
+
+	return { out, inStem, in };
+}
+
+// Roll around the cutter
+// While rolling, check if any lines intersect
+// If a line intersects, and we're leaving, stop adding data until we re-enter the face
+// If a line intersects, and we're entering, keep adding data until we're out
+// Line leaves when dot of cross of intersect and face norm is < 0
+// TODO: Optimize this!
+void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, meshPart_t* cutter)
+{
+	glm::vec3 meshOrigin        = mesh.origin;
+	glm::vec3 cuttingMeshOrigin = cuttingMesh.origin;
+	glm::vec3 partNorm = faceNormal(part);
+
+	// Are we slicing into the face?
+	bool cutting = false;
+
+	// Last edit 
+	draggable_t drag{ 0,0,0 };
+
+	// We need to walk either into or out of the mesh
+	// 
+	
+	// Loop the part
+	// As we slice, more faces will be added. 
+	// Those faces will get chopped after the first face is done
+	vertex_t* cvStart = cutter->verts.front();
+	vertex_t* cv = cvStart;
+	do
+	{
+		// We need to store our intersections so we can sort by distance
+		std::vector<snipIntersect_t> intersections;
+
+		for (int i = 0; i < part->cutFaces.size(); i++)
+		{
+			face_t* face = part->cutFaces[i];
+
+			vertex_t* pvStart = face->verts.front();
+			vertex_t* pv = pvStart;
+			do
+			{
+				// Dragged edges have pairs, normal cloned edges don't
+				// TODO: improve determination of how to skip dragged edges
+				if (pv->edge->pair)
+				{
+					pv = pv->edge->vert;
+					continue;
+				}
+
+				glm::vec3 partStem = *pv->vert;
+				glm::vec3 cutterStem = *cv->vert;
+				line_t cL = { cutterStem + cuttingMeshOrigin, *cv->edge->vert->vert - cutterStem };
+				line_t pL = { partStem + meshOrigin, *pv->edge->vert->vert - partStem };
+
+				// If this line is parallel and overlapping with anything, it's not allowed to do intersections!
+				
+
+				testLineLine_t t = testLineLine(cL, pL, 0.001f);
+
+#if 0
+				glm::vec3 cross = glm::cross(cL.delta, pL.delta);
+				if (cross.x == cross.y == cross.z == 0)
+				{
+					glm::vec3 stemDir = glm::cross(cL.delta, (partStem + meshOrigin) - (cutterStem + cuttingMeshOrigin));
+					if (stemDir.x == stemDir.y == stemDir.z == 0)
+					{
+						// If our lines share a 
+					}
+				}
+#endif
+
+				if (t.hit)
+				{
+					// Store the intersection for later
+					snipIntersect_t si
+					{
+						.entering = glm::dot(glm::cross(pL.delta, cL.delta), partNorm) >= 0,
+						.cutterT = t.t1,
+						.intersect = t.intersect,
+						.edge = pv->edge,
+					};
+					intersections.push_back(si);
+				}
+
+				pv = pv->edge->vert;
+			} while (pv != pvStart);
+		}
+
+		// Now that we have all of our intersections, we need to sort them all.
+		// Sort by closest to stem
+		std::qsort(intersections.data(), intersections.size(), sizeof(snipIntersect_t), [](void const* a, void const* b) -> int {
+			const snipIntersect_t* siA = static_cast<const snipIntersect_t*>(a);
+			const snipIntersect_t* siB = static_cast<const snipIntersect_t*>(b);
+			if (siA->cutterT < siB->cutterT)
+				return -1;
+			else if (siA->cutterT > siB->cutterT)
+				return 1;
+			else
+				return 0;
+			});
+
+		// Did we intersect?
+		if (intersections.size())
+		{
+			for (int i = 0; i < intersections.size(); i++)
+			{
+
+				if (intersections[i].entering)
+				{
+					// Starts a cut
+					cutting = true;
+
+					// Split the intersected edge
+					glm::vec3* point = new glm::vec3();
+					*point = intersections[i].intersect - meshOrigin;
+					mesh.cutVerts.push_back(point);
+					drag = splitHalfEdgeAtPoint(intersections[i].edge, point);
+
+					// If we're at the end of our intersections, then we can just drag this all the way out.
+					// There's no end cap right now
+					if (intersections.size() - 1 == i)
+					{
+						// Drag to the end of this edge
+						glm::vec3* end = new glm::vec3();
+						*end = *cv->edge->vert->vert + cuttingMeshOrigin - meshOrigin + glm::vec3(0, -0.1, 0);
+						mesh.cutVerts.push_back(end);
+						drag = dragEdge(drag, end);
+					}
+				}
+				else
+				{
+					// Caps off a cut
+					if (cutting)
+					{
+						// Split at intersection
+						glm::vec3* point = new glm::vec3();
+						*point = intersections[i].intersect - meshOrigin;
+						mesh.cutVerts.push_back(point);
+						draggable_t target = splitHalfEdgeAtPoint(intersections[i].edge, point);
+
+						// Drag the edge into the other side
+						dragEdgeInto(drag, target);
+
+						// We should be done cutting this part now.
+						cutting = false;
+
+						// Split our edit into two different faces.
+						// The one we think will get culled will be new
+							
+						// Clear ourselves so we can make sure we just have the data we need
+						face_t* owner = target.outof->face;
+						owner->edges.clear();
+						owner->verts.clear();
+
+						face_t* other = new face_t;
+						other->meshPart = part;
+						part->cutFaces.push_back(other);
+
+						faceFromLoop(target.outof, owner);
+						faceFromLoop(target.into, other);
+
+					}
+					else
+					{
+						// We're exciting now?
+						// When not cutting?
+						// Seems like we need to loop more!
+						// Try to roll out of the mesh so another point can cut into it.
+						cv = cv->edge->vert;
+						cvStart = cv;
+					}
+
+				}
+
+				// Loop the intersections again, incase we sliced through two parts with one edge
+			}
+		}
+		else
+		{
+			// We didn't intersect, but we might have to drag a cut
+
+			// Continues a cut
+			if (cutting)
+			{
+				// Create a new point within our edit space
+				glm::vec3 editPoint = *cv->edge->vert->vert + cuttingMeshOrigin - meshOrigin;
+				glm::vec3* newEditPoint = new glm::vec3();
+				*newEditPoint = editPoint;
+				mesh.cutVerts.push_back(newEditPoint);
+
+				// Drag the previous cut to our new location
+				drag = dragEdge(drag, newEditPoint);
+			}
+		}
+
+		cv = cv->edge->vert;
+	} while (cv != cvStart);
+
+	// Loop back to the top and try on the newly added faces
+
+	
+}
+
+
+template<typename F = face_t>
+F* cloneFace(face_t* f);
+
 void applyCuts(cuttableMesh_t& mesh)
 {
 	// Totally lame!
@@ -420,7 +843,7 @@ void applyCuts(cuttableMesh_t& mesh)
 				if (glm::length(centerDiff) < 0.1f)
 				{
 					// Are our norms opposing?
-					if (glm::dot(cutNorm, pc.norm) < 0)
+					if (glm::dot(cutNorm, pc.norm) == -1)
 					{
 						// Are all of our points in the other cutter?
 						bool engulfed = true;
@@ -462,10 +885,12 @@ void applyCuts(cuttableMesh_t& mesh)
 							if (self->cutFaces.size() == 0)
 							{
 								// Give ourselves a face to crack
-								self->cutFaces.push_back(cloneFace(self));
+								inCutFace_t* clone = cloneFace<inCutFace_t>(self);
+								clone->meshPart = self;
+								self->cutFaces.push_back(clone);
 							}
 
-							opposingFaceCrack(mesh, self, cutP);
+							faceSnips(mesh, *cutter, self, cutP);
 
 							self->isCut = true;
 
@@ -480,7 +905,6 @@ void applyCuts(cuttableMesh_t& mesh)
 	delete[] precomp;
 
 }
-
 
 
 /////////////////////
@@ -575,7 +999,7 @@ void defineMeshPartFaces(meshPart_t& mesh)
 	// Only give it our verts
 	C2DPYSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
 	defineFace(*f, skip, mesh.verts.size());
-
+	
 
 }
 // Terrible
@@ -584,9 +1008,11 @@ glm::vec3*& vertVectorAccessor(void* vec, size_t i)
 	std::vector<vertex_t*>* verts = (std::vector<vertex_t*>*)vec;
 	return verts->at(i)->vert;
 }
-face_t* cloneFace(face_t* f)
+
+template<typename F = face_t>
+F* cloneFace(face_t* f)
 {
-	face_t* clone = new face_t;
+	F* clone = new F;
 	defineFace(*clone, { (void*)&f->verts, &vertVectorAccessor }, f->verts.size());
 	return clone;
 }

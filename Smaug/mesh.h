@@ -32,7 +32,7 @@ struct mesh_t;
 struct vertex_t
 {
 	// Should refer back to the face's verts
-	glm::vec3* vert;
+	glm::vec3* vert = nullptr;
 
 	// The edge that stems out of this vert
 	halfEdge_t* edge = nullptr;
@@ -93,7 +93,7 @@ struct meshPart_t : public face_t
 	//aabb_t aabb;
 
 	// What mesh do we belong to
-	mesh_t* mesh;
+	mesh_t* mesh = nullptr;
 };
 
 struct mesh_t
@@ -161,7 +161,6 @@ void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec);
 void defineMeshPartFaces(meshPart_t& mesh);
 face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end);
-face_t* cloneFace(face_t* f);
 
 void applyCuts(cuttableMesh_t& mesh);
 
