@@ -18,6 +18,7 @@ struct line_t
 
 	// Magnitude and direction
 	glm::vec3 delta;
+
 };
 
 
@@ -47,6 +48,8 @@ struct testLineLine_t : public test_t
 {
 	glm::vec3 intersect;
 
+	float t1 = FLT_MAX;
+	float t2 = FLT_MAX;
 };
 
 struct tri_t

@@ -323,11 +323,10 @@ testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
 
     // Defined for reuse in t1 & t2
     float crossPow = pow(glm::length(cross), 2);
-    vec3 dirCross = glm::cross(a.delta, b.delta);
     vec3 originDelta = b.origin - a.origin;
     
-    float t1 = glm::dot(glm::cross(originDelta, b.delta), dirCross) / crossPow;
-    float t2 = glm::dot(glm::cross(originDelta, a.delta), dirCross) / crossPow;
+    float t1 = glm::dot(glm::cross(originDelta, b.delta), cross) / crossPow;
+    float t2 = glm::dot(glm::cross(originDelta, a.delta), cross) / crossPow;
 
     // Discard negatives, they go behind the delta
     if (t1 < 0 || t2 < 0)
@@ -348,7 +347,7 @@ testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
         || glm::distance(b.origin, point) > glm::length(b.delta))
         return { false };
 
-    return { true, point };
+    return { true, point, t1, t2 };
 }
 
 
