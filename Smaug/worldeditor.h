@@ -92,6 +92,8 @@ public:
 	void Init();
 	void PreviewUpdate();
 	void Update();
+	void UpdateThisOnly();
+
 	//void ConstructWalls();
 	bool IsPointInAABB(glm::vec3 point);
 
@@ -112,6 +114,9 @@ public:
 
 	cuttableMesh_t m_mesh;
 	CMeshRenderer m_renderData;
+	
+	std::vector<CNode*> m_cutting;
+
 #if 0
 	nodeVertex_t* m_vertexes;
 	nodeSide_t* m_sides;

@@ -97,6 +97,18 @@ void CNode::Update()
 		m_constrainedTo[i].m_parentNode->m_renderData.Update3DBufs();
 	}
 #endif
+	
+	UpdateThisOnly();
+
+	// Update what we're cutting
+	for (auto m : m_cutting)
+	{
+		m->UpdateThisOnly();
+	}
+
+}
+void CNode::UpdateThisOnly()
+{
 	recenterMesh(m_mesh);
 	CalculateAABB();
 
@@ -107,7 +119,7 @@ void CNode::Update()
 	}
 
 	applyCuts(m_mesh);
-	
+
 
 	for (auto pa : m_mesh.parts)
 	{
@@ -116,6 +128,8 @@ void CNode::Update()
 
 	m_renderData.RebuildRenderData();
 }
+
+
 #if 0
 static float FindMaxConstraintHeight(CNode* otherNode, nodeSide_t* otherSide, CNode* ourNode, nodeSide_t* ourSide)
 {
