@@ -406,13 +406,10 @@ struct snipIntersect_t
 	halfEdge_t* edge;
 };
 
-typedef face_t inCutFace_t;
-/*
 struct inCutFace_t : public face_t
 {
 	int cullDepth = 0; // How many times has this been marked for culling?
 };
-*/
 
 // Pair of edges that can be dragged from the inner vert
 // Could just deref out of right I guess...
@@ -824,13 +821,15 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 
 						// Split our edit into two different faces.
 						// The one we think will get culled will be new
-							
+						
 						// Clear ourselves so we can make sure we just have the data we need
-						face_t* owner = target.outof->face;
+						inCutFace_t* owner = (inCutFace_t*)target.outof->face;
+						owner->cullDepth = 0;
 						owner->edges.clear();
 						owner->verts.clear();
 
-						face_t* other = new face_t;
+						inCutFace_t* other = new inCutFace_t;
+						other->cullDepth = -1;
 						other->meshPart = part;
 						part->cutFaces.push_back(other);
 
@@ -878,9 +877,34 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 
 		cv = cv->edge->vert;
 	} while (cv != cvStart);
-
 	// Loop back to the top and try on the newly added faces
 
+	// If this is one, we failed to cut anything! Try a face crack?
+	if (part->cutFaces.size() == 1)
+	{
+		opposingFaceCrack(mesh, part, cutter);
+	}
+	else
+	{
+		std::vector<face_t*> cleanFaces;
+		// Cull off faces with < 0 depth
+		for (int i = 0; i < part->cutFaces.size(); i++)
+		{
+			inCutFace_t* f = static_cast<inCutFace_t*>(part->cutFaces[i]);
+			if (f->cullDepth < 0)
+			{
+				// Unlink twins
+				for (auto e : f->edges)
+					if (e->pair)
+						e->pair->pair = nullptr;
+
+				delete f;
+			}
+			else
+				cleanFaces.push_back(f);
+		}
+		part->cutFaces = cleanFaces;
+	}
 	
 }
 
