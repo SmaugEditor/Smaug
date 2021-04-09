@@ -622,6 +622,9 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 	glm::vec3 cuttingMeshOrigin = cuttingMesh.origin;
 	glm::vec3 partNorm = faceNormal(part);
 
+	// Sanity checker
+	int fullRollOver = 0;
+
 	// Are we slicing into the face?
 	bool cutting = false;
 
@@ -848,6 +851,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 							// Try to roll out of the mesh so another point can cut into it.
 							cv = cv->edge->vert;
 							cvStart = cv;
+							fullRollOver++;
 						}
 						invalidateSkipOver = false;
 					}
@@ -876,8 +880,11 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 		}
 
 		cv = cv->edge->vert;
-	} while (cv != cvStart);
+	} while (cv != cvStart && fullRollOver < cutter->verts.size());
 	// Loop back to the top and try on the newly added faces
+
+	// This should not happen!
+	SASSERT(fullRollOver < cutter->verts.size());
 
 	// If this is one, we failed to cut anything! Try a face crack?
 	if (part->cutFaces.size() == 1)
