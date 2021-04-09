@@ -122,6 +122,7 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 	return faceNormal;
 }
 
+void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill);
 /////////////////////////////
 // Mesh face triangulation //
 /////////////////////////////
@@ -174,6 +175,36 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 				glm::vec3 edge2 = (*between->vert) - (*v0->vert);
 				glm::vec3 triNormal = glm::cross(edge1, edge2);
 
+				//SASSERT(triNormal.x != 0 || triNormal.y != 0 || triNormal.z != 0);
+
+				// If we get a zero area tri, WHICH WE SHOULD NOT PASS IN OR CREATE, trim it off
+				if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0)
+				{
+					//SASSERT(0);
+
+					// Fuse v0 and end together 
+					// Hate this
+					delete end->edge;
+					delete between->edge;
+
+					
+					halfEdge_t* he = v0->edge;
+					do
+					{
+						he = he->next;
+					} while (he->vert != end);
+					he->next = v0->edge;
+					he->vert = v0;
+					delete between;
+					delete end;
+
+					face->verts.clear();
+					face->edges.clear();
+					faceFromLoop(he, face);
+
+					goto escapeTri;
+				}
+
 				float dot = glm::dot(triNormal, faceNorm);
 				if (dot < 0)
 					shift = true;
@@ -209,6 +240,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
 			sliceMeshPartFaceUnsafe(mesh, faceVec, face, v0, end);
 
+			escapeTri:
 			alternate++;
 		};
 
