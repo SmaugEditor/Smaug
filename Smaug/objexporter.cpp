@@ -8,41 +8,6 @@ static inline void WriteVertex(glm::vec3 vec, std::stringstream& stream)
 	stream << "v " << vec.x << " " << vec.y << " " << vec.z << "\n";
 }
 
-
-
-static const uint16_t g_quadTriIndexList[] = { 0, 1, 2, 2, 3, 0 };
-static const uint16_t g_wallTriIndexList[] = { 0, 2, 3, 3, 1, 0 };
-
-static inline void WriteFaceWall(int& vertNumber, std::stringstream& stream)
-{
-	// Tri 1
-	stream << "f " << (g_wallTriIndexList[0] + vertNumber) << " " << (g_wallTriIndexList[1] + vertNumber) << " " << (g_wallTriIndexList[2] + vertNumber) << "\n";
-
-	// Tri 2
-	stream << "f " << (g_wallTriIndexList[3] + vertNumber) << " " << (g_wallTriIndexList[4] + vertNumber) << " " << (g_wallTriIndexList[5] + vertNumber) << "\n";
-
-	vertNumber += 4;
-}
-
-static inline void WriteFaceFloorQuad(int& vertNumber, std::stringstream& stream)
-{
-	// Tri 1
-	stream << "f " << (g_quadTriIndexList[0] + vertNumber) << " " << (g_quadTriIndexList[1] + vertNumber) << " " << (g_quadTriIndexList[2] + vertNumber) << "\n";
-
-	// Tri 2
-	stream << "f " << (g_quadTriIndexList[3] + vertNumber) << " " << (g_quadTriIndexList[4] + vertNumber) << " " << (g_quadTriIndexList[5] + vertNumber) << "\n";
-
-	vertNumber += 4;
-}
-
-static inline void WriteFaceFloorTri(int& vertNumber, std::stringstream& stream)
-{
-	stream << "f " << (g_quadTriIndexList[0] + vertNumber) << " " << (g_quadTriIndexList[1] + vertNumber) << " " << (g_quadTriIndexList[2] + vertNumber) << "\n";
-
-	vertNumber += 3;
-}
-
-
 char* COBJExporter::Export(CWorldEditor* world)
 {
 	std::stringstream stream;
@@ -54,54 +19,75 @@ char* COBJExporter::Export(CWorldEditor* world)
 #endif
 	stream << " build compiled on " << __DATE__ << "\n";
 
-#if 0
 	stream << "\n# Vertexes\n";
 	for (int i = 0; i < world->m_nodes.size(); i++)
 	{
 		CNode* node = world->m_nodes[i];
-		glm::vec3 origin = node->m_origin;
+		cuttableMesh_t& mesh = node->m_mesh;
+		glm::vec3 origin = mesh.origin;
+		
 		stream << "# Node " << i << "\n";
-		stream << "# Floor Verts\n";
-		for (int j = 0; j < node->m_sideCount; j++)
-			WriteVertex(node->m_vertexes[j].origin + origin, stream);
+		
+		stream << "# - Mesh Verts\n";
 
-		stream << "# Wall Verts\n";
-		for (int j = 0; j < node->m_sideCount; j++)
-		{
-			for (int k = 0; k < node->m_sides[j].walls.size(); k++)
-			{
-				nodeWall_t wall = node->m_sides[j].walls[k];
-				WriteVertex(wall.bottomPoints[0] + origin, stream);
-				WriteVertex(wall.bottomPoints[1] + origin, stream);
-				WriteVertex(wall.topPoints[0] + origin, stream);
-				WriteVertex(wall.topPoints[1] + origin, stream);
-			}
-		}
+		for (glm::vec3* v : mesh.verts)
+			WriteVertex(*v + origin, stream);
+		
+		stream << "# - Cut Verts\n";
+		for (glm::vec3* v : mesh.cutVerts)
+			WriteVertex(*v + origin, stream);
 	}
 
-	int vertNumber = 1;
+	int vertOffset = 1;
 	stream << "\n# Faces\n";
 	for (int i = 0; i < world->m_nodes.size(); i++)
 	{
 		CNode* node = world->m_nodes[i];
+		cuttableMesh_t& mesh = node->m_mesh;
 		stream << "# Node " << i << "\n";
 		stream << "# Floor Face\n";
-		if (node->m_sideCount == 3)
-			WriteFaceFloorTri(vertNumber, stream);
-		else
-			WriteFaceFloorQuad(vertNumber, stream);
+		
 
-		stream << "# Wall Faces\n";
-		for (int j = 0; j < node->m_sideCount; j++)
-		{
-			for (int k = 0; k < node->m_sides[j].walls.size(); k++)
+		for (auto p : mesh.parts)
+			for (auto f : p->isCut ? p->cutFaces : p->fullFaces)
 			{
-				WriteFaceWall(vertNumber, stream);
+				// If we have < 3 verts, dump this bozo
+				if (f->verts.size() < 3)
+				{
+					continue;
+				}
+
+				stream << "f";
+				for (auto v : f->verts)
+				{
+					uint16_t vert = 0;
+					auto f = std::find(mesh.verts.begin(), mesh.verts.end(), v->vert);
+					if (f != mesh.verts.end())
+					{
+						vert = f - mesh.verts.begin();// v->vert - vertData;
+					}
+					else
+					{
+						f = std::find(mesh.cutVerts.begin(), mesh.cutVerts.end(), v->vert);
+						if (f != mesh.cutVerts.end())
+						{
+							vert = mesh.verts.size() + (f - mesh.cutVerts.begin());// v->vert - vertData;
+						}
+						else
+						{
+							printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+						}
+					}
+
+					stream << " " << (vert + vertOffset);
+				}
+
+				stream << "\n";
 			}
-		}
+	
+		vertOffset += mesh.verts.size() + mesh.cutVerts.size();
 	}
 
-#endif
 
 	// Output
 	std::string str = stream.str();
