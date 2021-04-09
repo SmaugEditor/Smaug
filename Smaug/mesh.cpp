@@ -402,6 +402,7 @@ struct snipIntersect_t
 	bool entering;
 	float cutterT;
 	glm::vec3 intersect;
+	vertex_t* vert;
 	halfEdge_t* edge;
 };
 
@@ -611,6 +612,7 @@ draggable_t dragEdge(draggable_t draggable, glm::vec3* point)
 	return { out, inStem, in };
 }
 
+
 // Roll around the cutter
 // While rolling, check if any lines intersect
 // If a line intersects, and we're leaving, stop adding data until we re-enter the face
@@ -631,7 +633,9 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 
 	// We need to walk either into or out of the mesh
 	// 
-	
+
+	bool invalidateSkipOver = false;
+
 	// Loop the part
 	// As we slice, more faces will be added. 
 	// Those faces will get chopped after the first face is done
@@ -642,6 +646,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 		// We need to store our intersections so we can sort by distance
 		std::vector<snipIntersect_t> intersections;
 
+		bool sharedLine = false;
 		for (int i = 0; i < part->cutFaces.size(); i++)
 		{
 			face_t* face = part->cutFaces[i];
@@ -658,36 +663,84 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					continue;
 				}
 
+				// The line we're cutting
 				glm::vec3 partStem = *pv->vert;
-				glm::vec3 cutterStem = *cv->vert;
-				line_t cL = { cutterStem + cuttingMeshOrigin, *cv->edge->vert->vert - cutterStem };
-				line_t pL = { partStem + meshOrigin, *pv->edge->vert->vert - partStem };
+				glm::vec3 partEndLocal = *pv->edge->vert->vert;
+				line_t pL = { partStem + meshOrigin, partEndLocal - partStem };
 
-				// If this line is parallel and overlapping with anything, it's not allowed to do intersections!
+				// The line we're using to cut with
+				glm::vec3 cutterStem = *cv->vert;
+				glm::vec3 cutterEndLocal = *cv->edge->vert->vert;
+				line_t cL = { cutterStem + cuttingMeshOrigin, cutterEndLocal - cutterStem };
+
 				
+				// If this line is parallel and overlapping with anything, it's not allowed to do intersections!
+				glm::vec3 cross = glm::cross(cL.delta, pL.delta);
+				if (!sharedLine && (cross.x == 0 && cross.y == 0 && cross.z == 0))
+				{
+					glm::vec3 absPartStem = partStem + meshOrigin;
+					glm::vec3 absCutterStem = cutterStem + cuttingMeshOrigin;
+
+					// If our lines are on top of eachother, we need to void some tests...
+					glm::vec3 stemDir = glm::cross(cL.delta, absPartStem - absCutterStem);
+					if (stemDir.x < 0.0001 && stemDir.y < 0.0001 && stemDir.z < 0.0001)
+					{
+						glm::vec3 absPartEnd = partEndLocal + meshOrigin;
+						glm::vec3 absCutterEnd = cutterEndLocal + cuttingMeshOrigin;
+
+						// Are we actually within this line though?
+						/*
+							end = stem + delta * m
+							(e - s) . d = m;
+						*/
+
+						float lpow = pow(glm::length(pL.delta), 2);
+						float mCutterStem = glm::dot(absCutterStem - absPartStem, pL.delta) / lpow;
+						float mCutterEnd = glm::dot(absCutterEnd - absPartStem, pL.delta) / lpow;
+
+						// Since this is in terms of pL.delta, a mag of 1 is = to part end and 0 = part stem
+						sharedLine = rangeInRange<false, true>(0, 1, mCutterStem, mCutterEnd);
+						
+					}
+
+					// With a cross of 0, the line test will never work. We'll skip it now
+					pv = pv->edge->vert;
+					continue;
+				}
 
 				testLineLine_t t = testLineLine(cL, pL, 0.001f);
-
-#if 0
-				glm::vec3 cross = glm::cross(cL.delta, pL.delta);
-				if (cross.x == cross.y == cross.z == 0)
-				{
-					glm::vec3 stemDir = glm::cross(cL.delta, (partStem + meshOrigin) - (cutterStem + cuttingMeshOrigin));
-					if (stemDir.x == stemDir.y == stemDir.z == 0)
-					{
-						// If our lines share a 
-					}
-				}
-#endif
-
 				if (t.hit)
 				{
+					bool entering = glm::dot(glm::cross(pL.delta, cL.delta), partNorm) >= 0;
+					if (entering)
+					{
+						// If we're entering, we want to ignore perfect intersections where the end of this cut line *just* hits a part line
+						// It's 1 if it's a full filled delta
+						if (closeTo(t.t1, 1))
+						{
+							// Drop it
+							pv = pv->edge->vert;
+							continue;
+						}
+					}
+					else
+					{
+						// If we're exiting, we want to ignore perfect intersections where the stem of this cut line *just* hits a part line
+						// It's 0 if it's a next to the stem
+						if (closeTo(t.t1, 0))
+						{
+							// Drop it
+							pv = pv->edge->vert;
+							continue;
+						}
+					}
 					// Store the intersection for later
 					snipIntersect_t si
 					{
-						.entering = glm::dot(glm::cross(pL.delta, cL.delta), partNorm) >= 0,
+						.entering = entering,
 						.cutterT = t.t1,
 						.intersect = t.intersect,
+						.vert = pv,
 						.edge = pv->edge,
 					};
 					intersections.push_back(si);
@@ -715,17 +768,31 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 		{
 			for (int i = 0; i < intersections.size(); i++)
 			{
+				snipIntersect_t& si = intersections[i];
 
-				if (intersections[i].entering)
+				// I would rather do this as a preprocess, but we can't determine when sharedLine will be true...
+				if (sharedLine)
+				{
+					// If we're sharing a line, we can't be cutting into endpoints!
+					if (glm::distance(si.intersect, *si.vert->vert + meshOrigin) < 0.001
+						|| glm::distance(si.intersect, *si.edge->vert->vert + meshOrigin) < 0.001)
+					{
+						invalidateSkipOver = si.entering;
+						// We're cutting an endpoint! Skip it!
+						continue;
+					}
+				}
+
+				if (si.entering)
 				{
 					// Starts a cut
 					cutting = true;
 
 					// Split the intersected edge
 					glm::vec3* point = new glm::vec3();
-					*point = intersections[i].intersect - meshOrigin;
+					*point = si.intersect - meshOrigin;
 					mesh.cutVerts.push_back(point);
-					drag = splitHalfEdgeAtPoint(intersections[i].edge, point);
+					drag = splitHalfEdgeAtPoint(si.edge, point);
 
 					// If we're at the end of our intersections, then we can just drag this all the way out.
 					// There's no end cap right now
@@ -745,9 +812,9 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					{
 						// Split at intersection
 						glm::vec3* point = new glm::vec3();
-						*point = intersections[i].intersect - meshOrigin;
+						*point = si.intersect - meshOrigin;
 						mesh.cutVerts.push_back(point);
-						draggable_t target = splitHalfEdgeAtPoint(intersections[i].edge, point);
+						draggable_t target = splitHalfEdgeAtPoint(si.edge, point);
 
 						// Drag the edge into the other side
 						dragEdgeInto(drag, target);
@@ -773,12 +840,17 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					}
 					else
 					{
-						// We're exciting now?
-						// When not cutting?
-						// Seems like we need to loop more!
-						// Try to roll out of the mesh so another point can cut into it.
-						cv = cv->edge->vert;
-						cvStart = cv;
+						// If we entered this via a shared line, we don't want to shift our cvStart
+						if (!invalidateSkipOver)
+						{
+							// We're exciting now?
+							// When not cutting?
+							// Seems like we need to loop more!
+							// Try to roll out of the mesh so another point can cut into it.
+							cv = cv->edge->vert;
+							cvStart = cv;
+						}
+						invalidateSkipOver = false;
 					}
 
 				}
