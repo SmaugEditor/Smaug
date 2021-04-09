@@ -56,6 +56,33 @@ constexpr T clamp(T value, T min, T max)
 	return value;
 }
 
+template<bool unordered = false>
+inline constexpr bool inRange(float min, float max, float value)
+{
+	if constexpr (unordered)
+	{
+		if (min > max)
+		{
+			float t = min;
+			min = max;
+			max = t;
+		}
+	}
+	return (value >= min) && (value <= max);
+}
+
+template<bool unordered1 = false, bool unordered2 = false>
+inline constexpr bool rangeInRange(float min1, float max1, float min2, float max2)
+{
+	return inRange<unordered1>(min1, max1, min2) || inRange<unordered2>(min1, max1, max2);
+}
+
+inline constexpr bool closeTo(float value, float target, float threshold = 0.0001f)
+{
+	return inRange(target - threshold, target + threshold, value);
+}
+
+
 inline constexpr glm::vec3 dirMask(glm::vec3 vec)
 {
 	return { 1.0f - fabs(vec.x), 1.0f - fabs(vec.y), 1.0f - fabs(vec.z) };
