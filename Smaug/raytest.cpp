@@ -469,8 +469,16 @@ bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
     float gamma = 1.0f - alpha - beta;
     if constexpr (testEdges)
     {
+        // With edges, we can get some edge cases due to floating point error
+        
+        const float s = -0.0000001f;
+        if (!(alpha >= s) || !(beta >= s) || !(gamma >= s))
+            return false;
+
+        /*
         if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
             return false;
+        */
     }
     else
     {
