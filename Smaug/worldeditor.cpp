@@ -53,7 +53,8 @@ void CNode::Init()
 	m_nodeHeight = 10;
 	ConstructWalls();
 	*/
-
+	for(auto p : m_mesh.parts)
+		defineMeshPartFaces(*p);
 	CalculateAABB();
 }
 
@@ -114,7 +115,6 @@ void CNode::UpdateThisOnly()
 
 	for (auto pa : m_mesh.parts)
 	{
-		defineMeshPartFaces(*pa);
 		triangluateMeshPartFaces(*pa, pa->fullFaces);
 	}
 
