@@ -130,27 +130,6 @@ struct cuttableMesh_t : public mesh_t
 	std::vector<glm::vec3*> cutVerts;
 };
 
-// One shape contains many HE'd faces
-// Used for large editing and faces for cutting
-//
-//  Shape
-//
-//      /\
-//     /  \
-//    /    \
-//   /      \
-//  /        \
-// /__________\
-//
-//  Faces of the shape after cut
-//
-//      /\
-//     /  \
-//    /____\
-//   / |XX| \
-//  /  |XX|  \
-// /___|__|___\
-
 
 // Returns start of the points within mesh.verts
 glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
@@ -158,13 +137,15 @@ glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
 // Does not add points to mesh! Only adds face
 void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 
-void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec);
 void defineMeshPartFaces(meshPart_t& mesh);
-face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end);
 
-void applyCuts(cuttableMesh_t& mesh);
 
 aabb_t meshAABB(mesh_t& mesh);
 void recenterMesh(mesh_t& mesh);
 glm::vec3 faceCenter(face_t* face);
 glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr);
+
+void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill);
+
+
+void cloneFaceInto(face_t* in, face_t* cloneOut);

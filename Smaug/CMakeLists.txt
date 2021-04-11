@@ -23,9 +23,13 @@ set( SOURCES
 
 	cursor.cpp 
 
+	sassert.cpp
 	utils.cpp 
+
 	raytest.cpp
-	mesh.cpp
+	mesh/mesh.cpp
+	mesh/tessellate.cpp
+	mesh/slice.cpp
 	meshrenderer.cpp
 
 	worldeditor.cpp 
@@ -96,7 +100,7 @@ endforeach()
 
 include_directories( . )
 add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} shaders/varying.def.sc )
-target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp )
+target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp mesh )
 target_link_libraries( smaug bigg keyvalues assimp )
 
 
