@@ -82,6 +82,7 @@ testRayPlane_t testLine(line_t line);
 bool testPointInAABB(glm::vec3 point, aabb_t aabb);
 // sizes up the aabb by aabbBloat units before testing
 bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);
+bool testAABBInAABB(aabb_t a, aabb_t b, float aabbBloat = 0.0f);
 
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
 inline testLineLine_t testLineLine(halfEdge_t* a, halfEdge_t* b, glm::vec3 aOrigin, glm::vec3 bOrigin, float tolerance = 0.01f)

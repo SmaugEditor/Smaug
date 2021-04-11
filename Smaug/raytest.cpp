@@ -21,6 +21,30 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat)
     return testPointInAABB(point, aabb);
 }
 
+bool testAABBInAABB(aabb_t a, aabb_t b, float aabbBloat)
+{
+    float ma = glm::distance(a.min, a.max);
+    float mb = glm::distance(b.min, b.max);
+    
+    if (mb > ma)
+        std::swap(a, b);
+
+    a.min -= aabbBloat;
+    a.max += aabbBloat;
+
+
+    return testPointInAABB(b.min, a)
+        || testPointInAABB(b.max, a)
+        || testPointInAABB({ b.max.x, b.min.y, b.min.z }, a)
+        || testPointInAABB({ b.max.x, b.max.y, b.min.z }, a)
+        || testPointInAABB({ b.min.x, b.max.y, b.max.z }, a)
+        || testPointInAABB({ b.min.x, b.min.y, b.max.z }, a)
+        || testPointInAABB({ b.min.x, b.max.y, b.min.z }, a)
+        || testPointInAABB({ b.max.x, b.min.y, b.max.z }, a)
+        ;
+}
+
+
 
 
 ///////////////
