@@ -89,6 +89,12 @@ inline constexpr glm::vec3 dirMask(glm::vec3 vec)
 }
 
 
+#define COLOR_RED   glm::vec3( 1.0, 0.0, 0.0 )
+#define COLOR_GREEN glm::vec3( 0.0, 1.0, 0.0 )
+#define COLOR_BLUE  glm::vec3( 0.0, 0.0, 1.0 )
+#define COLOR_BLACK glm::vec3( 0.0, 0.0, 0.0 )
+#define COLOR_WHITE glm::vec3( 1.0, 1.0, 1.0 )
+#define COLOR_GRAY  glm::vec3( 0.5, 0.5, 0.5 )
 
 inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 {
