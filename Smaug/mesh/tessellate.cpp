@@ -1,6 +1,9 @@
 #include "tessellate.h"
+#include "raytest.h"
+#include "meshtest.h"
+#include "sassert.h"
+
 #include <glm/geometric.hpp>
-#include <raytest.h>
 
 // Move this to util or something?
 template<typename T>
@@ -100,6 +103,37 @@ face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_
 	return sliceMeshPartFaceUnsafe(mesh, faceVec, face, start, end);
 }
 
+// This will REBUILD THE FACE!
+// The next TWO edges from stem will be deleted!
+halfEdge_t* fuseEdges(face_t* face, vertex_t* stem)
+{
+	// Fuse stem and it's next edge together
+	// Hate this. Make it better somehow...
+	
+	// Since something's already pointing to stem->edge, it's going to take the place of post->edge
+	halfEdge_t* replacer = stem->edge;
+
+	// Edge immediately after the fuse
+	halfEdge_t* post = replacer->next->vert->edge;
+	
+	// Clear out stuff to be fused
+	delete replacer->next->vert;
+	delete replacer->next;
+	delete replacer->vert;
+
+	replacer->vert = post->vert;
+	replacer->next = post->next;
+
+	delete post;
+
+	// Rebuild the face. Yuck
+	face->verts.clear();
+	face->edges.clear();
+	faceFromLoop(replacer, face);
+
+	return replacer;
+}
+
 
 /////////////////////////////
 // Mesh face triangulation //
@@ -147,7 +181,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			do{
 				shift = false;
 
-				// Will this be convex?
+				// Will this be concave?
 				vertex_t* between = end->edge->vert;
 				glm::vec3 edge1 = (*end->vert) - (*between->vert);
 				glm::vec3 edge2 = (*between->vert) - (*v0->vert);
@@ -161,24 +195,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 					//SASSERT(0);
 
 					// Fuse v0 and end together 
-					// Hate this
-					delete end->edge;
-					delete between->edge;
-
-					
-					halfEdge_t* he = v0->edge;
-					do
-					{
-						he = he->next;
-					} while (he->vert != end);
-					he->next = v0->edge;
-					he->vert = v0;
-					delete between;
-					delete end;
-
-					face->verts.clear();
-					face->edges.clear();
-					faceFromLoop(he, face);
+					fuseEdges(face, end);
 
 					goto escapeTri;
 				}
@@ -207,7 +224,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 
 				if (shift)
 				{
-					// Shift to somewhere it shouldn't be convex
+					// Shift to somewhere it shouldn't be concave
 					v0 = v0->edge->vert;
 					end = end->edge->vert;
 					attempts++;
@@ -225,4 +242,134 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		
 	}
 
+}
+
+// This function fits convex faces to the concave face
+// It might be slow, bench it later
+void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
+{
+	halfEdge_t gapFiller;
+	
+	// Get the norm of the face for later testing 
+	glm::vec3 faceNorm = faceNormal(&mesh);
+	size_t len = faceVec.size();
+	for (size_t i = 0; i < len; i++)
+	{
+		face_t* face = faceVec[i];
+		if (!face)
+			continue;
+
+
+		startOfLoop:
+		// Discard Tris, they're already convex
+		if (face->edges.size() < 4)
+			continue;
+
+		vertex_t* vStart = face->verts.front(),
+			    * convexStart = vStart,
+			    * vert = vStart;
+
+		do
+		{
+			vertex_t* between = vert->edge->vert;
+			vertex_t* end = between->edge->vert;
+
+			glm::vec3 edge1 = (*vert->vert) - (*between->vert);
+			glm::vec3 edge2 = (*between->vert) - (*end->vert);
+			glm::vec3 triNormal = glm::cross(edge1, edge2);
+
+
+			if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0)
+			{
+				// We got a zero area tri! Yuck!!
+				SASSERT(0);
+				fuseEdges(face, vert);
+				continue;
+			}
+
+
+			bool concave = false;
+			float dot = glm::dot(triNormal, faceNorm);
+
+			if (dot < 0)
+			{
+				// Uh oh! This'll make us concave!
+				concave = true;
+			}
+			else
+			{
+				// Would trying to connect up to convex start make us concave?
+				glm::vec3 bridge1 = (*end->vert) - (*convexStart->vert);
+				glm::vec3 bridge2 = (*convexStart->vert) - (*convexStart->edge->vert->vert);
+				glm::vec3 bridgeNormal = glm::cross(bridge1, bridge2);
+				float bridgeDot = glm::dot(bridgeNormal, faceNorm);
+
+				if (bridgeDot < 0)
+					concave = true;
+				else
+				{
+					bridge1 = (*between->vert) - (*end->vert);
+					bridge2 = (*end->vert) - (*convexStart->vert);
+					bridgeNormal = glm::cross(bridge1, bridge2);
+					bridgeDot = glm::dot(bridgeNormal, faceNorm);
+					if (bridgeDot < 0)
+						concave = true;
+				}
+
+			}
+			
+			if(!concave)
+			{
+				// Hmm... Doesn't seem concave... Let's double check
+				// Patch up the mesh and perform a point test
+				
+				// Shouldnt need to store between's edge's next...
+				halfEdge_t* tempHE = end->edge;
+				
+				// Temp patch it
+				halfEdge_t* cse = convexStart->edge;
+				gapFiller.next = cse;
+				gapFiller.vert = convexStart;
+
+				end->edge = &gapFiller;
+				between->edge->next = &gapFiller;
+				
+				// Loop over our remaining verts and check if in our convex fit
+				for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
+				{
+					if (pointInConvexLoop(convexStart, *ooc->vert))
+					{
+						// Uh oh concave!
+						concave = true;
+						break;
+					}
+				}
+
+				// Undo our patch
+				end->edge = tempHE;
+				between->edge->next = tempHE;
+			}
+
+			if (concave)
+			{
+				// This shape's concave!
+				// We'll need to cap off this shape at whatever we had last time...
+				
+				if (vert == convexStart)
+				{
+					// Shift forwards and try that one later
+					convexStart = convexStart->edge->vert;
+				}
+				else
+				{
+					// Connect between and start
+					sliceMeshPartFaceUnsafe(mesh, faceVec, face, between, convexStart);
+					goto startOfLoop;
+				}
+			}
+
+			vert = between;
+		} while (vert->edge->vert->edge->vert != convexStart);
+		
+	}
 }
