@@ -12,8 +12,11 @@ public:
 	~CMeshRenderer();
 
 	void RebuildRenderData();
+	
+	// This does not bgfx::submit!!
 	void Render();
 	void Render(CModelTransform trnsfm);
+	
 	cuttableMesh_t& Mesh() { return m_mesh; }
 
 private:
