@@ -36,14 +36,23 @@ public:
 
 };
 
+
 void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width, float decay)
 {
     m_itemsToDraw.push_back(new CTempLine{start,end,color,width,(float)glfwGetTime() + decay});
 }
 
-void CDebugDraw::LineDelta(glm::vec3 start, glm::vec3 delta, glm::vec3 color, float width, float decay)
+
+
+void CDebugDraw::HELoop(vertex_t* start, vertex_t* end, glm::vec3 color, float width, float decay)
 {
-    Line(start, start + delta, color, width, decay);
+    vertex_t* cur = start;
+    do
+    {
+        vertex_t* next = cur->edge->vert;
+        Line(*cur->vert, *next->vert, color, width, decay);
+        cur = next;
+    } while (cur != end);
 }
 
 void CDebugDraw::Draw()
@@ -55,6 +64,7 @@ void CDebugDraw::Draw()
         ITempItem* t = m_itemsToDraw[i];
         if (t->Dead(curtime))
         {
+            delete t;
             m_itemsToDraw.erase(m_itemsToDraw.begin() + i);
             i--;
         }
@@ -73,6 +83,11 @@ void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 }
 
 void CDebugDraw::Draw()
+{
+}
+
+
+void CDebugDraw::HELoop(vertex_t* start, vertex_t* end, glm::vec3 color, float width, float decay)
 {
 }
 
