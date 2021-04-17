@@ -55,6 +55,27 @@ void CDebugDraw::HELoop(vertex_t* start, vertex_t* end, glm::vec3 color, float w
     } while (cur != end);
 }
 
+void CDebugDraw::HEFace(face_t* face, glm::vec3 color, float width, float decay)
+{
+    glm::vec3 offset = face->meshPart->mesh->origin;
+
+    vertex_t* cur = face->verts.front(), *end = cur;
+    do
+    {
+        vertex_t* next = cur->edge->vert;
+        Line(*cur->vert + offset, *next->vert + offset, color, width, decay);
+        cur = next;
+    } while (cur != end);
+
+}
+
+void CDebugDraw::HEPart(meshPart_t* part, glm::vec3 color, float width, float decay)
+{
+    auto faces = part->isCut ? part->cutFaces : part->fullFaces;
+    for (auto f : faces)
+        HEFace(f, color, width, decay);
+}
+
 void CDebugDraw::Draw()
 {
     float curtime = glfwGetTime();
@@ -86,11 +107,17 @@ void CDebugDraw::Draw()
 {
 }
 
-
 void CDebugDraw::HELoop(vertex_t* start, vertex_t* end, glm::vec3 color, float width, float decay)
 {
 }
 
+void CDebugDraw::HEFace(face_t* face, glm::vec3 color, float width, float decay)
+{
+}
+
+void CDebugDraw::HEPart(meshPart_t* part, glm::vec3 color, float width, float decay)
+{
+}
 #endif
 
 CDebugDraw& DebugDraw()
