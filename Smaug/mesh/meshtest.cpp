@@ -3,8 +3,17 @@
 
 bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
 {
-	vertex_t* vs = part->verts.front(), *v = vs, *v1 = vs->edge->vert, *v2 = v1->edge->vert;
-	
+	for (auto f : part->fullFaces)
+		if(!pointInConvexMeshFace(f, pos))
+			return false;
+	return true;
+}
+
+
+bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos)
+{
+	vertex_t* vs = vert, * v = vs, * v1 = vs->edge->vert, * v2 = v1->edge->vert;
+
 	// Get the normal
 	glm::vec3 edge1 = (*vs->vert) - (*v1->vert);
 	glm::vec3 edge2 = (*v1->vert) - (*v2->vert);
@@ -12,7 +21,9 @@ bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
 
 	do
 	{	
-		glm::vec3 delta = *v->edge->vert->vert - *v->vert;
+		vertex_t* next = v->edge->vert;
+
+		glm::vec3 delta = *next->vert - *v->vert;
 		glm::vec3 perp = glm::cross(delta, norm);
 		float m = glm::dot(pos - *v->vert, perp);
 
@@ -21,7 +32,7 @@ bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
 			return false;
 
 		// Please don't pass me a weird mesh...
-		v = v->edge->vert;
+		v = next;
 	} while (v != vs);
 
 	// We're 100% inside this convex part
