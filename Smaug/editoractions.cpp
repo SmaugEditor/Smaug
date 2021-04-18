@@ -39,15 +39,15 @@ void CWallExtrudeAction::Act()
 
 void CWallExtrudeAction::Undo()
 {
-	if (m_quad)
-		GetWorldEditor().DeleteNode(m_quad);
+	if (m_quad.IsValid())
+		GetWorldEditor().DeleteNode(m_quad.Node());
 
 	
 }
 
 void CWallExtrudeAction::Redo()
 {
-	SASSERT(!m_quad);
+	SASSERT(!m_quad.Node());
 
 	CNode* node = CreateExtrusion();
 	GetWorldEditor().AssignID(node, m_quad.ID());

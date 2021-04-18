@@ -33,15 +33,19 @@ public:
 
 	bool IsValid();
 	nodeId_t ID() { return m_targetId; }
+	CNode* Node();
 
 	CNode* operator->() const;
-	operator CNode* () const;
 	void operator=(const CNodeRef& ref);
+	friend bool operator==(const CNodeRef& p1, const CNodeRef& p2) { return p1.m_targetId == p2.m_targetId; }
+	friend bool operator==(const CNodeRef* p1, const CNodeRef& p2) { return p1->m_targetId == p2.m_targetId; }
+	friend bool operator==(const CNodeRef& p1, const CNodeRef* p2) { return p1.m_targetId == p2->m_targetId; }
 
 private:
 	nodeId_t m_targetId;
 
 };
+
 
 class CNodeMeshPartRef
 {
