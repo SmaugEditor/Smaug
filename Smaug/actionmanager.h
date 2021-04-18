@@ -68,11 +68,12 @@ class CBaseDragAction : public CBaseSelectionAction
 {
 public:
 
-
+	virtual void SetMoveStart(glm::vec3 moveStart) { m_moveStart = moveStart; }
 	virtual void SetMoveDelta(glm::vec3 moveDelta) { m_moveDelta = moveDelta; }
 
 protected:
 
+	glm::vec3 m_moveStart;
 	glm::vec3 m_moveDelta;
 };
 

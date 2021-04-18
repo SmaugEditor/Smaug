@@ -33,6 +33,7 @@ public:
 			m_action = new CSideDragAction;
 		}
 
+		m_action->SetMoveStart(m_mouseStartDragPos);
 		m_action->Select(m_selectionInfo);
 	}
 
@@ -80,6 +81,7 @@ public:
 	{
 		m_wallExtrudeAction = new CWallExtrudeAction;
 		m_wallExtrudeAction->Select(m_selectionInfo);
+		m_wallExtrudeAction->SetMoveStart(m_mouseStartDragPos);
 	}
 
 	virtual void EndDrag()

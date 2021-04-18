@@ -1,7 +1,13 @@
 #include "editoractions.h"
+#include "debugdraw.h"
+#include <utils.h>
 
 void CWallExtrudeAction::Preview()
 {
+	meshPart_t* selectedPart = m_selectInfo.side;
+	for(auto v : selectedPart->verts)
+		DebugDraw().LineDelta(*v->vert + m_node->m_mesh.origin, m_moveDelta, COLOR_BLUE, 0.75f, 0.01f );
+
 }
 
 void CWallExtrudeAction::Act()
