@@ -117,12 +117,13 @@ struct mesh_t
 // A mesh that can be sliced by other meshes
 struct cuttableMesh_t : public mesh_t
 {
-
+	/*
 	// These cut into this mesh without changing the real structure of it
 	std::vector<mesh_t*> cutters;
 
 	// We cut these meshes
 	std::vector<mesh_t*> cutting;
+	*/
 
 	// Not ordered! Do no depend on this!
 	// Pointers so that adding doesn't delete the memory

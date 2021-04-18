@@ -2,18 +2,65 @@
 #include "raytest.h"
 #include "tessellate.h"
 #include "slice.h"
+#include "sassert.h"
 
 #include <glm/geometric.hpp>
 #include <glm/common.hpp>
 
+
+
+CNodeRef::CNodeRef() : m_targetId(INVALID_NODE_ID) {}
+CNodeRef::CNodeRef(nodeId_t id) : m_targetId(id) {}
+CNodeRef::CNodeRef(CNode* node) : m_targetId(node->NodeID()) {}
+bool CNodeRef::IsValid() { return GetWorldEditor().GetNode(m_targetId) != nullptr; }
+CNode* CNodeRef::operator->() const { return GetWorldEditor().GetNode(m_targetId); }
+CNodeRef::operator CNode* () const { return GetWorldEditor().GetNode(m_targetId); }
+void CNodeRef::operator=(const CNodeRef& ref) { m_targetId = ref.m_targetId;}
+
+
 CWorldEditor::CWorldEditor()
 {
-
+	m_currentNodeId = 0;
 }
 
 void CWorldEditor::RegisterNode(CNode* node)
 {
-	m_nodes.push_back(node);
+	m_nodes.emplace(m_currentNodeId, node);
+
+	node->m_id = m_currentNodeId;
+	m_currentNodeId++;
+
+	// If this ever happens, it'll be awful.
+	SASSERT(m_currentNodeId != INVALID_NODE_ID);
+}
+
+bool CWorldEditor::AssignID(CNode* node, nodeId_t id)
+{
+	// If we're one ahead of the cur, increment it. It'll make life easier
+	if (id == m_currentNodeId + 1)
+		m_currentNodeId++;
+	
+	// We're assigning an arbitrary id. Check if it's not in use.
+	if (m_nodes.contains(id))
+	{
+		// Failure!
+		return false;
+	}
+
+	// Is this free?
+	nodeId_t oldId = node->m_id;
+	if (oldId != INVALID_NODE_ID)
+	{
+		if (m_nodes.contains(oldId))
+		{
+			// Remove the existing ref
+			m_nodes.erase(oldId);
+
+		}
+	}
+
+	m_nodes.emplace(id, node);
+	node->m_id = id;
 }
 
 CQuadNode* CWorldEditor::CreateQuad()
@@ -21,6 +68,13 @@ CQuadNode* CWorldEditor::CreateQuad()
 	CQuadNode* node = new CQuadNode();
 	RegisterNode(node);
 	return node;
+}
+
+CNode* CWorldEditor::GetNode(nodeId_t id)
+{
+	if(!m_nodes.contains(id))
+		return nullptr;
+	return m_nodes[id];
 }
 
 /*
@@ -40,7 +94,7 @@ CWorldEditor& GetWorldEditor()
 }
 
 
-CNode::CNode() : m_renderData(m_mesh)
+CNode::CNode() : m_renderData(m_mesh), m_id(MAX_NODE_ID), m_visible(true)
 {
 }
 
@@ -89,7 +143,7 @@ void CNode::UpdateThisOnly()
 		triangluateMeshPartFaces(*pa, pa->fullFaces);
 	}
 
-	applyCuts(m_mesh);
+	//applyCuts(m_mesh);
 
 
 	for (auto pa : m_mesh.parts)
@@ -161,3 +215,4 @@ CQuadNode::CQuadNode() : CNode()
 	addMeshFace(m_mesh, &top[0], 4);
 	Init();
 }
+

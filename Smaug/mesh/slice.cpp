@@ -658,7 +658,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 }
 
 
-void applyCuts(cuttableMesh_t& mesh)
+void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 {
 	// Totally lame!
 	// For now, we're just going to cut faces opposing each other...
@@ -678,7 +678,7 @@ void applyCuts(cuttableMesh_t& mesh)
 		p->isCut = false;
 	}
 
-	if (mesh.cutters.size() == 0)
+	if (cutters.size() == 0)
 		return;
 
 	// Precompute the normals
@@ -694,7 +694,7 @@ void applyCuts(cuttableMesh_t& mesh)
 		i++;
 	}
 	
-	for (auto cutter : mesh.cutters)
+	for (auto cutter : cutters)
 	{
 		for (auto cutP : cutter->parts)
 		{

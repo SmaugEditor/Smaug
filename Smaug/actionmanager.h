@@ -60,7 +60,7 @@ public:
 
 protected:
 	selectionInfo_t m_selectInfo;
-	CNode* m_node;
+	CNodeRef m_node;
 };
 
 
