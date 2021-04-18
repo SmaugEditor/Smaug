@@ -198,6 +198,8 @@ bool CWorldEditor::AssignID(CNode* node, nodeId_t id)
 
 	m_nodes.emplace(id, node);
 	node->m_id = id;
+
+	return true;
 }
 
 void CWorldEditor::DeleteNode(CNode* node)
