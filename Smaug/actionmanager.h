@@ -13,10 +13,10 @@
 struct selectionInfo_t
 {
 	int selected = ACT_SELECT_NONE;
-	CNode* node = nullptr;
-	vertex_t* vertex = nullptr;
-	meshPart_t* side = nullptr;
-	face_t* wall = nullptr;
+	CNodeRef node;
+	CNodeVertexRef vertex;
+	CNodeMeshPartRef side;
+	//face_t* wall = nullptr;
 };
 
 enum class SolveToLine2DSnap;

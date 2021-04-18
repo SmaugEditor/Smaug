@@ -317,10 +317,9 @@ testRayPlane_t testRay(ray_t ray)
 {
     testRayPlane_t end = { false };
 
-    size_t nodeCount = GetWorldEditor().m_nodes.size();
-    for (size_t i = 0; i < nodeCount; i++)
+    for (auto p : GetWorldEditor().m_nodes)
     {
-        testNode(ray, GetWorldEditor().m_nodes[i], end );
+        testNode(ray, p.second, end );
     }
     return end;
 }

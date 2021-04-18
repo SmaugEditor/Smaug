@@ -7,15 +7,152 @@
 #include <glm/geometric.hpp>
 #include <glm/common.hpp>
 
+/////////////////////
+// Safe References //
+/////////////////////
 
-
-CNodeRef::CNodeRef() : m_targetId(INVALID_NODE_ID) {}
-CNodeRef::CNodeRef(nodeId_t id) : m_targetId(id) {}
-CNodeRef::CNodeRef(CNode* node) : m_targetId(node->NodeID()) {}
+// Node Reference
+CNodeRef::CNodeRef()              : m_targetId(INVALID_NODE_ID) {}
+CNodeRef::CNodeRef(nodeId_t id)   : m_targetId(id)              {}
+CNodeRef::CNodeRef(CNode*   node) : m_targetId(node->NodeID())  {}
 bool CNodeRef::IsValid() { return GetWorldEditor().GetNode(m_targetId) != nullptr; }
 CNode* CNodeRef::operator->() const { return GetWorldEditor().GetNode(m_targetId); }
 CNodeRef::operator CNode* () const { return GetWorldEditor().GetNode(m_targetId); }
 void CNodeRef::operator=(const CNodeRef& ref) { m_targetId = ref.m_targetId;}
+
+
+CNodeMeshPartRef::CNodeMeshPartRef() : m_partId(INVALID_MESH_ID), m_node(INVALID_NODE_ID) {}
+CNodeMeshPartRef::CNodeMeshPartRef(meshPart_t* part, CNodeRef node) : CNodeMeshPartRef()
+{
+	if (!node.IsValid() || !part)
+		return;
+
+	std::vector<meshPart_t*>& parts = node->m_mesh.parts;
+	auto f = std::find(parts.begin(), parts.end(), part);
+	if (f != parts.end())
+	{
+		// Found it!
+		m_node = node;
+		size_t id = f - parts.begin();
+		SASSERT(id < MAX_MESH_ID);
+		m_partId = id;
+	}
+}
+
+bool CNodeMeshPartRef::IsValid()
+{
+	return m_partId != MAX_MESH_ID && m_node.IsValid();
+}
+
+meshPart_t* CNodeMeshPartRef::operator->() const
+{
+	if(m_node->m_mesh.parts.size() > m_partId)
+		return m_node->m_mesh.parts[m_partId];
+	return nullptr;
+}
+
+CNodeMeshPartRef::operator meshPart_t* () const
+{
+	if (m_node->m_mesh.parts.size() > m_partId)
+		return m_node->m_mesh.parts[m_partId];
+	return nullptr;
+}
+
+void CNodeMeshPartRef::operator=(const CNodeMeshPartRef& ref)
+{
+	m_node = ref.m_node;
+	m_partId = ref.m_partId;
+}
+
+
+// Half Edge Reference
+CNodeHalfEdgeRef::CNodeHalfEdgeRef() : m_heId(MAX_MESH_ID), m_part() {}
+
+CNodeHalfEdgeRef::CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node) : CNodeHalfEdgeRef()
+{
+	if (!node.IsValid() || !he)
+		return;
+	m_part = { (meshPart_t*)he->face, node };
+
+	std::vector<halfEdge_t*>& edges = m_part->edges;
+	auto f = std::find(edges.begin(), edges.end(), he);
+	if (f != edges.end())
+	{
+		// Found it!
+		size_t id = f - edges.begin();
+		SASSERT(id < MAX_MESH_ID);
+		m_heId = id;
+	}
+}
+
+bool CNodeHalfEdgeRef::IsValid()
+{
+	return m_part.IsValid() && m_part->edges.size() > m_heId && m_part->edges[m_heId];
+}
+
+halfEdge_t* CNodeHalfEdgeRef::operator->() const
+{
+	if(m_part && m_part->edges.size() > m_heId)
+		return m_part->edges[m_heId];
+	return nullptr;
+}
+
+CNodeHalfEdgeRef::operator halfEdge_t* () const
+{
+	if (m_part && m_part->edges.size() > m_heId)
+		return m_part->edges[m_heId];
+	return nullptr;
+}
+
+void CNodeHalfEdgeRef::operator=(const CNodeHalfEdgeRef& ref)
+{
+	m_heId = ref.m_heId;
+	m_part = ref.m_part;
+}
+
+
+CNodeVertexRef::CNodeVertexRef() : m_vertId(MAX_MESH_ID), m_part(nullptr, MAX_MESH_ID) {}
+CNodeVertexRef::CNodeVertexRef(vertex_t* vertex, CNodeRef node) : CNodeVertexRef()
+{
+	if (!node.IsValid() || !vertex)
+		return;
+	m_part = { (meshPart_t*)vertex->edge->face, node };
+
+	std::vector<vertex_t*>& verts = m_part->verts;
+	auto f = std::find(verts.begin(), verts.end(), vertex);
+	if (f != verts.end())
+	{
+		// Found it!
+		size_t id = f - verts.begin();
+		SASSERT(id < MAX_MESH_ID);
+		m_vertId = id;
+	}
+}
+
+bool CNodeVertexRef::IsValid()
+{
+	return m_part.IsValid() && m_part->verts.size() > m_vertId && m_part->verts[m_vertId];
+}
+
+vertex_t* CNodeVertexRef::operator->() const
+{
+	if (m_part && m_part->verts.size() > m_vertId)
+		return m_part->verts[m_vertId];
+	return nullptr;
+}
+
+CNodeVertexRef::operator vertex_t* () const
+{
+	if (m_part && m_part->verts.size() > m_vertId)
+		return m_part->verts[m_vertId];
+	return nullptr;
+}
+
+void CNodeVertexRef::operator=(const CNodeVertexRef& ref)
+{
+	m_vertId = ref.m_vertId;
+	m_part = ref.m_part;
+}
 
 
 CWorldEditor::CWorldEditor()
@@ -61,6 +198,20 @@ bool CWorldEditor::AssignID(CNode* node, nodeId_t id)
 
 	m_nodes.emplace(id, node);
 	node->m_id = id;
+}
+
+void CWorldEditor::DeleteNode(CNode* node)
+{
+	nodeId_t id = node->m_id;
+	if (id != INVALID_NODE_ID)
+	{
+		if (m_nodes.contains(id))
+		{
+			m_nodes.erase(id);
+		}
+	}
+
+	delete node;
 }
 
 CQuadNode* CWorldEditor::CreateQuad()
@@ -215,4 +366,3 @@ CQuadNode::CQuadNode() : CNode()
 	addMeshFace(m_mesh, &top[0], 4);
 	Init();
 }
-

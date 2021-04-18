@@ -8,9 +8,19 @@
 #include <vector>
 #include <unordered_map>
 
+// World References
+//  - These function as semi-safe references to objects in the world, 
+//    these allow the edit history to function without imploding.
+//  - If you need more than 65k nodes with 65k parts and 65k hes per part, please let me know
+
 typedef uint16_t nodeId_t;
 #define MAX_NODE_ID UINT16_MAX
 #define INVALID_NODE_ID MAX_NODE_ID
+
+
+typedef uint16_t meshId_t;
+#define MAX_MESH_ID UINT16_MAX
+#define INVALID_MESH_ID MAX_MESH_ID
 
 // Safe reference to a node
 class CNode;
@@ -22,6 +32,8 @@ public:
 	CNodeRef(CNode* node);
 
 	bool IsValid();
+	nodeId_t ID() { return m_targetId; }
+
 	CNode* operator->() const;
 	operator CNode* () const;
 	void operator=(const CNodeRef& ref);
@@ -30,6 +42,64 @@ private:
 	nodeId_t m_targetId;
 
 };
+
+class CNodeMeshPartRef
+{
+public:
+	CNodeMeshPartRef();
+	CNodeMeshPartRef(meshPart_t* part, CNodeRef node);
+
+	bool IsValid();
+
+	meshPart_t* operator->() const;
+	operator meshPart_t* () const;
+	void operator=(const CNodeMeshPartRef& ref);
+
+private:
+	CNodeRef m_node;
+
+	meshId_t m_partId;
+};
+
+class CNodeHalfEdgeRef
+{
+public:
+	CNodeHalfEdgeRef();
+	CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node);
+
+	bool IsValid();
+
+	halfEdge_t* operator->() const;
+	operator halfEdge_t* () const;
+	void operator=(const CNodeHalfEdgeRef& ref);
+
+private:
+	CNodeMeshPartRef m_part;
+
+	meshId_t m_heId;
+
+};
+
+
+class CNodeVertexRef
+{
+public:
+	CNodeVertexRef();
+	CNodeVertexRef(vertex_t* vertex, CNodeRef node);
+
+	bool IsValid();
+
+	vertex_t* operator->() const;
+	operator vertex_t* () const;
+	void operator=(const CNodeVertexRef& ref);
+
+private:
+	CNodeMeshPartRef m_part;
+
+	meshId_t m_vertId;
+
+};
+
 
 class CNode
 {
@@ -57,6 +127,10 @@ public:
 	CNodeRef Ref() { return { m_id }; }
 
 protected:
+
+	// Nodes should not be manually deleted!
+	~CNode() {}
+
 	//void LinkSides();
 	void CalculateAABB();
 public:
@@ -70,7 +144,7 @@ public:
 protected:
 	aabb_t m_aabb;
 	bool m_visible;
-	nodeId_t m_id;
+	nodeId_t m_id = INVALID_NODE_ID;
 
 	friend class CWorldEditor;
 };
@@ -99,15 +173,15 @@ class CWorldEditor
 public:
 	CWorldEditor();
 
+	CNode* GetNode(nodeId_t id);
 	void RegisterNode(CNode* node);
-	
 	// Returns true on success
 	bool AssignID(CNode* node, nodeId_t id);
+	void DeleteNode(CNode* node);
 
 	CQuadNode* CreateQuad();
 	//CTriNode* CreateTri();
 	
-	CNode* GetNode(nodeId_t id);
 
 //private:
 	std::unordered_map<nodeId_t, CNode*> m_nodes;

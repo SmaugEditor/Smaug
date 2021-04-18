@@ -11,8 +11,10 @@ glm::vec3 GetSelectionPos(selectionInfo_t info)
 	if (info.selected & ACT_SELECT_VERT)
 		return info.node->Origin() + *info.vertex->vert;
 
+#if 0
 	if (info.selected & ACT_SELECT_WALL)
 		return info.node->Origin() + faceCenter(info.wall);
+#endif
 
 	if (info.selected & ACT_SELECT_SIDE)
 		return info.node->Origin() + faceCenter(info.side);
@@ -29,17 +31,17 @@ glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2D
 	if (info.selected & ACT_SELECT_VERT)
 		return *info.vertex->vert + info.node->Origin();
 
+#if 0
 	if (info.selected & ACT_SELECT_WALL)
 	{
-#if 0
 		glm::vec3 start = info.node->Origin() + (info.wall->bottomPoints[0] + info.wall->topPoints[0]) / 2.0f;
 		glm::vec3 end = info.node->Origin() + (info.wall->bottomPoints[1] + info.wall->topPoints[1]) / 2.0f;
 		float y = (( start + end ) / 2.0f).y;
 
 		glm::vec2 newPos = SolveToLine2D({ pos.x, pos.z }, { start.x, start.z }, { end.x, end.z }, snap);
-#endif
 		return faceCenter(info.wall) + info.node->Origin();//{ newPos.x, y, newPos.y };
 	}
+#endif
 
 	if (info.selected & ACT_SELECT_SIDE)
 	{
@@ -96,10 +98,9 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 	glm::vec3 pointOfIntersect = {0, 0, 0};
 
 	// Find the selected item
-	for (int i = 0; i < GetWorldEditor().m_nodes.size(); i++)
+	for (auto p : GetWorldEditor().m_nodes)
 	{
-		CNode* node = GetWorldEditor().m_nodes[i];
-
+		CNode* node = p.second;
 		
 		// Put the mouse on level with the node
 		glm::vec3 localMouse = mousePos - node->Origin();
@@ -129,7 +130,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 					{
 						// Got a point. Add the flag and break the loop.
 						info.selected |= ACT_SELECT_VERT;
-						info.vertex = v;
+						info.vertex = { v, node };
 						break;
 					}
 				}
@@ -162,7 +163,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 					if (findFlags & ACT_SELECT_SIDE)
 					{
 						info.selected |= ACT_SELECT_SIDE;
-						info.side = p;
+						info.side = { p, node };
 						
 						foundSomething = true;
 					}

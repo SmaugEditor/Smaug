@@ -57,6 +57,8 @@ class CWallExtrudeAction : public CBaseDragAction
 public:
 	virtual const char* GetName() { return "Extrude Wall"; }
 
+	CNode* CreateExtrusion();
+
 	virtual void Preview();
 	virtual void Act();
 	virtual void Undo();
@@ -67,6 +69,7 @@ public:
 		return ACT_SELECT_SIDE;
 	}
 
+	CNodeRef m_quad;
 };
 
 class CSideDragAction : public CBaseDragAction

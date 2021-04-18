@@ -20,13 +20,14 @@ char* COBJExporter::Export(CWorldEditor* world)
 	stream << " build compiled on " << __DATE__ << "\n";
 
 	stream << "\n# Vertexes\n";
-	for (int i = 0; i < world->m_nodes.size(); i++)
+	for (auto p : GetWorldEditor().m_nodes)
 	{
-		CNode* node = world->m_nodes[i];
+		CNode* node = p.second;
+
 		cuttableMesh_t& mesh = node->m_mesh;
 		glm::vec3 origin = mesh.origin;
 		
-		stream << "# Node " << i << "\n";
+		stream << "# Node " << node->NodeID() << "\n";
 		
 		stream << "# - Mesh Verts\n";
 
@@ -40,11 +41,12 @@ char* COBJExporter::Export(CWorldEditor* world)
 
 	int vertOffset = 1;
 	stream << "\n# Faces\n";
-	for (int i = 0; i < world->m_nodes.size(); i++)
+	for (auto p : GetWorldEditor().m_nodes)
 	{
-		CNode* node = world->m_nodes[i];
+		CNode* node = p.second;
+
 		cuttableMesh_t& mesh = node->m_mesh;
-		stream << "# Node " << i << "\n";
+		stream << "# Node " << node->NodeID() << "\n";
 		stream << "# Floor Face\n";
 		
 

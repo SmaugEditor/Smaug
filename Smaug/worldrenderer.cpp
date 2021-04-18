@@ -41,13 +41,15 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 {
 	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
-	for (int i = 0; i < world.m_nodes.size(); i++)
+	for (auto p : world.m_nodes)
 	{
-		world.m_nodes[i]->m_renderData.Render();
+		CNode* node = p.second;
+
+		node->m_renderData.Render();
 
 		// Set the color
 		// Precompute this?
-		glm::vec3 origin = world.m_nodes[i]->m_mesh.origin;
+		glm::vec3 origin = node->m_mesh.origin;
 		float mag = glm::length(origin);
 		origin = glm::normalize(origin);
 		float theta = atan2(origin.z, origin.x) + PI;
@@ -63,15 +65,17 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 {
 	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
-	for (int i = 0; i < world.m_nodes.size(); i++)
+	for (auto p : GetWorldEditor().m_nodes)
 	{
-		if(world.m_nodes[i]->IsVisible())
+		CNode* node = p.second;
+
+		if(node->IsVisible())
 		{
-			world.m_nodes[i]->m_renderData.Render();
+			node->m_renderData.Render();
 
 			// Set the color
 			// Precompute this?
-			glm::vec3 origin = world.m_nodes[i]->m_mesh.origin;
+			glm::vec3 origin = node->m_mesh.origin;
 			float mag = glm::length(origin);
 			origin = glm::normalize(origin);
 			float theta = atan2(origin.z, origin.x) + PI;
