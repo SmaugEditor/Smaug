@@ -56,6 +56,14 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 		float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
 		glm::vec4 color = glm::vec4(colorHSV(theta, saturation, 1.0f), 1);
 		bgfx::setUniform(m_colorUniform, &color);
+		bgfx::setState(0
+			| BGFX_STATE_WRITE_RGB
+			| BGFX_STATE_WRITE_A
+			| BGFX_STATE_WRITE_Z
+			| BGFX_STATE_DEPTH_TEST_LESS
+			| BGFX_STATE_CULL_CCW
+			| BGFX_STATE_MSAA
+		);
 
 		bgfx::submit(viewId, shaderProgram);
 	}
