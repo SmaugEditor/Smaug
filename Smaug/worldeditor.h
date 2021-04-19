@@ -7,6 +7,7 @@
 #include <glm/vec2.hpp>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 // World References
 //  - These function as semi-safe references to objects in the world, 
@@ -31,9 +32,9 @@ public:
 	CNodeRef(nodeId_t id);
 	CNodeRef(CNode* node);
 
-	bool IsValid();
-	nodeId_t ID() { return m_targetId; }
-	CNode* Node();
+	bool IsValid() const;
+	nodeId_t ID() const { return m_targetId; }
+	CNode* Node() const;
 
 	CNode* operator->() const;
 	void operator=(const CNodeRef& ref);
@@ -53,7 +54,7 @@ public:
 	CNodeMeshPartRef();
 	CNodeMeshPartRef(meshPart_t* part, CNodeRef node);
 
-	bool IsValid();
+	const bool IsValid();
 
 	meshPart_t* operator->() const;
 	operator meshPart_t* () const;
@@ -71,7 +72,7 @@ public:
 	CNodeHalfEdgeRef();
 	CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node);
 
-	bool IsValid();
+	const bool IsValid();
 
 	halfEdge_t* operator->() const;
 	operator halfEdge_t* () const;
@@ -105,6 +106,23 @@ private:
 };
 
 
+namespace std
+{
+	template <>
+	struct hash<CNodeRef>
+	{
+		inline size_t operator()(const CNodeRef& v) const
+		{
+			std::hash<nodeId_t> hasher;
+			return hasher(v.ID());
+		}
+	};
+}
+
+
+// Nodes
+
+
 class CNode
 {
 public:
@@ -130,6 +148,9 @@ public:
 	nodeId_t NodeID() { return m_id; }
 	CNodeRef Ref() { return { m_id }; }
 
+	void ConnectTo(CNodeRef node);
+	void DisconnectFrom(CNodeRef node);
+
 protected:
 
 	// Nodes should not be manually deleted!
@@ -142,8 +163,8 @@ public:
 	cuttableMesh_t m_mesh;
 	CMeshRenderer m_renderData;
 	
-	std::vector<CNodeRef> m_cutting;
-	std::vector<CNodeRef> m_cutters;
+	std::unordered_set<CNodeRef> m_cutting;
+	std::unordered_set<CNodeRef> m_cutters;
 
 protected:
 	aabb_t m_aabb;

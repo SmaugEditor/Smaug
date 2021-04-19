@@ -34,15 +34,19 @@ void CWallExtrudeAction::Act()
 	CNode* node = CreateExtrusion();
 	GetWorldEditor().RegisterNode(node);
 	m_quad = node;
+	node->ConnectTo(m_node);
 	node->Update();
 }
 
 void CWallExtrudeAction::Undo()
 {
 	if (m_quad.IsValid())
+	{
 		GetWorldEditor().DeleteNode(m_quad.Node());
+		m_node->DisconnectFrom(m_quad);
+		m_node->UpdateThisOnly();
+	}
 
-	
 }
 
 void CWallExtrudeAction::Redo()
@@ -51,6 +55,7 @@ void CWallExtrudeAction::Redo()
 
 	CNode* node = CreateExtrusion();
 	GetWorldEditor().AssignID(node, m_quad.ID());
+	node->ConnectTo(m_node);
 	node->Update();
 
 }

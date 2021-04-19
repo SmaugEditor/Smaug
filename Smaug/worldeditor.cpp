@@ -15,9 +15,9 @@
 CNodeRef::CNodeRef()              : m_targetId(INVALID_NODE_ID) {}
 CNodeRef::CNodeRef(nodeId_t id)   : m_targetId(id)              {}
 CNodeRef::CNodeRef(CNode*   node) : m_targetId(node->NodeID())  {}
-bool CNodeRef::IsValid() { return Node() != nullptr; }
+bool CNodeRef::IsValid() const { return Node() != nullptr; }
 CNode* CNodeRef::operator->() const { return GetWorldEditor().GetNode(m_targetId); }
-CNode* CNodeRef::Node() { return GetWorldEditor().GetNode(m_targetId); }
+CNode* CNodeRef::Node() const { return GetWorldEditor().GetNode(m_targetId); }
 void CNodeRef::operator=(const CNodeRef& ref) { m_targetId = ref.m_targetId;}
 
 
@@ -39,7 +39,7 @@ CNodeMeshPartRef::CNodeMeshPartRef(meshPart_t* part, CNodeRef node) : CNodeMeshP
 	}
 }
 
-bool CNodeMeshPartRef::IsValid()
+const bool CNodeMeshPartRef::IsValid()
 {
 	return m_partId != MAX_MESH_ID && m_node.IsValid();
 }
@@ -85,7 +85,7 @@ CNodeHalfEdgeRef::CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node) : CNodeHalfEdg
 	}
 }
 
-bool CNodeHalfEdgeRef::IsValid()
+const bool CNodeHalfEdgeRef::IsValid()
 {
 	return m_part.IsValid() && m_part->edges.size() > m_heId && m_part->edges[m_heId];
 }
@@ -296,7 +296,10 @@ void CNode::UpdateThisOnly()
 		triangluateMeshPartFaces(*pa, pa->fullFaces);
 	}
 
-	//applyCuts(m_mesh);
+	std::vector<mesh_t*> cutters;
+	for (auto c : m_cutters)
+		cutters.push_back(&c->m_mesh);
+	applyCuts(m_mesh, cutters);
 
 
 	for (auto pa : m_mesh.parts)
@@ -321,6 +324,28 @@ aabb_t CNode::GetAbsAABB()
 	return aabb;
 }
 
+
+void CNode::ConnectTo(CNodeRef node)
+{
+	if (node.IsValid())
+	{
+		node->m_cutters.emplace(this);
+		node->m_cutting.emplace(this);
+	}
+	m_cutters.emplace(node);
+	m_cutting.emplace(node);
+}
+
+void CNode::DisconnectFrom(CNodeRef node)
+{
+	if (node.IsValid())
+	{
+		node->m_cutters.erase(this);
+		node->m_cutting.erase(this);
+	}
+	m_cutters.erase(node);
+	m_cutting.erase(node);
+}
 
 void CNode::CalculateAABB()
 {
