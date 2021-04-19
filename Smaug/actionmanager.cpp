@@ -263,7 +263,7 @@ void CActionManager::Update()
 	{
 		if (m_redoStack.size())
 		{
-			for (int i = m_redoStack.size() - 1; i >= 0; i--)
+			for (int i = 0; i < m_redoStack.size(); i++)
 			{
 				ImGui::Text(m_redoStack[i]->GetName());
 				if (ImGui::IsItemClicked())
@@ -291,7 +291,8 @@ void CActionManager::Update()
 		}
 	
 	if (m_redoStack.size())
-		for (int i = 0; i < redoTo+1; i++)
+		//for (int i = 0; i < redoTo+1; i++)
+		for (int i = m_redoStack.size() - 1; i >= redoTo; i--)
 		{
 			Redo();
 		}
