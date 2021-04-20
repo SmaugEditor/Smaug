@@ -107,6 +107,9 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	for (auto p : m_mesh.parts)
 		for (auto f : p->isCut ? p->cutFaces : p->fullFaces)
 		{
+			//SASSERT(f->verts.size() == 3);
+			if (f->verts.size() != 3)
+				continue;
 			/*
 			// If our verts are out of order, this will fail. Should we use the HE data to determine this?
 			halfEdge_t* he = f->edges[0];
