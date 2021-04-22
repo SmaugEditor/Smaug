@@ -39,12 +39,21 @@ public:
 
 	virtual void EndDrag()
 	{
-		m_action->SetMoveDelta(m_mouseDragDelta);
-		GetActionManager().CommitAction(m_action);
+		if (glm::length(m_mouseDragDelta) == 0)
+		{
+			// No delta... Delete the action and move on
+			delete m_action;
+			m_action = nullptr;
+		}
+		else
+		{
+			m_action->SetMoveDelta(m_mouseDragDelta);
+			GetActionManager().CommitAction(m_action);
 
-		// We don't need to delete the action
-		// The manager is taking care of it for us now
-		m_action = nullptr;
+			// We don't need to delete the action
+			// The manager is taking care of it for us now
+			m_action = nullptr;
+		}
 	};
 
 	virtual void Preview()
@@ -86,12 +95,21 @@ public:
 
 	virtual void EndDrag()
 	{
-		m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
-		GetActionManager().CommitAction(m_wallExtrudeAction);
+		if (glm::length(m_mouseDragDelta) == 0)
+		{
+			// No delta... Delete the action and move on
+			delete m_wallExtrudeAction;
+			m_wallExtrudeAction = nullptr;
+		}
+		else
+		{
+			m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
+			GetActionManager().CommitAction(m_wallExtrudeAction);
+			// We don't need to delete the action
+			// The manager is taking care of it for us now
+			m_wallExtrudeAction = nullptr;
+		}
 
-		// We don't need to delete the action
-		// The manager is taking care of it for us now
-		m_wallExtrudeAction = nullptr;
 	};
 
 	virtual void Preview()
