@@ -177,6 +177,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			vertex_t* end = face->verts[face->verts.size() - 1 - fmod(alternate, 2)];
 			vertex_t* v0 = end->edge->next->vert;
 
+
 			int attempts = 0;
 			bool shift;
 			do{
@@ -252,7 +253,8 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 	halfEdge_t gapFiller;
 	
 	// Get the norm of the face for later testing 
-	glm::vec3 faceNorm = faceNormal(&mesh);
+	//glm::vec3 faceNorm = faceNormal(&mesh);
+	
 	size_t len = faceVec.size();
 	for (size_t i = 0; i < len; i++)
 	{
@@ -260,6 +262,9 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		if (!face)
 			continue;
 
+
+		// Get the norm of the face for later testing 
+		glm::vec3 faceNorm = faceNormal(face);
 
 		startOfLoop:
 		// Discard Tris, they're already convex
@@ -283,7 +288,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0)
 			{
 				// We got a zero area tri! Yuck!!
-				SASSERT(0);
+				//SASSERT(0);
 				fuseEdges(face, vert);
 				continue;
 			}
@@ -338,7 +343,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 				// Loop over our remaining verts and check if in our convex fit
 				for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
 				{
-					if (pointInConvexLoop(convexStart, *ooc->vert))
+					if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
 					{
 						// Uh oh concave!
 						concave = true;

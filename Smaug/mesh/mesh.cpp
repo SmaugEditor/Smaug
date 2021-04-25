@@ -4,6 +4,17 @@
 #include "utils.h"
 #include <glm/geometric.hpp>
 
+// Gets the normal of the *next* vert
+glm::vec3 vertNextNormal(vertex_t* vert)
+{
+	vertex_t* between = vert->edge->vert;
+	vertex_t* end = between->edge->vert;
+
+	glm::vec3 edge1 = (*vert->vert) - (*between->vert);
+	glm::vec3 edge2 = (*between->vert) - (*end->vert);
+	
+	return glm::cross(edge1, edge2);
+}
 
 // Returns the unnormalized normal of a face
 glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)

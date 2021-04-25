@@ -9,7 +9,7 @@ bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
 	return true;
 }
 
-
+template<bool testEdges>
 bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos)
 {
 	vertex_t* vs = vert, * v = vs, * v1 = vs->edge->vert, * v2 = v1->edge->vert;
@@ -28,8 +28,16 @@ bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos)
 		float m = glm::dot(pos - *v->vert, perp);
 
 		// If pos has an m > 0, it's in front of the edge, out of bounds
-		if (m > 0)
-			return false;
+		if constexpr (testEdges)
+		{
+			if (m > 0)
+				return false;
+		}
+		else
+		{
+			if (m >= 0)
+				return false;
+		}
 
 		// Please don't pass me a weird mesh...
 		v = next;
@@ -38,3 +46,6 @@ bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos)
 	// We're 100% inside this convex part
 	return true;
 }
+
+bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos) { return pointInConvexLoop<true>(vert, pos); }
+bool pointInConvexLoopNoEdges(vertex_t* vert, glm::vec3 pos) { return pointInConvexLoop<false>(vert, pos); }

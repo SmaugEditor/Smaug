@@ -168,6 +168,7 @@ aabb_t meshAABB(mesh_t& mesh);
 void recenterMesh(mesh_t& mesh);
 glm::vec3 faceCenter(face_t* face);
 glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr);
+glm::vec3 vertNextNormal(vertex_t* vert);
 
 void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill);
 
