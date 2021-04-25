@@ -246,6 +246,45 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 
 }
 
+// Not for use on concaves!
+void triangluateMeshPartConvexFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
+{
+	// As we'll be walking this, we wont want to walk over our newly created faces
+	// Store our len so we only get to the end of the predefined faces
+	size_t len = faceVec.size();
+	for (size_t i = 0; i < len; i++)
+	{
+		face_t* face = faceVec[i];
+		if (!face)
+			continue;
+		
+		// Discard Tris
+		if (face->edges.size() < 4)
+			continue;
+
+		
+		// On odd numbers, we use start + 1, end instead of start, end - 1
+		// Makes it look a bit like we're fitting quads instead of tris
+		int alternate = 0;
+
+		// In these loop, we'll progressively push the original face to become smaller and smaller
+		while (face->verts.size() > 3)
+		{
+			// Vert 0 will become our anchor for all new faces to connect to
+			vertex_t* end = face->verts[face->verts.size() - 1 - fmod(alternate, 2)];
+			vertex_t* v0 = end->edge->next->vert;
+
+			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
+			sliceMeshPartFaceUnsafe(mesh, faceVec, face, v0, end);
+
+			alternate++;
+		};
+
+		
+	}
+
+}
+
 // This function fits convex faces to the concave face
 // It might be slow, bench it later
 void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
