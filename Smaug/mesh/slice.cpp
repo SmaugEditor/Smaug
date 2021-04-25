@@ -717,7 +717,8 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 				if (glm::length(centerDiff) < 0.1f)
 				{
 					// Are our norms opposing?
-					if (glm::dot(cutNorm, pc.norm) == -1)
+					
+					if (closeTo(glm::dot(cutNorm, pc.norm), -1))
 					{
 						// Are all of our points in the other cutter?
 						bool engulfed = true;
