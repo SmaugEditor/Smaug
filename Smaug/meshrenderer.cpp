@@ -98,6 +98,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 	}
 
+	SASSERT(indexCount > 0);
 
 	// Allocate our buffers
 	// bgfx cleans these up for us
