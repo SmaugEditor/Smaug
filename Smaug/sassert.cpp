@@ -11,7 +11,7 @@ bool smaugAssert(bool condition, const char* expression, int line, const char* f
     if (!condition)
     {
         char message[1024];
-        snprintf(message, 1024, "Assertion failed!\n%s\n%s\n%s: Line %d", expression, function, file, line);
+        snprintf(message, 1024, "Assertion failed!\n%s\n%s\n%s: Line %d\n", expression, function, file, line);
 #ifdef _WIN32
         int ret = MessageBoxA(nullptr, message, "Assertion failed!", MB_ABORTRETRYIGNORE);
 
