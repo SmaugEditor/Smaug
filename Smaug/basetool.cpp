@@ -27,14 +27,29 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 		
 		// TODO: Improve for when zooming and etc!
 		// Try to keep things on one axis a bit
+		/*
 		if (fabs(delta.x) < 2)
 			delta.x = 0;
 		else if (fabs(delta.z) < 2)
 			delta.z = 0;
 		else if (fabs(delta.y) < 2)
 			delta.y = 0;
-
+		*/
+		
 		delta *= GetCursor().GetWorkingAxisMask();
+		if (!Input().IsDown({ GLFW_KEY_LEFT_ALT, false }) && m_selectionInfo.side.IsValid())
+		{
+			glm::vec3 fn = glm::normalize(faceNormal(m_selectionInfo.side));
+			delta = fn * glm::dot(delta, fn);
+		}
+		else
+		{
+			glm::vec3 fn = glm::normalize(glm::cross(faceNormal(m_selectionInfo.side), GetCursor().GetWorkingAxis()));
+			delta = fn * glm::dot(delta, fn);
+		}
+
+		delta = Grid().Snap(delta);
+
 		mousePosSnapped = delta + m_mouseStartDragPos;
 
 		GetCursor().SetEditPosition(mousePosSnapped);
