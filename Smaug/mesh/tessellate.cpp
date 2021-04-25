@@ -24,6 +24,7 @@ face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, std::vector<face_t*>& faceVec,
 {
 	face_t* newFace = new face_t;
 	newFace->meshPart = &mesh;
+	newFace->flags = face->flags;
 	faceVec.push_back(newFace);
 
 	halfEdge_t* heStart = start->edge;

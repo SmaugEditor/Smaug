@@ -779,5 +779,9 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 	}
 	delete[] precomp;
 
+	// Mark em all as cut
+	for (auto p : mesh.parts)
+		for (auto f : p->cutFaces)
+			f->flags |= FaceFlags::CUT;
 }
 

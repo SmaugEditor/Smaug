@@ -24,6 +24,26 @@ P=vertex.edge.next.next.pair.next.vertex
 // Might be worth turning this whole thing into a class of sorts?
 // It's a little bit messy currently...
 
+enum class FaceFlags : char
+{
+	NONE = 0,
+	CUT = 1,
+	CONVEX = 2,
+};
+
+// Why.
+inline FaceFlags  operator |   (FaceFlags  a, FaceFlags b) { return static_cast<FaceFlags>(static_cast<char>(a) | static_cast<char>(b)); }
+inline FaceFlags& operator |=  (FaceFlags& a, FaceFlags b) { a = a | b; return a; }
+inline FaceFlags  operator &   (FaceFlags  a, FaceFlags b) { return static_cast<FaceFlags>(static_cast<char>(a) & static_cast<char>(b)); }
+inline FaceFlags& operator &=  (FaceFlags& a, FaceFlags b) { a = a & b; return a; }
+inline FaceFlags  operator ^   (FaceFlags  a, FaceFlags b) { return static_cast<FaceFlags>(static_cast<char>(a) ^ static_cast<char>(b)); }
+inline FaceFlags& operator ^=  (FaceFlags& a, FaceFlags b) { a = a ^ b; return a; }
+inline FaceFlags  operator <<  (FaceFlags  a, int b)       { return static_cast<FaceFlags>(static_cast<char>(a) << b); }
+inline FaceFlags& operator <<= (FaceFlags& a, int b)       { a = a << b; return a; }
+inline FaceFlags  operator >>  (FaceFlags  a, int b)       { return static_cast<FaceFlags>(static_cast<char>(a) >> b); }
+inline FaceFlags& operator >>= (FaceFlags& a, int b)       { a = a >> b; return a; }
+inline FaceFlags  operator ~   (FaceFlags  a)              { return static_cast<FaceFlags>(~static_cast<char>(a)); }
+
 
 struct halfEdge_t;
 struct face_t;
@@ -67,6 +87,9 @@ struct face_t
 
 	// What part of the mesh we belong to.
 	meshPart_t* meshPart = nullptr;
+
+
+	FaceFlags flags = FaceFlags::NONE;
 };
 
 // Axis Aligned Bounding Box. Absolute minimum and maximum of a shape

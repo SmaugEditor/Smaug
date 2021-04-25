@@ -145,6 +145,8 @@ glm::vec3*& vertVectorAccessor(void* vec, size_t i)
 void cloneFaceInto(face_t* in, face_t* cloneOut)
 {
 	defineFace(*cloneOut, { (void*)&in->verts, &vertVectorAccessor }, in->verts.size());
+	cloneOut->flags = in->flags;
+	cloneOut->meshPart = in->meshPart;
 }
 
 
