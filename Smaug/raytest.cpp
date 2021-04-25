@@ -1,8 +1,9 @@
 #include "raytest.h"
 #include "worldeditor.h"
-#include <glm/geometric.hpp>
 #include "basicdraw.h"
-#include <modelmanager.h>
+#include "modelmanager.h"
+#include "meshtest.h"
+#include <glm/geometric.hpp>
 
 using namespace glm;
 
@@ -53,14 +54,10 @@ bool testAABBInAABB(aabb_t a, aabb_t b, float aabbBloat)
 // Adapted from 3D math primer for graphics and game development / Fletcher Dunn, Ian Parberry. -- 2nd ed. pg 724
 // Lot of this code is a bit duplicated. Clean it up?
 
+// Normal must be the normal of the plane, and planePoint must be a valid point within the plane
 template<bool cull = true>
-testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
+testRayPlane_t rayPlaneTest(ray_t ray, glm::vec3 normal, glm::vec3 planePoint, float closestT)
 {
-    glm::vec3 edge1 = tri.b - tri.a;
-    glm::vec3 edge2 = tri.c - tri.b;
-
-    // Unnormalized normal of the face
-    glm::vec3 normal = glm::cross(edge1, edge2);
 
     // Angle of approach on the face
     float approach = glm::dot(ray.dir, normal);
@@ -70,12 +67,10 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
     // the ! < dumps malformed triangles with NANs!
     // does not serve the same purpose as >=
     if (!(approach < 0.0f))
-    {
         return { false };
-    }
 
     // All points on the plane have the same dot, defined as d
-    float d = glm::dot(tri.a, normal);
+    float d = glm::dot(planePoint, normal);
 
     // Parametric point of intersection with the plane of the tri and the ray
     float t = (d - glm::dot(ray.origin, normal)) / approach;
@@ -92,9 +87,7 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
 
     // If something else was closer, skip our current and NANs
     if (!(t <= closestT))
-    {
         return { false };
-    }
 
     // 3D point of intersection
     glm::vec3 p = ray.origin + ray.dir * t;
@@ -105,8 +98,20 @@ testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
     test.normal = normal;
     test.approach = approach;
     test.intersect = p;
-
+ 
     return test;
+}
+
+template<bool cull = true>
+testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
+{
+    glm::vec3 edge1 = tri.b - tri.a;
+    glm::vec3 edge2 = tri.c - tri.b;
+
+    // Unnormalized normal of the face
+    glm::vec3 normal = glm::cross(edge1, edge2);
+
+    return rayPlaneTest<cull>(ray, normal, tri.a, closestT);
 }
 
 template<bool cull = true>
@@ -129,42 +134,11 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     // Unnormalized normal of the face
     glm::vec3 normal = glm::cross(edge1, edge2);
     
-    // Angle of approach on the face
-    float approach = glm::dot(ray.dir, normal);
+    testRayPlane_t test = rayPlaneTest<cull>(ray, normal, tri.a, closestT);
+    if (!test.hit)
+        return {false};
 
-    // If parallel to or not facing the plane, dump it
-    // 
-    // the ! < dumps malformed triangles with NANs!
-    // does not serve the same purpose as >=
-    if (!(approach < 0.0f))
-    {
-        return { false };
-    }
-
-    // All points on the plane have the same dot, defined as d
-    float d = glm::dot(tri.a, normal);
-
-    // Parametric point of intersection with the plane of the tri and the ray
-    float t = (d - glm::dot(ray.origin, normal)) / approach;
-
-    // (p0 + tD) * n = d
-    // tD*n = d - p0*d
-
-    if constexpr (cull)
-    {
-        // Ignore backside and NANs
-        if (!(t >= 0.0f))
-            return { false };
-    }
-
-    // If something else was closer, skip our current and NANs
-    if (!(t <= closestT))
-    {
-        return { false };
-    }
-
-    // 3D point of intersection
-    glm::vec3 p = ray.origin + ray.dir * t;
+    glm::vec3 p = test.intersect;
 
     // Find the dominant axis
     int uAxis, vAxis;
@@ -212,13 +186,6 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     if (!(alpha >= 0.0f) || !(beta >= 0.0f) || !(gamma >= 0.0f))
         return { false };
 
-    testRayPlane_t test;
-    test.hit = true;
-    test.t = t;
-    test.normal = normal;
-    test.approach = approach;
-    test.intersect = p;
-
     return test;
 }
 
@@ -239,6 +206,19 @@ void rayQuadTest(ray_t ray, quad_t quad, testRayPlane_t& lastTest)
 }
 
 
+template<bool cull = true>
+testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t* vert, float closestT)
+{
+    glm::vec3 normal = vertNextNormal(vert);
+
+    testRayPlane_t test = rayPlaneTest<cull>(ray, normal, *vert->vert, closestT);
+    if (!test.hit)
+        return { false };
+
+    if (pointInConvexLoop(vert, test.intersect))
+        return test;
+    return { false };
+}
 
 // This is terrible
 void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
@@ -297,20 +277,20 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
         return;
 
     // Test mesh
-    vec3 origin = node->m_mesh.origin;
+    // Offset the ray to the node
+    glm::vec3 origin = node->m_mesh.origin;
+    ray.origin -= origin;
     for (auto p : node->m_mesh.parts)
-        for (auto f : p->fullFaces)
+        for (auto f : p->convexFaces)
         {
-            if (f->verts.size() == 3)
+            testRayPlane_t rayTest = rayVertLoopTest<true>(ray, f->verts.front(), end.t);
+            if (rayTest.hit)
             {
-                // Technically, we shouldn't be accessing the data like this
-                // Buut triangulation should have us clear? For now?
-                // CHECK ME!
-                rayTriangleTest(ray, { origin + *f->verts[0]->vert, origin + *f->verts[1]->vert, origin + *f->verts[2]->vert }, end);
-
+                rayTest.intersect += origin;
+                end = rayTest;
             }
         }
-
+    
 }
 
 testRayPlane_t testRay(ray_t ray)

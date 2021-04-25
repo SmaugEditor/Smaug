@@ -23,6 +23,7 @@ P=vertex.edge.next.next.pair.next.vertex
 
 // Might be worth turning this whole thing into a class of sorts?
 // It's a little bit messy currently...
+// We need some more memory efficiency in here too
 
 enum class FaceFlags : char
 {
@@ -80,6 +81,8 @@ struct face_t
 {
 	~face_t();
 
+	// Do we really need vectors for this?
+
 	// These edges use the verts 
 	std::vector<halfEdge_t*> edges;
 
@@ -91,6 +94,7 @@ struct face_t
 
 	FaceFlags flags = FaceFlags::NONE;
 };
+
 
 // Axis Aligned Bounding Box. Absolute minimum and maximum of a shape
 struct aabb_t
@@ -109,6 +113,9 @@ struct meshPart_t : public face_t
 
 	// Cut faces of the mesh. This is what gets rendered. Use faces if size = 0. 
 	std::vector<face_t*> cutFaces;
+
+	// Convex representation of the part. Will be cut if isCut is true.
+	std::vector<face_t*> convexFaces;
 	
 	bool isCut = false;
 
