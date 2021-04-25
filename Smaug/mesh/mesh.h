@@ -119,6 +119,9 @@ struct meshPart_t : public face_t
 	
 	bool isCut = false;
 
+	// List of cut vertexes used by this part
+	std::vector<glm::vec3*> cutVerts;
+
 	// Calculated from face verts
 	//aabb_t aabb;
 

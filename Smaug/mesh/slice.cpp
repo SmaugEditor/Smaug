@@ -534,6 +534,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					glm::vec3* point = new glm::vec3();
 					*point = si.intersect - meshOrigin;
 					mesh.cutVerts.push_back(point);
+					part->cutVerts.push_back(point);
 					drag = splitHalfEdgeAtPoint(si.edge, point);
 
 					// If we're at the end of our intersections, then we can just drag this all the way out.
@@ -544,6 +545,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						glm::vec3* end = new glm::vec3();
 						*end = *cv->edge->vert->vert + cuttingMeshOrigin - meshOrigin + glm::vec3(0, -0.1, 0);
 						mesh.cutVerts.push_back(end);
+						part->cutVerts.push_back(end);
 						drag = dragEdge(drag, end);
 					}
 				}
@@ -556,6 +558,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						glm::vec3* point = new glm::vec3();
 						*point = si.intersect - meshOrigin;
 						mesh.cutVerts.push_back(point);
+						part->cutVerts.push_back(point);
 						draggable_t target = splitHalfEdgeAtPoint(si.edge, point);
 
 						// Drag the edge into the other side
@@ -615,6 +618,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 				glm::vec3* newEditPoint = new glm::vec3();
 				*newEditPoint = editPoint;
 				mesh.cutVerts.push_back(newEditPoint);
+				part->cutVerts.push_back(newEditPoint);
 
 				// Drag the previous cut to our new location
 				drag = dragEdge(drag, newEditPoint);
@@ -675,6 +679,7 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 		for (auto f : p->cutFaces)
 			delete f;
 		p->cutFaces.clear();
+		p->cutVerts.clear();
 		p->isCut = false;
 	}
 

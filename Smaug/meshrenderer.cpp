@@ -4,6 +4,11 @@
 
 #include "modelmanager.h"
 
+struct rMeshVertex_t
+{
+	glm::vec3 pos;
+	glm::vec3 normal;
+};
 static bgfx::VertexLayout MeshVertexLayout()
 {
 	static bgfx::VertexLayout layout;
@@ -13,6 +18,7 @@ static bgfx::VertexLayout MeshVertexLayout()
 		init = false;
 		layout.begin()
 			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::Normal,   3, bgfx::AttribType::Float)
 			.end();
 	}
 	
@@ -74,37 +80,57 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 		return;
 
 	int indexCount = 0;
+	int vertexCount = 0;
 	for (auto p : m_mesh.parts)
 	{
-		if(p->isCut)
+		if (p->isCut)
+		{
 			indexCount += p->cutFaces.size() * 3; // 3 indexes per tri
+			vertexCount += p->verts.size() + p->cutVerts.size();
+		}
 		else
+		{
 			indexCount += p->fullFaces.size() * 3; // 3 indexes per tri
+			vertexCount += p->verts.size();
+
+		}
+		
+
 	}
+
 
 	// Allocate our buffers
 	// bgfx cleans these up for us
-	vertBuf = bgfx::alloc(m_mesh.verts.size() * sizeof(glm::vec3) + m_mesh.cutVerts.size() * sizeof(glm::vec3));
+	vertBuf = bgfx::alloc(MeshVertexLayout().getSize(vertexCount));
 	indexBuf = bgfx::alloc(indexCount * sizeof(uint16_t)); // Each face is a tri
 
 	uint16_t* idxData = (uint16_t*)indexBuf->data;
+	rMeshVertex_t* vtxData = (rMeshVertex_t*)vertBuf->data;
 
 	int vOffset = 0;
-	for (glm::vec3* v : m_mesh.verts)
-	{
-		memcpy(vertBuf->data + vOffset, v, sizeof(glm::vec3));
-		vOffset += sizeof(glm::vec3);
-	}
-
-	for (glm::vec3* v : m_mesh.cutVerts)
-	{
-		memcpy(vertBuf->data + vOffset, v, sizeof(glm::vec3));
-		vOffset += sizeof(glm::vec3);
-	}
-
 	int iOffset = 0;
 
+
 	for (auto p : m_mesh.parts)
+	{
+		SASSERT(vOffset < vertexCount);
+		SASSERT(iOffset < indexCount);
+
+		glm::vec3 norm = glm::normalize(faceNormal(p));
+		int vs = vOffset;
+		for (auto v : p->verts)
+		{
+			vtxData[vOffset] = { *v->vert, norm };
+			vOffset++;
+		}
+		int cv = vOffset;
+		for (auto v : p->cutVerts)
+		{
+			vtxData[vOffset] = { *v, norm };
+			vOffset++;
+		}
+
+
 		for (auto f : p->isCut ? p->cutFaces : p->fullFaces)
 		{
 			//SASSERT(f->verts.size() == 3);
@@ -128,22 +154,33 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 			for (auto v : f->verts)
 			{
 				uint16_t vert = 0;
-				auto f = std::find(m_mesh.verts.begin(), m_mesh.verts.end(), v->vert);
-				if (f != m_mesh.verts.end())
+				bool found = false;
+				for (int j = 0; j < p->verts.size(); j++)
 				{
-					vert = f - m_mesh.verts.begin();// v->vert - vertData;
+					if (p->verts[j]->vert == v->vert)
+					{
+						found = true;
+						vert = vs + j;
+						break;
+					}
 				}
-				else
+
+				if(!found)
 				{
-					f = std::find(m_mesh.cutVerts.begin(), m_mesh.cutVerts.end(), v->vert);
-					if (f != m_mesh.cutVerts.end())
+					for (int j = 0; j < p->cutVerts.size(); j++)
 					{
-						vert = m_mesh.verts.size() + (f - m_mesh.cutVerts.begin());// v->vert - vertData;
+						if (p->cutVerts[j] == v->vert)
+						{
+							found = true;
+							vert = cv + j;
+							break;
+						}
 					}
-					else
-					{
-						printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
-					}
+				}
+
+				if(!found)
+				{
+					printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
 				}
 
 				idxData[iOffset] = vert;
@@ -151,6 +188,8 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 			}
 
 		}
+	}
+
 	m_indexCount = iOffset;
 
 }
