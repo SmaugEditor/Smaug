@@ -113,8 +113,6 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 	for (auto p : m_mesh.parts)
 	{
-		SASSERT(vOffset < vertexCount);
-		SASSERT(iOffset < indexCount);
 
 		glm::vec3 norm = glm::normalize(faceNormal(p));
 		int vs = vOffset;
@@ -189,6 +187,9 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 		}
 	}
+
+	SASSERT(vOffset <= vertexCount);
+	SASSERT(iOffset <= indexCount);
 
 	m_indexCount = iOffset;
 
