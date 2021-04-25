@@ -130,6 +130,7 @@ public:
 
 	void Init();
 	void PreviewUpdate();
+	void PreviewUpdateThisOnly();
 	void Update();
 	void UpdateThisOnly();
 

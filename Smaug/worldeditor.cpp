@@ -270,8 +270,50 @@ void CNode::Init()
 
 void CNode::PreviewUpdate()
 {
-	m_renderData.RebuildRenderData();
+	PreviewUpdateThisOnly();
 
+	// Update what we're cutting
+	for (auto m : m_cutting)
+	{
+		m->PreviewUpdateThisOnly();
+	}
+}
+
+void CNode::PreviewUpdateThisOnly()
+{
+	CalculateAABB();
+
+	for (auto pa : m_mesh.parts)
+	{
+		triangluateMeshPartFaces(*pa, pa->fullFaces);
+	}
+
+	std::vector<mesh_t*> cutters;
+	for (auto c : m_cutters)
+		cutters.push_back(&c->m_mesh);
+	applyCuts(m_mesh, cutters);
+
+
+	for (auto pa : m_mesh.parts)
+	{
+		convexifyMeshPartFaces(*pa, pa->cutFaces);
+
+		for (auto cf : pa->convexFaces)
+			delete cf;
+		pa->convexFaces.clear();
+
+		for (auto cf : pa->isCut ? pa->cutFaces : pa->fullFaces)
+		{
+			face_t* f = new face_t;
+			cloneFaceInto(cf, f);
+			pa->convexFaces.push_back(f);
+		}
+
+
+		triangluateMeshPartConvexFaces(*pa, pa->cutFaces);
+	}
+
+	m_renderData.RebuildRenderData();
 }
 
 void CNode::Update()
@@ -289,25 +331,7 @@ void CNode::Update()
 void CNode::UpdateThisOnly()
 {
 	recenterMesh(m_mesh);
-	CalculateAABB();
-
-	for (auto pa : m_mesh.parts)
-	{
-		triangluateMeshPartFaces(*pa, pa->fullFaces);
-	}
-
-	std::vector<mesh_t*> cutters;
-	for (auto c : m_cutters)
-		cutters.push_back(&c->m_mesh);
-	applyCuts(m_mesh, cutters);
-
-
-	for (auto pa : m_mesh.parts)
-	{
-		triangluateMeshPartFaces(*pa, pa->cutFaces);
-	}
-
-	m_renderData.RebuildRenderData();
+	PreviewUpdate();
 }
 
 
