@@ -497,22 +497,22 @@ bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 
 
 testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p)
 {
-    //glm::vec3 origin = part->mesh->origin;
-    for (auto f : part->fullFaces)
+    
+    for (auto f : part->convexFaces)
     {
-        if (f->verts.size() == 3)
+        if (f->verts.size() < 3)
+            continue;
+
+        glm::vec3 norm = convexFaceNormal(f);
+        norm = glm::normalize(norm);
+
+        testRayPlane_t t = rayVertLoopTest<false>({ p, -norm }, f->verts.front(), FLT_MAX);
+
+        if (t.hit)
         {
-            glm::vec3 norm = faceNormal(f);
-            norm = glm::normalize(norm);
-
-            testRayPlane_t t = rayTriangleTest<false>({ p, -norm }, { *f->verts[0]->vert, *f->verts[1]->vert, *f->verts[2]->vert }, FLT_MAX);
-
-            if (t.hit)
-            {
-
-                return t;
-            }
+            return t;
         }
+        
     }
     return { false };
 }
