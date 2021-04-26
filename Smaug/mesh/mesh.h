@@ -25,26 +25,20 @@ P=vertex.edge.next.next.pair.next.vertex
 // It's a little bit messy currently...
 // We need some more memory efficiency in here too
 
-enum class FaceFlags : char
+// This is terrible. I wish enum class was better, but I don't want to use an unscoped enum
+// Maybe make this a template, macro, or something...
+enum FaceFlags : char
 {
 	NONE = 0,
 	CUT = 1,
-	CONVEX = 2,
+	CONVEX = 2
 };
 
-// Why.
-inline FaceFlags  operator |   (FaceFlags  a, FaceFlags b) { return static_cast<FaceFlags>(static_cast<char>(a) | static_cast<char>(b)); }
-inline FaceFlags& operator |=  (FaceFlags& a, FaceFlags b) { a = a | b; return a; }
-inline FaceFlags  operator &   (FaceFlags  a, FaceFlags b) { return static_cast<FaceFlags>(static_cast<char>(a) & static_cast<char>(b)); }
-inline FaceFlags& operator &=  (FaceFlags& a, FaceFlags b) { a = a & b; return a; }
-inline FaceFlags  operator ^   (FaceFlags  a, FaceFlags b) { return static_cast<FaceFlags>(static_cast<char>(a) ^ static_cast<char>(b)); }
-inline FaceFlags& operator ^=  (FaceFlags& a, FaceFlags b) { a = a ^ b; return a; }
-inline FaceFlags  operator <<  (FaceFlags  a, int b)       { return static_cast<FaceFlags>(static_cast<char>(a) << b); }
-inline FaceFlags& operator <<= (FaceFlags& a, int b)       { a = a << b; return a; }
-inline FaceFlags  operator >>  (FaceFlags  a, int b)       { return static_cast<FaceFlags>(static_cast<char>(a) >> b); }
-inline FaceFlags& operator >>= (FaceFlags& a, int b)       { a = a >> b; return a; }
-inline FaceFlags  operator ~   (FaceFlags  a)              { return static_cast<FaceFlags>(~static_cast<char>(a)); }
-
+inline FaceFlags& operator |=  (FaceFlags& a, FaceFlags b) { a = static_cast<FaceFlags>(a | b); return a; }
+inline FaceFlags& operator &=  (FaceFlags& a, FaceFlags b) { a = static_cast<FaceFlags>(a & b); return a; }
+inline FaceFlags& operator ^=  (FaceFlags& a, FaceFlags b) { a = static_cast<FaceFlags>(a ^ b); return a; }
+inline FaceFlags& operator <<= (FaceFlags& a, int b) { a = static_cast<FaceFlags>(a >> b); return a; }
+inline FaceFlags& operator >>= (FaceFlags& a, int b) { a = static_cast<FaceFlags>(a << b); return a; }
 
 struct halfEdge_t;
 struct face_t;
@@ -178,6 +172,7 @@ aabb_t meshAABB(mesh_t& mesh);
 void recenterMesh(mesh_t& mesh);
 glm::vec3 faceCenter(face_t* face);
 glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr);
+glm::vec3 convexFaceNormal(face_t* face);
 glm::vec3 vertNextNormal(vertex_t* vert);
 
 void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill);

@@ -417,4 +417,9 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		} while (vert->edge->vert->edge->vert != convexStart);
 		
 	}
+
+	// Mark our creation as convex
+	for (auto f : faceVec)
+		f->flags |= FaceFlags::CONVEX;
+
 }

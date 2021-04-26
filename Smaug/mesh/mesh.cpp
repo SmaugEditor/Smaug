@@ -24,16 +24,27 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 	
 	glm::vec3 center = faceCenter(face);
 
+	if (outCenter)
+		*outCenter = center;
+
+	if (face->flags & FaceFlags::CONVEX)
+	{
+		return convexFaceNormal(face);
+	}
+
 	glm::vec3 faceNormal = { 0,0,0 };
 	for (int i = 1; i < face->verts.size(); i++)
 	{
 		faceNormal += glm::cross((center - (*face->verts[i]->vert)), (*face->verts[i - 1]->vert) - center);
 	}
 
-	if (outCenter)
-		*outCenter = center;
 
 	return faceNormal;
+}
+
+glm::vec3 convexFaceNormal(face_t* face)
+{
+	return vertNextNormal(face->verts.front());
 }
 
 
