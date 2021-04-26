@@ -313,7 +313,8 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		vertex_t* vStart = face->verts.front(),
 			    * convexStart = vStart,
 			    * vert = vStart;
-
+		
+		int sanity = 0;
 		do
 		{
 			vertex_t* between = vert->edge->vert;
@@ -404,6 +405,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 				{
 					// Shift forwards and try that one later
 					convexStart = convexStart->edge->vert;
+					sanity++;
 				}
 				else
 				{
@@ -414,8 +416,9 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			}
 
 			vert = between;
-		} while (vert->edge->vert->edge->vert != convexStart);
-		
+		} while (vert->edge->vert->edge->vert != convexStart
+		&& sanity < face->verts.size());
+		// I mean, if every vertex is concave, I guess it's convex? Right? Backwards normal?		
 	}
 
 	// Mark our creation as convex
