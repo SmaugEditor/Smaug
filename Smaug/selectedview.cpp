@@ -23,7 +23,7 @@ void CSelectedView::Draw(float dt)
 	CBaseView::Draw(dt);
 	float time = glfwGetTime();
 
-	if (m_selectedNode)
+	if (m_selectedNode.IsValid())
 	{
 		
 		float distance = m_aabbLength;
@@ -33,11 +33,15 @@ void CSelectedView::Draw(float dt)
 		bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 		
 		m_selectedNode->m_renderData.Render();
-		bgfx::submit(m_viewId, ShaderManager::GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
+
+		// Set the color
+		// Precompute this?
+		ShaderManager().SetColor(nodeColor(m_selectedNode.Node()));
+		bgfx::submit(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
 	}
 }
 
-void CSelectedView::SetSelection(CNode* node)
+void CSelectedView::SetSelection(CNodeRef node)
 {
 	aabb_t aabb = node->GetLocalAABB();
 	m_aabbLength = glm::distance(aabb.min, aabb.max);
@@ -88,7 +92,7 @@ bool CSelectedView::Show()
 
 	if (ImGui::Begin("SelectedViewProperties", 0, ImGuiWindowFlags_NoTitleBar))
 	{
-		if (m_selectedNode)
+		if (m_selectedNode.IsValid())
 		{
 			bool vis = m_selectedNode->IsVisible();
 			if(ImGui::Checkbox("Visible", &vis))

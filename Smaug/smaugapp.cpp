@@ -4,7 +4,7 @@
 
 void CSmaugApp::initialize(int _argc, char** _argv)
 {
-	ShaderManager::Init();
+	ShaderManager().Init();
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -29,7 +29,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 int CSmaugApp::shutdown()
 {
-	ShaderManager::Shutdown();
+	ShaderManager().Shutdown();
 	return 0;
 }
 

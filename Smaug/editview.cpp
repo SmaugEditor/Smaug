@@ -38,7 +38,7 @@ void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	CBaseView::Init(viewId, width, height, clearColor);
 
 
-	m_shaderProgram = ShaderManager::GetShaderProgram(Shader::EDIT_VIEW_SHADER);
+	m_shaderProgram = ShaderManager().GetShaderProgram(Shader::EDIT_VIEW_SHADER);
 	if(!m_cameraModel)
 		m_cameraModel = ModelManager().LoadModel("assets/camera.obj");
 	if(!m_tickModel)

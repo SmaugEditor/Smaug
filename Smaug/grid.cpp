@@ -141,7 +141,7 @@ void CGrid::Draw(glm::vec2 screenSize, glm::vec3 pos, glm::vec3 angles, bool sub
 	bgfx::setUniform(m_gridScale, &m_vecScale);
 	bgfx::setUniform(m_gridDirMask, &m_vecGridDirMask);
 
-	bgfx::submit(ModelManager().CurrentView(), ShaderManager::GetShaderProgram(Shader::GRID));
+	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::GRID));
 }
 
 glm::vec3 CGrid::Snap(glm::vec3 in)

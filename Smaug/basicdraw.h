@@ -26,7 +26,6 @@ private:
 	bgfx::VertexBufferHandle m_lineVertexBuf;
 	bgfx::IndexBufferHandle m_lineIndexBuf;
 
-	bgfx::UniformHandle m_colorUniform;
 };
 
 

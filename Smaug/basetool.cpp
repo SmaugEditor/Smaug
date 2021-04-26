@@ -95,6 +95,7 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 				m_mouseStartDragPos = solvedPos * GetCursor().GetWorkingAxisMask();// GetSelectionPos(info);
 				m_mouseDragDelta = glm::vec3(0, 0, 0);
 
+				SelectedView().SetSelection(info.node);
 				StartDrag();
 			}
 		}

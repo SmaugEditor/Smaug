@@ -126,7 +126,6 @@ CBasicDraw::CBasicDraw()
 	 m_lineVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_lineVertices, sizeof(s_lineVertices)), LineFormat::ms_layout);
 	 m_lineIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_lineTriList, sizeof(s_lineTriList)));
 
-	 m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
 }
 
 CBasicDraw::~CBasicDraw()
@@ -140,7 +139,6 @@ CBasicDraw::~CBasicDraw()
 	bgfx::destroy(m_lineVertexBuf);
 	bgfx::destroy(m_lineIndexBuf);
 
-	bgfx::destroy(m_colorUniform);
 }
 
 
@@ -173,7 +171,6 @@ void CBasicDraw::Plane(glm::vec3 origin, glm::vec3 scale, glm::vec3 angle)
 
 void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width)
 {
-	glm::vec4 color4 = glm::vec4(color, 1.0f);
 	CModelTransform mt;
 	mt.SetLocalOrigin(start);
 	mt.SetLocalScale(width, width, glm::distance(start, end));
@@ -185,7 +182,7 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 	bgfx::setVertexBuffer(0, m_lineVertexBuf);
 	bgfx::setIndexBuffer(m_lineIndexBuf);
 
-	bgfx::setUniform(m_colorUniform, &color4);
+	ShaderManager().SetColor(color);
 	bgfx::setState(0
 		| BGFX_STATE_WRITE_RGB
 		| BGFX_STATE_WRITE_A
@@ -193,7 +190,7 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 		| BGFX_STATE_DEPTH_TEST_LESS 
 		| BGFX_STATE_MSAA);
 
-	bgfx::submit(ModelManager().CurrentView(), ShaderManager::GetShaderProgram(Shader::LINE));
+	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::LINE));
 }
 
 CBasicDraw& BasicDraw()

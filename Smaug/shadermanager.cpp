@@ -1,5 +1,6 @@
 #include "shadermanager.h"
 #include "utils.h"
+#include <glm/vec4.hpp>
 
 static struct
 {
@@ -21,25 +22,35 @@ s_programInfo[] = {
 };
 
 
-void ShaderManager::Init()
+void CShaderManager::Init()
 {
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
 		s_programInfo[i].programHandle = LoadShader(s_programInfo[i].fragmentShader, s_programInfo[i].vertexShader);
 	}
+
+	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
 }
 
-void ShaderManager::Shutdown()
+void CShaderManager::Shutdown()
 {
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
 		bgfx::destroy(s_programInfo[i].programHandle);
 		s_programInfo[i].programHandle = BGFX_INVALID_HANDLE;
 	}
-	
+
+	bgfx::destroy(m_colorUniform);
+	m_colorUniform = BGFX_INVALID_HANDLE;
 }
 
-bgfx::ProgramHandle ShaderManager::GetShaderProgram(Shader shader)
+void CShaderManager::SetColor(glm::vec3 color)
+{
+	glm::vec4 container = glm::vec4(color, 1.0);
+	bgfx::setUniform(m_colorUniform, &container);
+}
+
+bgfx::ProgramHandle CShaderManager::GetShaderProgram(Shader shader)
 {
 	// Out of range. Return invalid handle
 	if (shader <= Shader::NONE || shader > Shader::COUNT)
@@ -48,4 +59,10 @@ bgfx::ProgramHandle ShaderManager::GetShaderProgram(Shader shader)
 	}
 
 	return s_programInfo[(int)shader].programHandle;
+}
+
+CShaderManager& ShaderManager()
+{
+	static CShaderManager s_ShaderManager;
+	return s_ShaderManager;
 }

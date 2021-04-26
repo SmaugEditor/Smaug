@@ -33,13 +33,11 @@ void CWorldRenderer::Init()
 	g_quadTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_quadTriIndexList, sizeof(g_quadTriIndexList)));
 	g_triTriIndexBuffer = bgfx::createIndexBuffer(bgfx::makeRef(g_triTriIndexList, sizeof(g_triTriIndexList)));
 #endif
-	// This will leak memory. Clean it up!
-	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
 }
 
 void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 {
-	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
+	bgfx::ProgramHandle shaderProgram = ShaderManager().GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
 	for (auto p : world.m_nodes)
 	{
@@ -49,13 +47,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 
 		// Set the color
 		// Precompute this?
-		glm::vec3 origin = node->m_mesh.origin;
-		float mag = glm::length(origin);
-		origin = glm::normalize(origin);
-		float theta = atan2(origin.z, origin.x) + PI;
-		float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
-		glm::vec4 color = glm::vec4(colorHSV(theta, saturation, 1.0f), 1);
-		bgfx::setUniform(m_colorUniform, &color);
+		ShaderManager().SetColor(nodeColor(node));
 		bgfx::setState(0
 			| BGFX_STATE_WRITE_RGB
 			| BGFX_STATE_WRITE_A
@@ -71,7 +63,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 
 void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 {
-	bgfx::ProgramHandle shaderProgram = ShaderManager::GetShaderProgram(shader);
+	bgfx::ProgramHandle shaderProgram = ShaderManager().GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
 	for (auto p : GetWorldEditor().m_nodes)
 	{
@@ -83,13 +75,7 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 
 			// Set the color
 			// Precompute this?
-			glm::vec3 origin = node->m_mesh.origin;
-			float mag = glm::length(origin);
-			origin = glm::normalize(origin);
-			float theta = atan2(origin.z, origin.x) + PI;
-			float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
-			glm::vec4 color = glm::vec4(colorHSV(theta, saturation, 1.0f), 1);
-			bgfx::setUniform(m_colorUniform, &color);
+			ShaderManager().SetColor(nodeColor(node));
 
 			bgfx::submit(viewId, shaderProgram);
 		}
@@ -231,6 +217,16 @@ void CNodeRenderData::Shutdown()
 {
 }
 #endif
+
+glm::vec3 nodeColor(CNode* node)
+{
+	glm::vec3 origin = node->m_mesh.origin;
+	float mag = glm::length(origin);
+	origin = glm::normalize(origin);
+	float theta = atan2(origin.z, origin.x) + PI;
+	float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
+	return colorHSV(theta, saturation, 1.0f);
+}
 
 CWorldRenderer& GetWorldRenderer()
 {

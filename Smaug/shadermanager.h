@@ -1,6 +1,6 @@
 #pragma once
-#include "bgfx/bgfx.h"
-
+#include <bgfx/bgfx.h>
+#include <glm/vec3.hpp>
 // Probably a WAAAAAY better way to do this.
 
 enum class Shader
@@ -18,11 +18,16 @@ enum class Shader
 	COUNT,
 };
 
-namespace ShaderManager
+class CShaderManager
 {
+public:
 	void Init();
 	void Shutdown();
 
+	void SetColor(glm::vec3 color);
 	bgfx::ProgramHandle GetShaderProgram(Shader shader);
+private:
+	bgfx::UniformHandle m_colorUniform;
 };
 
+CShaderManager& ShaderManager();
