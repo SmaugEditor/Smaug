@@ -14,7 +14,7 @@
 // Node Reference
 CNodeRef::CNodeRef()              : m_targetId(INVALID_NODE_ID) {}
 CNodeRef::CNodeRef(nodeId_t id)   : m_targetId(id)              {}
-CNodeRef::CNodeRef(CNode*   node) : m_targetId(node->NodeID())  {}
+CNodeRef::CNodeRef(CNode* node) { if (node) m_targetId = node->NodeID(); else m_targetId = INVALID_NODE_ID; }
 bool CNodeRef::IsValid() const { return Node() != nullptr; }
 CNode* CNodeRef::operator->() const { return GetWorldEditor().GetNode(m_targetId); }
 CNode* CNodeRef::Node() const { return GetWorldEditor().GetNode(m_targetId); }
