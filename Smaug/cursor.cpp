@@ -50,6 +50,11 @@ void CCursor::SetPosition(glm::vec3 pos)
 	m_position = pos;
 }
 
+glm::vec3 CCursor::GetPosition()
+{
+	return Grid().Snap(m_position);
+}
+
 glm::vec3 CCursor::SetSelection(glm::vec3 pos, selectionInfo_t info)
 {
 	if (info.selected != ACT_SELECT_NONE)

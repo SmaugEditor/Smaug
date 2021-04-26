@@ -21,6 +21,8 @@ public:
 	void Draw(float scale = 2.5f);
 
 	void SetPosition(glm::vec3 pos);
+	glm::vec3 GetPosition();
+	glm::vec3 GetPositionUnSnapped() { return m_position; }
 	[[deprecated]]
 	void SetPositionForce(glm::vec3 pos) {m_position = pos;}
 	glm::vec3 SetSelection(glm::vec3 pos, selectionInfo_t info);

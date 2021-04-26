@@ -1,7 +1,8 @@
 #pragma once
 #include "baseview.h"
-#include "glm/vec3.hpp"
-#include "glm/vec2.hpp"
+#include "modelmanager.h"
+#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 
 class C3DView : public CBaseView
 {
@@ -16,6 +17,7 @@ public:
 	glm::vec3 m_cameraAngle;
 	glm::vec3 m_cameraPos;
 	
+	IModel* m_gridCenter;
 
 	struct
 	{

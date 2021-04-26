@@ -46,6 +46,8 @@ void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_cameraAngle = glm::vec3(0.25, 3.14, 0);
 	m_cameraPos = glm::vec3(0, 15, 15);
 	m_controllingCamera = false;
+
+	m_gridCenter = ModelManager().LoadModel("assets/top.obj");
 }
 
 void C3DView::Draw(float dt)
@@ -61,15 +63,18 @@ void C3DView::Draw(float dt)
 
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	
-	Grid().Draw();
+	//Grid().Draw();
 
 	// Draw the Cursor
-	GetCursor().Draw();
+	float scale = glm::distance(GetCursor().GetPosition(), m_cameraPos) / 20;
+	scale = clamp(scale, 0.25f, 1.5f);
+	GetCursor().Draw( scale );
 
 	// Draw center of the edit view
 	CModelTransform r;
 	r.SetAbsOrigin(CEditView::m_cameraPos);
-	ModelManager().ErrorModel()->Render(&r);
+	r.SetAbsScale(clamp(CEditView::m_viewZoom / 80.0f, 0.25f, 1.0f));
+	m_gridCenter->Render(&r);
 
 
 #ifdef _DEBUG
@@ -181,7 +186,7 @@ void C3DView::Update(float dt, float mx, float my)
 		m_cameraPos += moveDelta;
 	}
 
-#ifdef _DEBUG
+#if 0 && defined( _DEBUG )
 	// Nice little debug view for testing
 	ImGui::SetNextWindowFocus();
 	if (ImGui::Begin("Camera Debug", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration))

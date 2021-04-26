@@ -18,13 +18,13 @@ public:
 	glm::vec3 m_editPlaneAngle;
 
 	static glm::vec3 m_cameraPos;
+	static float m_viewZoom;
 private:
 
 	glm::vec3 TransformMousePos(float mx, float my, glm::vec3 cameraPos);
 
 	bgfx::ProgramHandle m_shaderProgram;
 
-	static float m_viewZoom;
 
 	
 	struct
