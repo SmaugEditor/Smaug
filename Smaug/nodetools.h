@@ -101,6 +101,12 @@ public:
 			delete m_wallExtrudeAction;
 			m_wallExtrudeAction = nullptr;
 		}
+		else if (glm::dot(faceNormal(m_selectionInfo.side), m_mouseDragDelta) >= 0)
+		{
+			// Backwards extrude... Delete and move on
+			delete m_wallExtrudeAction;
+			m_wallExtrudeAction = nullptr;
+		}
 		else
 		{
 			m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
