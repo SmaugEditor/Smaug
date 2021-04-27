@@ -1,5 +1,6 @@
 #pragma once
-#include "glm/vec3.hpp"
+#include "utils.h"
+#include <glm/vec3.hpp>
 #include <vector>
 
 /*
@@ -25,20 +26,22 @@ P=vertex.edge.next.next.pair.next.vertex
 // It's a little bit messy currently...
 // We need some more memory efficiency in here too
 
-// This is terrible. I wish enum class was better, but I don't want to use an unscoped enum
-// Maybe make this a template, macro, or something...
+// I wish enum class was better
 enum FaceFlags : char
 {
-	NONE = 0,
-	CUT = 1,
-	CONVEX = 2
+	FF_NONE = 0,
+	FF_CUT = 1,
+	FF_CONVEX = 2
 };
-
-inline FaceFlags& operator |=  (FaceFlags& a, FaceFlags b) { a = static_cast<FaceFlags>(a | b); return a; }
-inline FaceFlags& operator &=  (FaceFlags& a, FaceFlags b) { a = static_cast<FaceFlags>(a & b); return a; }
-inline FaceFlags& operator ^=  (FaceFlags& a, FaceFlags b) { a = static_cast<FaceFlags>(a ^ b); return a; }
-inline FaceFlags& operator <<= (FaceFlags& a, int b) { a = static_cast<FaceFlags>(a >> b); return a; }
-inline FaceFlags& operator >>= (FaceFlags& a, int b) { a = static_cast<FaceFlags>(a << b); return a; }
+MAKE_BITFLAG(FaceFlags);
+enum EdgeFlags : char
+{
+	EF_NONE = 0,
+	EF_SLICED = 1, // An edge that has been sliced
+	EF_PART_EDGE = 2, // An edge that belongs to the part
+	EF_OUTER = 4, // An edge that's on the outer part of the face
+};
+MAKE_BITFLAG(EdgeFlags);
 
 struct halfEdge_t;
 struct face_t;
@@ -67,6 +70,8 @@ struct halfEdge_t
 
 	// Next edge. Same as vert->edge.
 	halfEdge_t* next = nullptr;
+
+	EdgeFlags flags = EdgeFlags::EF_NONE;
 };
 
 
@@ -86,7 +91,7 @@ struct face_t
 	meshPart_t* meshPart = nullptr;
 
 
-	FaceFlags flags = FaceFlags::NONE;
+	FaceFlags flags = FaceFlags::FF_NONE;
 };
 
 

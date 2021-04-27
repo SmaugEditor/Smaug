@@ -114,3 +114,12 @@ inline glm::vec3 randColorHue()
 {
 	return colorHSV(rand() % 1000 / 1000.0f * PI * 2, 1, 1);
 }
+
+
+#define MAKE_BITFLAG(enumName) \
+inline enumName& operator |=  (enumName& a, enumName b) { a = static_cast<enumName>(a | b);  return a; } \
+inline enumName& operator &=  (enumName& a, enumName b) { a = static_cast<enumName>(a & b);  return a; } \
+inline enumName& operator ^=  (enumName& a, enumName b) { a = static_cast<enumName>(a ^ b);  return a; } \
+inline enumName& operator <<= (enumName& a, int b)      { a = static_cast<enumName>(a >> b); return a; } \
+inline enumName& operator >>= (enumName& a, int b)      { a = static_cast<enumName>(a << b); return a; } \
+inline enumName  operator ~   (enumName a) { return static_cast<enumName>(~(char)a); }

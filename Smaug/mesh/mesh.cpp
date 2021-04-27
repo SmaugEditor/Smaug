@@ -27,7 +27,7 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 	if (outCenter)
 		*outCenter = center;
 
-	if (face->flags & FaceFlags::CONVEX)
+	if (face->flags & FaceFlags::FF_CONVEX)
 	{
 		return convexFaceNormal(face);
 	}
@@ -110,6 +110,7 @@ void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 	{
 		halfEdge_t* he = new halfEdge_t{};
 		he->face = &face;
+		he->flags |= EdgeFlags::EF_OUTER;
 		vertex_t* v = new vertex_t{ vecs[i], he };
 
 		// Should never be a situation where these both arent null or something
@@ -155,6 +156,9 @@ void defineMeshPartFaces(meshPart_t& mesh)
 	C2DPYSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
 	defineFace(*f, skip, mesh.verts.size());
 	
+	// Mark our edges
+	for (auto e : f->edges)
+		e->flags |= EdgeFlags::EF_PART_EDGE;
 
 }
 // Terrible

@@ -649,7 +649,9 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 				// Unlink twins
 				for (auto e : f->edges)
 					if (e->pair)
+					{
 						e->pair->pair = nullptr;
+					}
 
 				delete f;
 			}
@@ -658,6 +660,12 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 		}
 		part->cutFaces = cleanFaces;
 	}
+
+	// Scrub off our sliced flags
+	for(auto f : part->cutFaces)
+		for(auto e : f->edges)
+			e->flags &= ~EdgeFlags::EF_SLICED;
+
 	
 }
 
@@ -788,6 +796,6 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 	// Mark em all as cut
 	for (auto p : mesh.parts)
 		for (auto f : p->cutFaces)
-			f->flags |= FaceFlags::CUT;
+			f->flags |= FaceFlags::FF_CUT;
 }
 
