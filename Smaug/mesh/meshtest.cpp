@@ -4,9 +4,9 @@
 bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
 {
 	for (auto f : part->fullFaces)
-		if(!pointInConvexMeshFace(f, pos))
-			return false;
-	return true;
+		if(pointInConvexMeshFace(f, pos))
+			return true;
+	return false;
 }
 
 template<bool testEdges>
