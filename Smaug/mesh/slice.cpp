@@ -1,5 +1,6 @@
 #include "slice.h"
 #include "mesh.h"
+#include "meshtest.h"
 #include "raytest.h"
 #include "utils.h"
 
@@ -97,7 +98,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// Start the crack into the face
 	halfEdge_t* crackIn = new halfEdge_t{nullptr, nullptr, target, nullptr};
 	target->edges.push_back(crackIn);
-
+	crackIn->flags |= EdgeFlags::EF_SLICED;
 
 	vertex_t* curV = new vertex_t{cutVerts[v2Index]};
 	crackIn->vert = curV;
@@ -139,6 +140,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 
 	// v1's going to need a new HE that points to v2
 	halfEdge_t* crackOut = new halfEdge_t{ v1Out, crackIn, target, v1Out->edge };
+	crackOut->flags |= EdgeFlags::EF_SLICED;
 	curHE->next = crackOut;
 	curV->edge = crackOut;
 	crackIn->pair = crackOut;
@@ -295,6 +297,10 @@ void dragEdgeInto(draggable_t draggable, draggable_t target)
 	intoVert->pair = intoTarget;
 	intoTarget->pair = intoVert;
 
+	// Mark as sliced
+	intoVert->flags   |= EdgeFlags::EF_SLICED;
+	intoTarget->flags |= EdgeFlags::EF_SLICED;
+
 	// Link up intoVert
 	target.into->next = intoVert;
 	target.vert->edge = intoVert;
@@ -328,6 +334,10 @@ draggable_t dragEdge(draggable_t draggable, glm::vec3* point)
 	// Link the pairs as this is a full edge
 	in->pair = out;
 	out->pair = in;
+
+	// Mark as sliced
+	in->flags  |= EdgeFlags::EF_SLICED;
+	out->flags |= EdgeFlags::EF_SLICED;
 
 	// In needs a vert to stem out of and for out to lead into 
 	vertex_t* inStem = new vertex_t;
@@ -399,7 +409,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 			{
 				// Dragged edges have pairs, normal cloned edges don't
 				// TODO: improve determination of how to skip dragged edges
-				if (pv->edge->pair)
+				if (pv->edge->flags & EdgeFlags::EF_SLICED)
 				{
 					pv = pv->edge->vert;
 					continue;
