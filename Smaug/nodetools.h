@@ -20,7 +20,7 @@ public:
 	virtual input_t GetHoldInput();
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_SIDE | ACT_SELECT_VERT; }
+	virtual int GetSelectionType() { return ACT_SELECT_SIDE /*| ACT_SELECT_VERT*/; }
 
 	virtual void StartDrag()
 	{
