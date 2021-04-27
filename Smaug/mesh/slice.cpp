@@ -737,21 +737,8 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 						bool engulfed = true;
 						for (auto v : self->verts)
 						{
-							bool isOut = true;
 							// Full faces for collision testing
-							for (auto t : cutP->fullFaces)
-							{
-								if (t->verts.size() != 3)
-									continue;
-								// This should get turned into a bulk tester...
-								if (testPointInTriEdges(*v->vert + mesh.origin, *t->verts[0]->vert + cutter->origin, *t->verts[1]->vert + cutter->origin, *t->verts[2]->vert + cutter->origin))
-								{
-									isOut = false;
-									break;
-								}
-							}
-
-							if (isOut)
+							if(!pointInConvexMeshPart(cutP, *v->vert + mesh.origin - cutter->origin))
 							{
 								engulfed = false;
 								break;

@@ -285,7 +285,7 @@ void CNode::PreviewUpdateThisOnly()
 
 	for (auto pa : m_mesh.parts)
 	{
-		triangluateMeshPartFaces(*pa, pa->fullFaces);
+		convexifyMeshPartFaces(*pa, pa->fullFaces);
 	}
 
 	std::vector<mesh_t*> cutters;
@@ -311,6 +311,7 @@ void CNode::PreviewUpdateThisOnly()
 
 
 		triangluateMeshPartConvexFaces(*pa, pa->cutFaces);
+		triangluateMeshPartConvexFaces(*pa, pa->fullFaces);
 	}
 
 	m_renderData.RebuildRenderData();
@@ -377,7 +378,7 @@ void CNode::CalculateAABB()
 
 	//m_aabbLength = glm::length(m_aabb.max - m_aabb.min);
 
-	printf("AABB - Max:{%f, %f, %f} - Min:{%f, %f, %f}\n", m_aabb.max.x, m_aabb.max.y, m_aabb.max.z, m_aabb.min.x, m_aabb.min.y, m_aabb.min.z);
+	//printf("AABB - Max:{%f, %f, %f} - Min:{%f, %f, %f}\n", m_aabb.max.x, m_aabb.max.y, m_aabb.max.z, m_aabb.min.x, m_aabb.min.y, m_aabb.min.z);
 }
 
 CQuadNode::CQuadNode() : CNode()
