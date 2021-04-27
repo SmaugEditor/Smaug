@@ -330,7 +330,8 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 				// We got a zero area tri! Yuck!!
 				//SASSERT(0);
 				fuseEdges(face, vert);
-				continue;
+				// Fusing induces a change in edge count. Go back to the top 
+				goto startOfLoop;
 			}
 
 
@@ -418,11 +419,15 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			vert = between;
 		} while (vert->edge->vert->edge->vert != convexStart
 		&& sanity < face->verts.size());
+
 		// I mean, if every vertex is concave, I guess it's convex? Right? Backwards normal?		
-	}
+		if (sanity >= face->verts.size())
+			printf("sanity check failute\n");
+}
+
 
 	// Mark our creation as convex
 	for (auto f : faceVec)
-		f->flags |= FaceFlags::CONVEX;
+		f->flags |= FaceFlags::FF_CONVEX;
 
 }
