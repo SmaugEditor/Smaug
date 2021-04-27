@@ -553,7 +553,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					{
 						// Drag to the end of this edge
 						glm::vec3* end = new glm::vec3();
-						*end = *cv->edge->vert->vert + cuttingMeshOrigin - meshOrigin + glm::vec3(0, -0.1, 0);
+						*end = *cv->edge->vert->vert + cuttingMeshOrigin - meshOrigin;
 						mesh.cutVerts.push_back(end);
 						part->cutVerts.push_back(end);
 						drag = dragEdge(drag, end);
