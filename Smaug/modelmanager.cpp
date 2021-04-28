@@ -125,7 +125,10 @@ static void AddMeshToModel(CModel* model, aiMesh* mesh)
         mv.pos = { vec.x, vec.y, vec.z };
             
         // Normal
-        vec = mesh->mNormals[i];
+        if (mesh->mNormals)
+            vec = mesh->mNormals[i];
+        else
+            vec = { 0,1,0 };
         mv.normal = { vec.x, vec.y, vec.z };
 
         // UV
@@ -230,6 +233,9 @@ IModel* CModelManager::LoadModel(const char* path)
         else
             model->m_texture = TextureManager().ErrorTexture();
     }
+    else
+        model->m_texture = TextureManager().ErrorTexture();
+
 
     // Add the model to the map
     m_modelMap.emplace(std::string(path), model);
