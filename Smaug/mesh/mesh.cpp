@@ -245,6 +245,9 @@ meshPart_t::~meshPart_t()
 
 	for (auto f : cutFaces)
 		delete f;
+
+	for (auto f : convexFaces)
+		delete f;
 }
 
 mesh_t::~mesh_t()
