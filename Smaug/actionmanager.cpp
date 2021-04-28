@@ -147,13 +147,16 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 				//mousePos.y = node->Origin().y;
 
 				testRayPlane_t t = pointOnPartLocal(p, localMouse);
-				
+				glm::vec3 norm = glm::normalize(t.normal);
 
-				if (t.hit && glm::distance(t.intersect * workingAxisMask, localMouse * workingAxisMask) <= 1.5f)
+				// We want to allow for a lot more grab room within the node. Prevents mistakes from being made.
+				float threshold = glm::dot(norm, localMouse - t.intersect) > 0 ? 2 : 1;
+
+				if (t.hit && glm::distance(t.intersect * workingAxisMask, localMouse * workingAxisMask) <= threshold)
 				{
 					// Discard parts with norms we don't like
 					// TODO: Do this earlier! Ideally before the ray test!
-					if (fabs(glm::dot(glm::normalize(t.normal), workingAxis)) > 0.89)
+					if (fabs(glm::dot(norm, workingAxis)) > 0.89)
 					{
 						//printf("Skip\n");
 						continue;
