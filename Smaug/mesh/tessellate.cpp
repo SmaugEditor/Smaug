@@ -113,19 +113,38 @@ halfEdge_t* fuseEdges(face_t* face, vertex_t* stem)
 	
 	// Since something's already pointing to stem->edge, it's going to take the place of post->edge
 	halfEdge_t* replacer = stem->edge;
-
-	// Edge immediately after the fuse
-	halfEdge_t* post = replacer->next->vert->edge;
 	
-	// Clear out stuff to be fused
-	delete replacer->next->vert;
-	delete replacer->next;
+	// Edge immediately before the fuse
+	halfEdge_t* before = replacer->next;
+	// Edge immediately after the fuse
+	halfEdge_t* post = before->next;
+
+
 	delete replacer->vert;
+	
+	// Are we perfectly stuck together?
+	if (closeTo(glm::distance(*before->vert->vert, *stem->vert), 0))
+	{
+		// Clear out stuff to be fused
+		delete before->vert;
+	
+		// Link it
+		replacer->vert = post->vert;
 
-	replacer->vert = post->vert;
-	replacer->next = post->next;
+		replacer->next = post->next;
+		delete before;
+		delete post;
+	}
+	else
+	{
+		// Uneven fuse. We need to retain next->vert
+		// Link it
+		replacer->vert = before->vert;
+		
+		replacer->next = post;
+	}
+	delete before;
 
-	delete post;
 
 	// Rebuild the face. Yuck
 	face->verts.clear();
