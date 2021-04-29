@@ -439,8 +439,9 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		&& sanity < face->verts.size());
 
 		// I mean, if every vertex is concave, I guess it's convex? Right? Backwards normal?		
-		if (sanity >= face->verts.size())
-			printf("sanity check failute\n");
+		//if (sanity >= face->verts.size())
+		//	printf("sanity check failure\n");
+		SASSERT_S(sanity < face->verts.size());
 }
 
 
