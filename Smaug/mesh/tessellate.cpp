@@ -132,7 +132,6 @@ halfEdge_t* fuseEdges(face_t* face, vertex_t* stem)
 		replacer->vert = post->vert;
 
 		replacer->next = post->next;
-		delete before;
 		delete post;
 	}
 	else
