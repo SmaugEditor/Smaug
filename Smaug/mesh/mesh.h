@@ -107,14 +107,19 @@ struct meshPart_t : public face_t
 {
 	~meshPart_t();
 
-	// Triangles of the mesh. Use for geo testing and etc.
+	// Original representation of the mesh
 	std::vector<face_t*> fullFaces;
 
-	// Cut faces of the mesh. This is what gets rendered. Use faces if size = 0. 
-	std::vector<face_t*> cutFaces;
+	// Neither the collision vector, tris vector, nor the cutFaces vector should be used for true mesh editing, as they are constantly regenerated.
 
-	// Convex representation of the part. Will be cut if isCut is true.
-	std::vector<face_t*> convexFaces;
+	// Convexified of the mesh. Use for geo testing and etc.
+	std::vector<face_t*> collision;
+
+	// A triangulated representation of the face. This is what gets rendered. 
+	std::vector<face_t*> tris;
+
+	// Representation of this face after it has been cut. 
+	std::vector<face_t*> cutFaces;
 	
 	bool isCut = false;
 

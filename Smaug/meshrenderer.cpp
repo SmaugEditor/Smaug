@@ -85,12 +85,12 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	{
 		if (p->isCut)
 		{
-			indexCount += p->cutFaces.size() * 3; // 3 indexes per tri
+			indexCount += p->tris.size() * 3; // 3 indexes per tri
 			vertexCount += p->verts.size() + p->cutVerts.size();
 		}
 		else
 		{
-			indexCount += p->fullFaces.size() * 3; // 3 indexes per tri
+			indexCount += p->tris.size() * 3; // 3 indexes per tri
 			vertexCount += p->verts.size();
 
 		}
@@ -130,7 +130,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 		}
 
 
-		for (auto f : p->isCut ? p->cutFaces : p->fullFaces)
+		for (auto f : p->tris)
 		{
 			//SASSERT(f->verts.size() == 3);
 			if (f->verts.size() != 3)

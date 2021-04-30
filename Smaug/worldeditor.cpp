@@ -296,22 +296,34 @@ void CNode::PreviewUpdateThisOnly()
 
 	for (auto pa : m_mesh.parts)
 	{
-		convexifyMeshPartFaces(*pa, pa->cutFaces);
+		
 
-		for (auto cf : pa->convexFaces)
+		for (auto cf : pa->collision)
 			delete cf;
-		pa->convexFaces.clear();
+		pa->collision.clear();
 
 		for (auto cf : pa->isCut ? pa->cutFaces : pa->fullFaces)
 		{
 			face_t* f = new face_t;
 			cloneFaceInto(cf, f);
-			pa->convexFaces.push_back(f);
+			pa->collision.push_back(f);
+		}
+		
+		convexifyMeshPartFaces(*pa, pa->collision);
+
+
+		for (auto cf : pa->tris)
+			delete cf;
+		pa->tris.clear();
+
+		for (auto cf : pa->collision)
+		{
+			face_t* f = new face_t;
+			cloneFaceInto(cf, f);
+			pa->tris.push_back(f);
 		}
 
-
-		triangluateMeshPartConvexFaces(*pa, pa->cutFaces);
-		triangluateMeshPartConvexFaces(*pa, pa->fullFaces);
+		triangluateMeshPartConvexFaces(*pa, pa->tris);
 	}
 
 	m_renderData.RebuildRenderData();

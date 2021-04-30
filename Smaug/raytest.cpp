@@ -281,7 +281,7 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
     glm::vec3 origin = node->m_mesh.origin;
     ray.origin -= origin;
     for (auto p : node->m_mesh.parts)
-        for (auto f : p->convexFaces)
+        for (auto f : p->collision)
         {
             testRayPlane_t rayTest = rayVertLoopTest<true>(ray, f->verts.front(), end.t);
             if (rayTest.hit)
@@ -498,7 +498,7 @@ bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 
 testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p)
 {
     
-    for (auto f : part->convexFaces)
+    for (auto f : part->collision)
     {
         if (f->verts.size() < 3)
             continue;
