@@ -39,12 +39,12 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 		delta *= GetCursor().GetWorkingAxisMask();
 		if (!Input().IsDown({ GLFW_KEY_LEFT_ALT, false }) && m_selectionInfo.side.IsValid())
 		{
-			glm::vec3 fn = glm::normalize(faceNormal(m_selectionInfo.side));
+			glm::vec3 fn = glm::normalize(m_selectionInfo.side->normal);
 			delta = fn * glm::dot(delta, fn);
 		}
 		else
 		{
-			glm::vec3 fn = glm::normalize(glm::cross(faceNormal(m_selectionInfo.side), GetCursor().GetWorkingAxis()));
+			glm::vec3 fn = glm::normalize(glm::cross(m_selectionInfo.side->normal, GetCursor().GetWorkingAxis()));
 			delta = fn * glm::dot(delta, fn);
 		}
 

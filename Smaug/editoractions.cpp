@@ -24,7 +24,7 @@ CNode* CWallExtrudeAction::CreateExtrusion()
 void CWallExtrudeAction::Preview()
 {
 	meshPart_t* selectedPart = m_selectInfo.side;
-	glm::vec3 color = glm::dot(faceNormal(selectedPart), m_moveDelta) < 0 ? COLOR_BLUE : COLOR_RED;
+	glm::vec3 color = glm::dot(selectedPart->normal, m_moveDelta) < 0 ? COLOR_BLUE : COLOR_RED;
 	for(auto v : selectedPart->verts)
 		DebugDraw().LineDelta(*v->vert + m_node->m_mesh.origin, m_moveDelta, color, 0.75f, 0.01f );
 

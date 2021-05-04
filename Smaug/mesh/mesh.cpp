@@ -80,28 +80,28 @@ glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount)
 }
 
 // Creates and defines a new face within a mesh
-void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
+void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
 void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
 {
 	meshPart_t* mp = new meshPart_t;
 	mp->mesh = &mesh;
 	mesh.parts.push_back(mp);
 
-	defineFace(*mp, points, pointCount);
+	defineFace(mp, points, pointCount);
 }
 
 
 // Wires up all the HEs for this face
 // Does not triangulate
-void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
+void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 {
 	// Clear out our old data
-	for (auto v : face.verts)
+	for (auto v : face->verts)
 		if (v) delete v;
-	for (auto e : face.edges)
+	for (auto e : face->edges)
 		if (e) delete e;
-	face.verts.clear();
-	face.edges.clear();
+	face->verts.clear();
+	face->edges.clear();
 	
 	// Populate our face with HEs
 	vertex_t* lastVert = nullptr;
@@ -109,7 +109,7 @@ void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 	for (int i = 0; i < vecCount; i++)
 	{
 		halfEdge_t* he = new halfEdge_t{};
-		he->face = &face;
+		he->face = face;
 		he->flags |= EdgeFlags::EF_OUTER;
 		vertex_t* v = new vertex_t{ vecs[i], he };
 
@@ -123,30 +123,35 @@ void defineFace(face_t& face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 
 		lastHe = he;
 		lastVert = v;
-		face.edges.push_back(he);
-		face.verts.push_back(v);
+		face->edges.push_back(he);
+		face->verts.push_back(v);
 	}
 
 	// Link up our last HE
 	if (lastHe && lastVert)
 	{
-		lastHe->next = face.edges.front();
-		lastHe->vert = face.verts.front();
+		lastHe->next = face->edges.front();
+		lastHe->vert = face->verts.front();
 	}
 }
 
 void defineMeshPartFaces(meshPart_t& mesh)
 {
 	// Clear out our old faces
-	for (auto f : mesh.fullFaces)
+	if (mesh.sliced)
+	{
+		delete mesh.sliced;
+		mesh.sliced = nullptr;
+	}
+	for (auto f : mesh.tris)
 		delete f;
-	for (auto f : mesh.cutFaces)
+	for (auto f : mesh.collision)
 		delete f;
-	mesh.fullFaces.clear();
-	mesh.cutFaces.clear();
+	mesh.collision.clear();
+	mesh.tris.clear();
 
 	face_t* f = new face_t;
-	mesh.fullFaces.push_back(f);
+	mesh.collision.push_back(f);
 	f->meshPart = &mesh;
 	
 	if (mesh.verts.size() == 0)
@@ -154,11 +159,14 @@ void defineMeshPartFaces(meshPart_t& mesh)
 
 	// Only give it our verts
 	C2DPYSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
-	defineFace(*f, skip, mesh.verts.size());
+	defineFace(f, skip, mesh.verts.size());
 	
 	// Mark our edges
 	for (auto e : f->edges)
 		e->flags |= EdgeFlags::EF_PART_EDGE;
+
+	// Compute our normal
+	mesh.normal = glm::normalize(faceNormal(&mesh));
 
 }
 // Terrible
@@ -170,10 +178,11 @@ glm::vec3*& vertVectorAccessor(void* vec, size_t i)
 
 void cloneFaceInto(face_t* in, face_t* cloneOut)
 {
-	defineFace(*cloneOut, { (void*)&in->verts, &vertVectorAccessor }, in->verts.size());
+	defineFace(cloneOut, { (void*)&in->verts, &vertVectorAccessor }, in->verts.size());
 	cloneOut->flags = in->flags;
 	cloneOut->meshPart = in->meshPart;
 }
+
 
 
 aabb_t meshAABB(mesh_t& mesh)
@@ -240,13 +249,13 @@ face_t::~face_t()
 
 meshPart_t::~meshPart_t()
 {
-	for (auto f : fullFaces)
+	if(sliced)
+		delete sliced;
+
+	for (auto f : collision)
 		delete f;
 
-	for (auto f : cutFaces)
-		delete f;
-
-	for (auto f : convexFaces)
+	for (auto f : tris)
 		delete f;
 }
 
@@ -257,4 +266,13 @@ mesh_t::~mesh_t()
 
 	for (auto v : verts)
 		delete v;
+}
+
+slicedMeshPartData_t::~slicedMeshPartData_t()
+{
+	for (auto f : collision)
+		delete f;
+
+	//for (auto f : tris)
+	//	delete f;
 }

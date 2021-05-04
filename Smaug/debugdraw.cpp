@@ -71,8 +71,7 @@ void CDebugDraw::HEFace(face_t* face, glm::vec3 color, float width, float decay)
 
 void CDebugDraw::HEPart(meshPart_t* part, glm::vec3 color, float width, float decay)
 {
-    auto faces = part->isCut ? part->cutFaces : part->fullFaces;
-    for (auto f : faces)
+    for (auto f : part->tris)
         HEFace(f, color, width, decay);
 }
 

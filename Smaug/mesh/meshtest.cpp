@@ -3,7 +3,7 @@
 
 bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
 {
-	for (auto f : part->fullFaces)
+	for (auto f : part->collision)
 		if(pointInConvexMeshFace(f, pos))
 			return true;
 	return false;

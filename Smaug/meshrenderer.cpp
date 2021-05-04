@@ -3,6 +3,7 @@
 #include "GLFW/glfw3.h"
 
 #include "modelmanager.h"
+#include <debugdraw.h>
 
 struct rMeshVertex_t
 {
@@ -63,6 +64,7 @@ void CMeshRenderer::Render()
 
 void CMeshRenderer::Render(CModelTransform trnsfm)
 {
+	
 	trnsfm.SetLocalOrigin(trnsfm.GetLocalOrigin() + m_mesh.origin);
 	glm::mat4 mtx = trnsfm.Matrix();
 	
@@ -83,10 +85,10 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	int vertexCount = 0;
 	for (auto p : m_mesh.parts)
 	{
-		if (p->isCut)
+		if (p->sliced)
 		{
 			indexCount += p->tris.size() * 3; // 3 indexes per tri
-			vertexCount += p->verts.size() + p->cutVerts.size();
+			vertexCount += p->verts.size() + p->sliced->cutVerts.size();
 		}
 		else
 		{
@@ -123,11 +125,13 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 			vOffset++;
 		}
 		int cv = vOffset;
-		for (auto v : p->cutVerts)
-		{
-			vtxData[vOffset] = { *v, norm };
-			vOffset++;
-		}
+		
+		if(p->sliced)
+			for (auto v : p->sliced->cutVerts)
+			{
+				vtxData[vOffset] = { *v, norm };
+				vOffset++;
+			}
 
 
 		for (auto f : p->tris)
@@ -166,15 +170,17 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 				if(!found)
 				{
-					for (int j = 0; j < p->cutVerts.size(); j++)
-					{
-						if (p->cutVerts[j] == v->vert)
+
+					if (p->sliced)
+						for (int j = 0; j < p->sliced->cutVerts.size(); j++)
 						{
-							found = true;
-							vert = cv + j;
-							break;
+							if (p->sliced->cutVerts[j] == v->vert)
+							{
+								found = true;
+								vert = cv + j;
+								break;
+							}
 						}
-					}
 				}
 
 				if(!found)

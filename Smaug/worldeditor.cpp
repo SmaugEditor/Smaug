@@ -283,9 +283,11 @@ void CNode::PreviewUpdateThisOnly()
 {
 	CalculateAABB();
 
+
 	for (auto pa : m_mesh.parts)
 	{
-		convexifyMeshPartFaces(*pa, pa->fullFaces);
+		defineMeshPartFaces(*pa);
+		convexifyMeshPartFaces(*pa, pa->collision);
 	}
 
 	std::vector<mesh_t*> cutters;
@@ -293,30 +295,32 @@ void CNode::PreviewUpdateThisOnly()
 		cutters.push_back(&c->m_mesh);
 	applyCuts(m_mesh, cutters);
 
-
 	for (auto pa : m_mesh.parts)
 	{
 		
-
+		/*
 		for (auto cf : pa->collision)
 			delete cf;
 		pa->collision.clear();
 
-		for (auto cf : pa->isCut ? pa->cutFaces : pa->fullFaces)
+		for (auto cf : pa->sliced ? pa->sliced->collision : pa->)
 		{
 			face_t* f = new face_t;
 			cloneFaceInto(cf, f);
 			pa->collision.push_back(f);
 		}
-		
 		convexifyMeshPartFaces(*pa, pa->collision);
+		*/
+		
+		if(pa->sliced)
+			convexifyMeshPartFaces(*pa, pa->sliced->collision);
 
 
 		for (auto cf : pa->tris)
 			delete cf;
 		pa->tris.clear();
 
-		for (auto cf : pa->collision)
+		for (auto cf : pa->sliced ? pa->sliced->collision : pa->collision)
 		{
 			face_t* f = new face_t;
 			cloneFaceInto(cf, f);

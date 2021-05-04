@@ -52,7 +52,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// This means cracking *must* be done before triangulation
 	// Which really sucks cause point testing is going to be waaay harder
 	// We might want a representation below the mesh face for this...
-	face_t* target = part->cutFaces[0];
+	face_t* target = part->sliced->collision[0];
 	
 	// This might have horrible performance...
 	for (auto v1 : target->verts)
@@ -368,11 +368,11 @@ draggable_t dragEdge(draggable_t draggable, glm::vec3* point)
 // If a line intersects, and we're entering, keep adding data until we're out
 // Line leaves when dot of cross of intersect and face norm is < 0
 // TODO: Optimize this!
-void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, meshPart_t* cutter)
+void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, meshPart_t* cutter, std::vector<face_t*>& cutFaces)
 {
 	glm::vec3 meshOrigin        = mesh.origin;
 	glm::vec3 cuttingMeshOrigin = cuttingMesh.origin;
-	glm::vec3 partNorm = faceNormal(part);
+	glm::vec3 partNorm = part->normal;
 
 	// Sanity checker
 	int fullRollOver = 0;
@@ -399,9 +399,9 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 		std::vector<snipIntersect_t> intersections;
 
 		bool sharedLine = false;
-		for (int i = 0; i < part->cutFaces.size(); i++)
+		for (int i = 0; i < cutFaces.size(); i++)
 		{
-			face_t* face = part->cutFaces[i];
+			face_t* face = cutFaces[i];
 
 			vertex_t* pvStart = face->verts.front();
 			vertex_t* pv = pvStart;
@@ -544,7 +544,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					glm::vec3* point = new glm::vec3();
 					*point = si.intersect - meshOrigin;
 					mesh.cutVerts.push_back(point);
-					part->cutVerts.push_back(point);
+					part->sliced->cutVerts.push_back(point);
 					drag = splitHalfEdgeAtPoint(si.edge, point);
 
 					// If we're at the end of our intersections, then we can just drag this all the way out.
@@ -555,7 +555,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						glm::vec3* end = new glm::vec3();
 						*end = *cv->edge->vert->vert + cuttingMeshOrigin - meshOrigin;
 						mesh.cutVerts.push_back(end);
-						part->cutVerts.push_back(end);
+						part->sliced->cutVerts.push_back(end);
 						drag = dragEdge(drag, end);
 					}
 				}
@@ -568,7 +568,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						glm::vec3* point = new glm::vec3();
 						*point = si.intersect - meshOrigin;
 						mesh.cutVerts.push_back(point);
-						part->cutVerts.push_back(point);
+						part->sliced->cutVerts.push_back(point);
 						draggable_t target = splitHalfEdgeAtPoint(si.edge, point);
 
 						// Drag the edge into the other side
@@ -589,7 +589,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						inCutFace_t* other = new inCutFace_t;
 						other->cullDepth = -1;
 						other->meshPart = part;
-						part->cutFaces.push_back(other);
+						cutFaces.push_back(other);
 
 						faceFromLoop(target.outof, owner);
 						faceFromLoop(target.into, other);
@@ -628,7 +628,7 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 				glm::vec3* newEditPoint = new glm::vec3();
 				*newEditPoint = editPoint;
 				mesh.cutVerts.push_back(newEditPoint);
-				part->cutVerts.push_back(newEditPoint);
+				part->sliced->cutVerts.push_back(newEditPoint);
 
 				// Drag the previous cut to our new location
 				drag = dragEdge(drag, newEditPoint);
@@ -643,17 +643,29 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 	SASSERT(fullRollOver < cutter->verts.size());
 
 	// If this is one, we failed to cut anything! Try a face crack?
-	if (part->cutFaces.size() == 1)
+	if (cutFaces.size() == 1)
 	{
-		opposingFaceCrack(mesh, part, cutter);
+		//opposingFaceCrack(mesh, part, cutter);
 	}
 	else
 	{
+		for (int i = 0; i < cutFaces.size(); i++)
+		{
+			int j = 0;
+			vertex_t* sv = cutFaces[i]->verts.front(), *v = sv;
+			do
+			{
+				j++;
+				v = v->edge->vert;
+			} while (v != sv);
+			SASSERT(j == cutFaces[i]->verts.size());
+		}
+
 		std::vector<face_t*> cleanFaces;
 		// Cull off faces with < 0 depth
-		for (int i = 0; i < part->cutFaces.size(); i++)
+		for (int i = 0; i < cutFaces.size(); i++)
 		{
-			inCutFace_t* f = static_cast<inCutFace_t*>(part->cutFaces[i]);
+			inCutFace_t* f = static_cast<inCutFace_t*>(cutFaces[i]);
 			if (f->cullDepth < 0)
 			{
 				// Unlink twins
@@ -668,11 +680,11 @@ void faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 			else
 				cleanFaces.push_back(f);
 		}
-		part->cutFaces = cleanFaces;
+		cutFaces = cleanFaces;
 	}
 
 	// Scrub off our sliced flags
-	for(auto f : part->cutFaces)
+	for(auto f : cutFaces)
 		for(auto e : f->edges)
 			e->flags &= ~EdgeFlags::EF_SLICED;
 
@@ -694,55 +706,42 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 	// Clear out our old faces
 	for (auto p : mesh.parts)
 	{
-		for (auto f : p->cutFaces)
-			delete f;
-		p->cutFaces.clear();
-		p->cutVerts.clear();
-		p->isCut = false;
+		if (p->sliced)
+		{
+			delete p->sliced;
+			p->sliced = nullptr;
+		}
 	}
 
 	if (cutters.size() == 0)
 		return;
 
-	// Precompute the normals
-	struct precomputed_t
-	{
-		glm::vec3 norm, center;
-	};
-	precomputed_t* precomp = new precomputed_t[mesh.parts.size()];
-	for (int i = 0; auto p : mesh.parts)
-	{
-		precomp[i].norm = glm::normalize(faceNormal(p, &precomp[i].center));
-		precomp[i].center += mesh.origin; // Offset all by origin
-		i++;
-	}
+	
+	
 	
 	for (auto cutter : cutters)
 	{
 		for (auto cutP : cutter->parts)
 		{
-			glm::vec3 cutCenter;
-			glm::vec3 cutNorm = glm::normalize(faceNormal(cutP, &cutCenter));
-			cutCenter += cutter->origin;
+			glm::vec3 cutNorm = cutP->normal;
+			// Make it relative to what we're cutting
+			glm::vec3 cutCenter = *cutP->verts.front()->vert + cutter->origin - mesh.origin;
 
 			// Iterate over faces and check if we have ones with opposing norms
-			for (int i = 0; auto self : mesh.parts)
+			for (auto self : mesh.parts)
 			{
-				precomputed_t& pc = precomp[i];
-				i++;
-				
-				glm::vec3 centerDiff = pc.center - cutCenter;
+				glm::vec3 centerDiff = *self->verts.front()->vert - cutCenter;
 
 				// I's so tired. Review this in the morning
-				centerDiff *= pc.norm;
+				centerDiff *= self->normal;		
 
 				// Do we share an axis?
 				if (glm::length(centerDiff) < 0.1f)
 				{
 					// Are our norms opposing?
-					
-					if (closeTo(glm::dot(cutNorm, pc.norm), -1))
+					if (closeTo(glm::dot(cutNorm, self->normal), -1))
 					{
+						
 						// Are all of our points in the other cutter?
 						bool engulfed = true;
 						for (auto v : self->verts)
@@ -757,28 +756,40 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 
 						if (engulfed)
 						{
+							if (!self->sliced)
+								self->sliced = new slicedMeshPartData_t;
+
 							// Clear the face
-							for (auto f : self->cutFaces)
-								delete f;
-							self->cutFaces.clear();
-							self->isCut = true;
+							clearSlicedData(self->sliced);
 							// Not worth doing any more cuts...
 							break;
 						}
 						else
 						{
-							if (self->cutFaces.size() == 0)
+
+							// Does our cutter overlap at all?
+							bool cuts = false;
+							for (auto v : cutP->verts)
 							{
-								// Give ourselves a face to crack
-								inCutFace_t* clone = new inCutFace_t;
-								cloneFaceInto(self, clone);
-								clone->meshPart = self;
-								self->cutFaces.push_back(clone);
+								// Full faces for collision testing
+								if (pointInConvexMeshPart(self, *v->vert + cutter->origin - mesh.origin))
+								{
+									cuts = true;
+									break;
+								}
 							}
 
-							faceSnips(mesh, *cutter, self, cutP);
+							if (cuts)
+							{
+								// At this point we should be in a valid cut
+								if (!self->sliced || self->sliced->collision.size() == 0)
+								{
+									// Give ourselves a face to crack
+									fillSlicedData(self);
+								}
 
-							self->isCut = true;
+								faceSnips(mesh, *cutter, self, cutP, self->sliced->collision);
+							}
 
 						}
 					}
@@ -788,11 +799,35 @@ void applyCuts(cuttableMesh_t& mesh, std::vector<mesh_t*>& cutters)
 		}
 
 	}
-	delete[] precomp;
 
 	// Mark em all as cut
 	for (auto p : mesh.parts)
-		for (auto f : p->cutFaces)
-			f->flags |= FaceFlags::FF_CUT;
+		if(p->sliced)
+			for (auto f : p->sliced->collision)
+				f->flags |= FaceFlags::FF_CUT;
 }
 
+
+void clearSlicedData(slicedMeshPartData_t* sliced)
+{
+	if (!sliced)
+		return;
+	for (auto f : sliced->collision)
+		delete f;
+	//for (auto f : sliced->tris)
+	//	delete f;
+	sliced->collision.clear();
+	//sliced->tris.clear();
+	sliced->cutVerts.clear(); // This makes referecens back into the mesh! Do not delete!
+}
+
+void fillSlicedData(meshPart_t* part)
+{
+	if (!part->sliced)
+		part->sliced = new slicedMeshPartData_t;
+	// Give ourselves a face to crack
+	inCutFace_t* clone = new inCutFace_t;
+	cloneFaceInto(part, clone);
+	clone->meshPart = part;
+	part->sliced->collision.push_back(clone);
+}

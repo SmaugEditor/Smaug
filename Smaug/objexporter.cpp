@@ -51,7 +51,7 @@ char* COBJExporter::Export(CWorldEditor* world)
 		
 
 		for (auto p : mesh.parts)
-			for (auto f : p->isCut ? p->cutFaces : p->fullFaces)
+			for (auto f : p->tris)
 			{
 				// If we have < 3 verts, dump this bozo
 				if (f->verts.size() < 3)
