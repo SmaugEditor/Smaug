@@ -451,7 +451,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			}
 
 			vert = between;
-		} while (vert->edge->vert->edge->vert != convexStart
+		} while (vert->edge->vert/*->edge->vert*/ != convexStart
 		&& sanity < face->verts.size());
 
 		// I mean, if every vertex is concave, I guess it's convex? Right? Backwards normal?		
