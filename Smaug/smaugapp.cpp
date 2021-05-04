@@ -9,7 +9,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigDockingWithShift = true;
+	//io.ConfigDockingWithShift = true;
 
 	GetWorldRenderer().Init();
 
