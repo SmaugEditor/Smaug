@@ -310,7 +310,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 	halfEdge_t gapFiller;
 	
 	// Get the norm of the face for later testing 
-	//glm::vec3 faceNorm = faceNormal(&mesh);
+	glm::vec3 faceNorm = mesh.normal;//faceNormal(&mesh);
 	
 	size_t len = faceVec.size();
 	for (size_t i = 0; i < len; i++)
@@ -321,18 +321,25 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 
 
 		// Get the norm of the face for later testing 
-		glm::vec3 faceNorm = faceNormal(face);
+		//glm::vec3 faceNorm = faceNormal(face);
+
+		int sanity = 0;
+
+		vertex_t *vStart, *convexStart, *vert;
+		
+		// We only want to start cutting when our convexStart is a concave
+		bool startSlicing = false;
 
 		startOfLoop:
 		// Discard Tris, they're already convex
 		if (face->edges.size() < 4)
 			continue;
 
-		vertex_t* vStart = face->verts.front(),
-			    * convexStart = vStart,
-			    * vert = vStart;
-		
-		int sanity = 0;
+		vStart = face->verts.front();
+		convexStart = vStart;
+		vert = vStart;
+		sanity = 0;
+		startSlicing = false;
 		do
 		{
 			vertex_t* between = vert->edge->vert;
@@ -361,76 +368,85 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 				// Uh oh! This'll make us concave!
 				concave = true;
 			}
-			else
+			
+			
+			if(startSlicing)
 			{
-				// Would trying to connect up to convex start make us concave?
-				glm::vec3 bridge1 = (*end->vert) - (*convexStart->vert);
-				glm::vec3 bridge2 = (*convexStart->vert) - (*convexStart->edge->vert->vert);
-				glm::vec3 bridgeNormal = glm::cross(bridge1, bridge2);
-				float bridgeDot = glm::dot(bridgeNormal, faceNorm);
-
-				if (bridgeDot < 0)
-					concave = true;
-				else
+				if (!concave)
 				{
-					bridge1 = (*between->vert) - (*end->vert);
-					bridge2 = (*end->vert) - (*convexStart->vert);
-					bridgeNormal = glm::cross(bridge1, bridge2);
-					bridgeDot = glm::dot(bridgeNormal, faceNorm);
+
+					// If we're working out a slice, we need to make sure the slice is convex
+
+					// Would trying to connect up to convex start make us concave?
+					glm::vec3 bridge1 = (*end->vert) - (*convexStart->vert);
+					glm::vec3 bridge2 = (*convexStart->vert) - (*convexStart->edge->vert->vert);
+					glm::vec3 bridgeNormal = glm::cross(bridge1, bridge2);
+					float bridgeDot = glm::dot(bridgeNormal, faceNorm);
+
 					if (bridgeDot < 0)
 						concave = true;
-				}
-
-			}
-			
-			if(!concave)
-			{
-				// Hmm... Doesn't seem concave... Let's double check
-				// Patch up the mesh and perform a point test
-				
-				// Shouldnt need to store between's edge's next...
-				halfEdge_t* tempHE = end->edge;
-				
-				// Temp patch it
-				halfEdge_t* cse = convexStart->edge;
-				gapFiller.next = cse;
-				gapFiller.vert = convexStart;
-
-				end->edge = &gapFiller;
-				between->edge->next = &gapFiller;
-				
-				// Loop over our remaining verts and check if in our convex fit
-				for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
-				{
-					if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
+					else
 					{
-						// Uh oh concave!
-						concave = true;
-						break;
+						bridge1 = (*between->vert) - (*end->vert);
+						bridge2 = (*end->vert) - (*convexStart->vert);
+						bridgeNormal = glm::cross(bridge1, bridge2);
+						bridgeDot = glm::dot(bridgeNormal, faceNorm);
+
+						if (bridgeDot < 0)
+							concave = true;
 					}
 				}
+			
+				if(!concave)
+				{
+					// Hmm... Doesn't seem concave... Let's double check
+					// Patch up the mesh and perform a point test
+				
+					// Shouldnt need to store between's edge's next...
+					halfEdge_t* tempHE = end->edge;
+				
+					// Temp patch it
+					halfEdge_t* cse = convexStart->edge;
+					gapFiller.next = cse;
+					gapFiller.vert = convexStart;
 
-				// Undo our patch
-				end->edge = tempHE;
-				between->edge->next = tempHE;
+					end->edge = &gapFiller;
+					between->edge->next = &gapFiller;
+				
+					// Loop over our remaining verts and check if in our convex fit
+					for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
+					{
+						if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
+						{
+							// Uh oh concave!
+							concave = true;
+							break;
+						}
+					}
+
+					// Undo our patch
+					end->edge = tempHE;
+					between->edge->next = tempHE;
+				}
 			}
 
 			if (concave)
 			{
 				// This shape's concave!
-				// We'll need to cap off this shape at whatever we had last time...
 				
-				if (vert == convexStart)
+				if (startSlicing && convexStart != vert)
 				{
-					// Shift forwards and try that one later
-					convexStart = convexStart->edge->vert;
-					sanity++;
-				}
-				else
-				{
+					// We'll need to cap off this shape at whatever we had last time...
 					// Connect between and start
 					sliceMeshPartFaceUnsafe(mesh, faceVec, face, between, convexStart);
 					goto startOfLoop;
+				}
+				else
+				{
+					startSlicing = true;
+					// Shift forwards and try that one later
+					convexStart = between;// convexStart->edge->vert;
+					sanity++;
 				}
 			}
 
