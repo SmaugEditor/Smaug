@@ -25,7 +25,7 @@ BEGIN_SVAR_TABLE(C3DViewSettings)
 	DEFINE_TABLE_SVAR(moveSpeed,         10.0f)
 	DEFINE_TABLE_SVAR(mouseSensitivity,  2.0f)
 	DEFINE_TABLE_SVAR(panningMultiplier, 20.0f)
-	DEFINE_TABLE_SVAR(scrollSpeed,       60.0f)
+	DEFINE_TABLE_SVAR(scrollSpeed,       2.0f)
 	DEFINE_TABLE_SVAR_INPUT(forward,      GLFW_KEY_W, false)
 	DEFINE_TABLE_SVAR_INPUT(backward,     GLFW_KEY_S, false)
 	DEFINE_TABLE_SVAR_INPUT(left,         GLFW_KEY_A, false)
@@ -120,6 +120,7 @@ void C3DView::Update(float dt, float mx, float my)
 			m_panView.mouseStartPos = { mx, my };
 			m_panView.cameraStartPos = m_cameraPos;
 			m_panView.panning = true;
+			return;
 		}
 	}
 	else
@@ -136,6 +137,7 @@ void C3DView::Update(float dt, float mx, float my)
 		{
 			// Apply the pan
 			m_panView.panning = false;
+			return;
 		}
 	}
 
@@ -143,27 +145,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 	if (!m_panView.panning)
 	{
-		float scrollDelta = io.MouseWheel * s_3dViewSettings.scrollSpeed;
-		if (scrollDelta != 0)
-		{
-
-			if (m_controllingCamera)
-			{
-				// Run TransformMousePos backwards to keep our mouse pos stable
-				moveDelta += scrollDelta * forwardDir;
-			}
-			else
-			{
-				// Run TransformMousePos backwards to keep our mouse pos stable
-				moveDelta += ((mx * 2 - 1) * (scrollDelta * m_aspectRatio) - mx) * rightDir;
-				moveDelta -= ((my * 2 - 1) * (scrollDelta)-my) * upDir;
-				moveDelta += scrollDelta * forwardDir;
-			}
-		}
-
-
-
-
+		
 		float forward = Input().Axis(s_3dViewSettings.forward, s_3dViewSettings.backward);
 		float right = Input().Axis(s_3dViewSettings.right, s_3dViewSettings.left);
 		float up = Input().Axis(s_3dViewSettings.up, s_3dViewSettings.down);
@@ -182,6 +164,26 @@ void C3DView::Update(float dt, float mx, float my)
 		moveDelta.y += up;
 
 		moveDelta *= s_3dViewSettings.moveSpeed * dt;
+
+
+		float scrollDelta = io.MouseWheel * s_3dViewSettings.scrollSpeed;
+		if (scrollDelta != 0)
+		{
+			moveDelta += scrollDelta * forwardDir;
+			/*
+			if (m_controllingCamera)
+			{
+				moveDelta += scrollDelta * forwardDir;
+			}
+			else
+			{
+				// Run TransformMousePos backwards to keep our mouse pos stable
+				moveDelta += ((mx * 2 - 1) * (scrollDelta * m_aspectRatio) - mx) * rightDir;
+				moveDelta -= ((my * 2 - 1) * (scrollDelta)-my) * upDir;
+				moveDelta += scrollDelta * forwardDir;
+			}
+			*/
+		}
 
 		m_cameraPos += moveDelta;
 	}
