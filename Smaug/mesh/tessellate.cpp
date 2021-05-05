@@ -20,10 +20,12 @@ void swap(T& a, T& b)
 
 // For use where we know which side's going to end up larger
 // Returns the new face
+
 face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end)
 {
 	face_t* newFace = new face_t;
-	newFace->meshPart = &mesh;
+	
+	newFace->parent = &mesh;
 	newFace->flags = face->flags;
 	faceVec.push_back(newFace);
 
@@ -307,6 +309,7 @@ void triangluateMeshPartConvexFaces(meshPart_t& mesh, std::vector<face_t*>& face
 // It might be slow, bench it later
 void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 {
+	
 	halfEdge_t gapFiller;
 	
 	// Get the norm of the face for later testing 
@@ -464,5 +467,46 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 	// Mark our creation as convex
 	for (auto f : faceVec)
 		f->flags |= FaceFlags::FF_CONVEX;
+
+}
+
+void optimizeParallelEdges(meshPart_t* part, std::vector<face_t*>& faceVec)
+{
+
+	size_t len = faceVec.size();
+	for (size_t i = 0; i < len; i++)
+	{
+		face_t* face = faceVec[i];
+		if (!face)
+			continue;
+
+		vertex_t* vStart, * vert;
+
+	startOfLoop:
+		// Discard Tris, they're already perfect
+		if (face->edges.size() < 4)
+			continue;
+
+		vStart = face->verts.front();
+		vert = vStart;
+
+		do
+		{
+			vertex_t* between = vert->edge->vert;
+			vertex_t* end = between->edge->vert;
+
+			glm::vec3 edge1 = (*vert->vert) - (*between->vert);
+			glm::vec3 edge2 = (*between->vert) - (*end->vert);
+			glm::vec3 triNormal = glm::cross(edge1, edge2);
+
+			if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0)
+			{
+				fuseEdges(face, vert);
+				goto startOfLoop;
+			}
+
+			vert = between;
+		} while (vert->edge->vert != vStart);
+	}
 
 }

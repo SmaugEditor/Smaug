@@ -57,7 +57,7 @@ void CDebugDraw::HELoop(vertex_t* start, vertex_t* end, glm::vec3 color, float w
 
 void CDebugDraw::HEFace(face_t* face, glm::vec3 color, float width, float decay)
 {
-    glm::vec3 offset = face->meshPart->mesh->origin;
+    glm::vec3 offset = parentMesh(face)->origin;
 
     vertex_t* cur = face->verts.front(), *end = cur;
     do

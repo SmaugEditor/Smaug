@@ -31,7 +31,8 @@ enum FaceFlags : char
 {
 	FF_NONE = 0,
 	FF_CUT = 1,
-	FF_CONVEX = 2
+	FF_CONVEX = 2,
+	FF_MESH_PART = 4
 };
 MAKE_BITFLAG(FaceFlags);
 enum EdgeFlags : char
@@ -88,8 +89,8 @@ struct face_t
 
 	std::vector<vertex_t*> verts;
 
-	// What part of the mesh we belong to.
-	meshPart_t* meshPart = nullptr;
+	// What do we belong to? Could be a meshpart, face, or etc.
+	face_t* parent = nullptr;
 
 
 	FaceFlags flags = FaceFlags::FF_NONE;
@@ -115,11 +116,15 @@ struct slicedMeshPartData_t
 
 	// List of cut vertexes used by this part. Do not delete! We don't own these.
 	std::vector<glm::vec3*> cutVerts;
+
+	// List of faces produced by the cut. Most likely concave.
+	std::vector<face_t*> faces;
 };
 
 // A mesh part is a face that is part of a larger mesh that holds more faces
 struct meshPart_t : public face_t
 {
+	meshPart_t() { flags = FaceFlags::FF_MESH_PART; }
 	~meshPart_t();
 
 	// Neither the collision vector nor the tris vector should be used for true mesh editing, as they are constantly regenerated.
@@ -196,3 +201,6 @@ void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill);
 
 
 void cloneFaceInto(face_t* in, face_t* cloneOut);
+
+inline meshPart_t* parentPart(face_t* f) { if (!f) return 0; if (f->flags & FaceFlags::FF_MESH_PART) return static_cast<meshPart_t*>(f); if (f->parent) return parentPart(f->parent); return 0; }
+inline mesh_t* parentMesh(face_t* f) { if (!f) return 0; meshPart_t* part = parentPart(f); if (part) return part->mesh; return 0; }

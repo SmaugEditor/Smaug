@@ -152,7 +152,7 @@ void defineMeshPartFaces(meshPart_t& mesh)
 
 	face_t* f = new face_t;
 	mesh.collision.push_back(f);
-	f->meshPart = &mesh;
+	f->parent = &mesh;
 	
 	if (mesh.verts.size() == 0)
 		return;
@@ -180,7 +180,7 @@ void cloneFaceInto(face_t* in, face_t* cloneOut)
 {
 	defineFace(cloneOut, { (void*)&in->verts, &vertVectorAccessor }, in->verts.size());
 	cloneOut->flags = in->flags;
-	cloneOut->meshPart = in->meshPart;
+	cloneOut->parent = in->parent;
 }
 
 
@@ -273,6 +273,6 @@ slicedMeshPartData_t::~slicedMeshPartData_t()
 	for (auto f : collision)
 		delete f;
 
-	//for (auto f : tris)
-	//	delete f;
+	for (auto f : faces)
+		delete f;
 }

@@ -288,12 +288,13 @@ void CNode::PreviewUpdateThisOnly()
 	{
 		defineMeshPartFaces(*pa);
 		convexifyMeshPartFaces(*pa, pa->collision);
+		//optimizeParallelEdges(pa, pa->collision);
 	}
 
 	std::vector<mesh_t*> cutters;
-	for (auto c : m_cutters)
-		cutters.push_back(&c->m_mesh);
-	applyCuts(m_mesh, cutters);
+	for (auto c : GetWorldEditor().m_nodes)
+		cutters.push_back(&c.second->m_mesh);
+	applyCuts(&m_mesh, cutters);
 
 	for (auto pa : m_mesh.parts)
 	{
@@ -311,15 +312,32 @@ void CNode::PreviewUpdateThisOnly()
 		}
 		convexifyMeshPartFaces(*pa, pa->collision);
 		*/
+
+		//for (auto m : m_mesh.parts)
 		
-		if(pa->sliced)
-			convexifyMeshPartFaces(*pa, pa->sliced->collision);
+		if (pa->sliced)
+		{
+			optimizeParallelEdges(pa, pa->sliced->faces);
+			for (auto cf : pa->sliced->faces)
+			{
+				face_t* f = new face_t;
+				cloneFaceInto(cf, f);
+				f->parent = cf;
+				std::vector<face_t*> temp;
+				temp.push_back(f);
+				convexifyMeshPartFaces(*pa, temp);
+				optimizeParallelEdges(pa, temp);
+				for(auto t : temp)
+					pa->sliced->collision.push_back(t);
+			}
+		}
 
 
 		for (auto cf : pa->tris)
 			delete cf;
 		pa->tris.clear();
 
+		
 		for (auto cf : pa->sliced ? pa->sliced->collision : pa->collision)
 		{
 			face_t* f = new face_t;
