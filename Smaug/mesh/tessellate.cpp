@@ -332,8 +332,12 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		
 		// We only want to start cutting when our convexStart is a concave
 		bool startSlicing = false;
-
-		startOfLoop:
+		
+		// We're not always going to be able to concave connect...
+		// But it's at least worth trying to the first time around?
+		// TODO: Check!
+		bool forgetConcConnect = false;
+	startOfLoop:
 		// Discard Tris, they're already convex
 		if (face->edges.size() < 4)
 			continue;
@@ -342,7 +346,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		convexStart = vStart;
 		vert = vStart;
 		sanity = 0;
-		startSlicing = false;
+		startSlicing = forgetConcConnect;
 		do
 		{
 			vertex_t* between = vert->edge->vert;
@@ -351,10 +355,13 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			glm::vec3 edge1 = (*vert->vert) - (*between->vert);
 			glm::vec3 edge2 = (*between->vert) - (*end->vert);
 			glm::vec3 triNormal = glm::cross(edge1, edge2);
+			float triDot = glm::dot(edge1, edge2);
 
 
-			if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0)
+			if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0 && triDot < 0)
 			{
+				//printf("%f dot\n", triDot);
+				//DebugDraw().HEFace(face, randColorHue(), 0.25, 1000);
 				// We got a zero area tri! Yuck!!
 				//SASSERT(0);
 				fuseEdges(face, vert);
@@ -373,63 +380,66 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			}
 			
 			
-			if(startSlicing)
+			if (startSlicing)
 			{
-				if (!concave)
+				if (vert != convexStart)
 				{
-
-					// If we're working out a slice, we need to make sure the slice is convex
-
-					// Would trying to connect up to convex start make us concave?
-					glm::vec3 bridge1 = (*end->vert) - (*convexStart->vert);
-					glm::vec3 bridge2 = (*convexStart->vert) - (*convexStart->edge->vert->vert);
-					glm::vec3 bridgeNormal = glm::cross(bridge1, bridge2);
-					float bridgeDot = glm::dot(bridgeNormal, faceNorm);
-
-					if (bridgeDot < 0)
-						concave = true;
-					else
+					if (!concave)
 					{
-						bridge1 = (*between->vert) - (*end->vert);
-						bridge2 = (*end->vert) - (*convexStart->vert);
-						bridgeNormal = glm::cross(bridge1, bridge2);
-						bridgeDot = glm::dot(bridgeNormal, faceNorm);
+
+						// If we're working out a slice, we need to make sure the slice is convex
+
+						// Would trying to connect up to convex start make us concave?
+						glm::vec3 bridge1 = (*end->vert) - (*convexStart->vert);
+						glm::vec3 bridge2 = (*convexStart->vert) - (*convexStart->edge->vert->vert);
+						glm::vec3 bridgeNormal = glm::cross(bridge1, bridge2);
+						float bridgeDot = glm::dot(bridgeNormal, faceNorm);
 
 						if (bridgeDot < 0)
 							concave = true;
-					}
-				}
-			
-				if(!concave)
-				{
-					// Hmm... Doesn't seem concave... Let's double check
-					// Patch up the mesh and perform a point test
-				
-					// Shouldnt need to store between's edge's next...
-					halfEdge_t* tempHE = end->edge;
-				
-					// Temp patch it
-					halfEdge_t* cse = convexStart->edge;
-					gapFiller.next = cse;
-					gapFiller.vert = convexStart;
-
-					end->edge = &gapFiller;
-					between->edge->next = &gapFiller;
-				
-					// Loop over our remaining verts and check if in our convex fit
-					for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
-					{
-						if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
+						else
 						{
-							// Uh oh concave!
-							concave = true;
-							break;
+							bridge1 = (*between->vert) - (*end->vert);
+							bridge2 = (*end->vert) - (*convexStart->vert);
+							bridgeNormal = glm::cross(bridge1, bridge2);
+							bridgeDot = glm::dot(bridgeNormal, faceNorm);
+
+							if (bridgeDot < 0)
+								concave = true;
 						}
 					}
 
-					// Undo our patch
-					end->edge = tempHE;
-					between->edge->next = tempHE;
+					if (!concave)
+					{
+						// Hmm... Doesn't seem concave... Let's double check
+						// Patch up the mesh and perform a point test
+
+						// Shouldnt need to store between's edge's next...
+						halfEdge_t* tempHE = end->edge;
+
+						// Temp patch it
+						halfEdge_t* cse = convexStart->edge;
+						gapFiller.next = cse;
+						gapFiller.vert = convexStart;
+
+						end->edge = &gapFiller;
+						between->edge->next = &gapFiller;
+
+						// Loop over our remaining verts and check if in our convex fit
+						for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
+						{
+							if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
+							{
+								// Uh oh concave!
+								concave = true;
+								break;
+							}
+						}
+
+						// Undo our patch
+						end->edge = tempHE;
+						between->edge->next = tempHE;
+					}
 				}
 			}
 
@@ -454,9 +464,19 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			}
 
 			vert = between;
-		} while (vert->edge->vert/*->edge->vert*/ != convexStart
-		&& sanity < face->verts.size());
+		} while ((startSlicing ? vert->edge->vert : vert) /*->edge->vert*/ != convexStart
+		&& sanity <= face->verts.size());
 
+		if (sanity >= face->verts.size() && !forgetConcConnect )
+		{
+			// If we get to this point, one of two things have happened
+			// 1) The mesh is terrible
+			// 2) We could not make any direct concave to concave connections
+			// Let's assume 2 and try again...
+			forgetConcConnect = true;
+			goto startOfLoop;
+		}
+		SASSERT_S(!startSlicing);
 		// I mean, if every vertex is concave, I guess it's convex? Right? Backwards normal?		
 		//if (sanity >= face->verts.size())
 		//	printf("sanity check failure\n");
