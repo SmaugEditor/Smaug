@@ -196,6 +196,9 @@ glm::vec3 faceCenter(face_t* face);
 glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter = nullptr);
 glm::vec3 convexFaceNormal(face_t* face);
 glm::vec3 vertNextNormal(vertex_t* vert);
+unsigned int edgeLoopCount(vertex_t* sv);
+inline unsigned int edgeLoopCount(halfEdge_t* sh) { return edgeLoopCount(sh->vert); }
+
 
 void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill);
 

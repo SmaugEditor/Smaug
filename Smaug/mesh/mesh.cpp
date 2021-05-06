@@ -226,6 +226,17 @@ void cloneFaceInto(face_t* in, face_t* cloneOut)
 }
 
 
+unsigned int edgeLoopCount(vertex_t* sv)
+{
+	unsigned int i = 0;
+	vertex_t* v = sv;
+	do
+	{
+		i++;
+		v = v->edge->vert;
+	} while (v != sv);
+	return i;
+}
 
 aabb_t meshAABB(mesh_t& mesh)
 {
