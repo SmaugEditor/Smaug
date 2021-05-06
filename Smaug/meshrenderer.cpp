@@ -27,7 +27,7 @@ static bgfx::VertexLayout MeshVertexLayout()
 }
 
 
-CMeshRenderer::CMeshRenderer(cuttableMesh_t& mesh) : m_mesh(mesh), m_indexCount(0)
+CMeshRenderer::CMeshRenderer(cuttableMesh_t& mesh) : m_mesh(mesh), m_indexCount(0), m_empty(false)
 {
 }
 
@@ -39,10 +39,17 @@ CMeshRenderer::~CMeshRenderer()
 
 void CMeshRenderer::RebuildRenderData()
 {
-	const bgfx::Memory* vertBuf;
-	const bgfx::Memory* indexBuf;
+	const bgfx::Memory* vertBuf = nullptr;
+	const bgfx::Memory* indexBuf = nullptr;
 
 	BuildRenderData(vertBuf, indexBuf);
+
+	if (!vertBuf || !indexBuf)
+	{
+		m_empty = true;
+		return;
+	}
+	m_empty = false;
 
 	if (m_vertexBuf.idx != bgfx::kInvalidHandle)
 	{
@@ -64,7 +71,9 @@ void CMeshRenderer::Render()
 
 void CMeshRenderer::Render(CModelTransform trnsfm)
 {
-	
+	if (m_empty)
+		return;
+
 	trnsfm.SetLocalOrigin(trnsfm.GetLocalOrigin() + m_mesh.origin);
 	glm::mat4 mtx = trnsfm.Matrix();
 	
@@ -100,8 +109,10 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 	}
 
-	SASSERT(indexCount > 0);
-
+	//SASSERT(indexCount > 0);
+	if (indexCount == 0)
+		return;
+	
 	// Allocate our buffers
 	// bgfx cleans these up for us
 	vertBuf = bgfx::alloc(MeshVertexLayout().getSize(vertexCount));

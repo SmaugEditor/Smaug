@@ -26,5 +26,7 @@ private:
 	bgfx::DynamicVertexBufferHandle m_vertexBuf = BGFX_INVALID_HANDLE;
 	bgfx::DynamicIndexBufferHandle m_indexBuf = BGFX_INVALID_HANDLE;
 	int m_indexCount;
+
+	bool m_empty;
 };
 
