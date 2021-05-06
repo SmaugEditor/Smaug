@@ -288,7 +288,7 @@ void CNode::PreviewUpdateThisOnly()
 	{
 		defineMeshPartFaces(*pa);
 		convexifyMeshPartFaces(*pa, pa->collision);
-		//optimizeParallelEdges(pa, pa->collision);
+		optimizeParallelEdges(pa, pa->collision);
 	}
 
 	std::vector<mesh_t*> cutters;
