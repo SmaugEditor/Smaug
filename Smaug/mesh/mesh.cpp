@@ -108,6 +108,8 @@ void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 	halfEdge_t* lastHe = nullptr;
 	for (int i = 0; i < vecCount; i++)
 	{
+		// HE stems out of V
+
 		halfEdge_t* he = new halfEdge_t{};
 		he->face = face;
 		he->flags |= EdgeFlags::EF_OUTER;
@@ -178,7 +180,47 @@ glm::vec3*& vertVectorAccessor(void* vec, size_t i)
 
 void cloneFaceInto(face_t* in, face_t* cloneOut)
 {
-	defineFace(cloneOut, { (void*)&in->verts, &vertVectorAccessor }, in->verts.size());
+	// Clear out our old data
+	for (auto v : cloneOut->verts)
+		if (v) delete v;
+	for (auto e : cloneOut->edges)
+		if (e) delete e;
+	cloneOut->verts.clear();
+	cloneOut->edges.clear();
+
+	vertex_t*   lastCloneVert = nullptr;
+	halfEdge_t* lastCloneEdge = nullptr;
+
+	vertex_t* vs = in->verts.front(), *v = vs;
+	do
+	{
+		// Clone this vert and the edge that stems out of it
+		halfEdge_t* ch = new halfEdge_t;
+		ch->face = cloneOut;
+		ch->flags = v->edge->flags;
+		vertex_t* cv = new vertex_t{v->vert, ch};
+		
+		if (lastCloneVert)
+		{
+			lastCloneEdge->next = ch;
+			lastCloneEdge->vert = cv;
+		}
+
+		cloneOut->verts.push_back(cv);
+		cloneOut->edges.push_back(ch);
+
+		lastCloneVert = cv;
+		lastCloneEdge = ch;
+
+		v = v->edge->vert;
+	} while (v != vs);
+
+	if (lastCloneEdge)
+	{
+		lastCloneEdge->next = cloneOut->edges.front();
+		lastCloneEdge->vert = cloneOut->verts.front();
+	}
+
 	cloneOut->flags = in->flags;
 	cloneOut->parent = in->parent;
 }
