@@ -8,6 +8,12 @@ static inline void WriteVertex(glm::vec3 vec, std::stringstream& stream)
 	stream << "v " << vec.x << " " << vec.y << " " << vec.z << "\n";
 }
 
+static inline void WriteNorm(glm::vec3 vec, std::stringstream& stream)
+{
+	stream << "vn " << vec.x << " " << vec.y << " " << vec.z << "\n";
+}
+
+
 char* COBJExporter::Export(CWorldEditor* world)
 {
 	std::stringstream stream;
@@ -37,10 +43,17 @@ char* COBJExporter::Export(CWorldEditor* world)
 		stream << "# - Cut Verts\n";
 		for (glm::vec3* v : mesh.cutVerts)
 			WriteVertex(*v + origin, stream);
+
+		stream << "# - Part Norms\n";
+		for (meshPart_t* p : mesh.parts)
+			WriteNorm(p->normal, stream);
+
 	}
 
 	int vertOffset = 1;
 	stream << "\n# Faces\n";
+	int partNormOffset = 1;
+
 	for (auto p : GetWorldEditor().m_nodes)
 	{
 		CNode* node = p.second;
@@ -51,6 +64,8 @@ char* COBJExporter::Export(CWorldEditor* world)
 		
 
 		for (auto p : mesh.parts)
+		{
+
 			for (auto f : p->tris)
 			{
 				// If we have < 3 verts, dump this bozo
@@ -82,11 +97,14 @@ char* COBJExporter::Export(CWorldEditor* world)
 					}
 
 					stream << " " << (vert + vertOffset);
+					stream << "//" << partNormOffset;
 				}
 
 				stream << "\n";
 			}
-	
+			partNormOffset++;
+		}
+
 		vertOffset += mesh.verts.size() + mesh.cutVerts.size();
 	}
 
