@@ -863,8 +863,7 @@ void applyCuts(cuttableMesh_t* mesh, std::vector<mesh_t*>& cutters)
 							}
 						*/
 
-					// If we have a mix of inside or onEdge, we need to snip, not engulf.
-					if (faceInSlicer.outside == 0 && (faceInSlicer.onEdge == face->verts.size() || faceInSlicer.inside == face->verts.size()))
+					if (faceInSlicer.outside == 0 && (faceInSlicer.onEdge + faceInSlicer.inside == face->verts.size() ))
 					{
 						DEBUG_PRINT("-- Engulfed\n");
 						// Engulfed faces need to get culled off and completely dropped
