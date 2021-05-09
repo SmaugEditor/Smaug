@@ -382,7 +382,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			
 			if (startSlicing)
 			{
-				if (vert != convexStart)
+				//if (vert != convexStart)
 				{
 					if (!concave)
 					{
@@ -408,38 +408,37 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 								concave = true;
 						}
 					}
+				}
+				if (!concave)
+				{
+					// Hmm... Doesn't seem concave... Let's double check
+					// Patch up the mesh and perform a point test
 
-					if (!concave)
+					// Shouldnt need to store between's edge's next...
+					halfEdge_t* tempHE = end->edge;
+
+					// Temp patch it
+					halfEdge_t* cse = convexStart->edge;
+					gapFiller.next = cse;
+					gapFiller.vert = convexStart;
+
+					end->edge = &gapFiller;
+					between->edge->next = &gapFiller;
+
+					// Loop over our remaining verts and check if in our convex fit
+					for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
 					{
-						// Hmm... Doesn't seem concave... Let's double check
-						// Patch up the mesh and perform a point test
-
-						// Shouldnt need to store between's edge's next...
-						halfEdge_t* tempHE = end->edge;
-
-						// Temp patch it
-						halfEdge_t* cse = convexStart->edge;
-						gapFiller.next = cse;
-						gapFiller.vert = convexStart;
-
-						end->edge = &gapFiller;
-						between->edge->next = &gapFiller;
-
-						// Loop over our remaining verts and check if in our convex fit
-						for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
+						if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
 						{
-							if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
-							{
-								// Uh oh concave!
-								concave = true;
-								break;
-							}
+							// Uh oh concave!
+							concave = true;
+							break;
 						}
-
-						// Undo our patch
-						end->edge = tempHE;
-						between->edge->next = tempHE;
 					}
+
+					// Undo our patch
+					end->edge = tempHE;
+					between->edge->next = tempHE;
 				}
 			}
 
