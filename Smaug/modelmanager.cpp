@@ -62,7 +62,7 @@ public:
         mtx = glm::scale(mtx, scale);
         mtx *= glm::yawPitchRoll(time * 1.75f, time * 0.5f, 0.0f);
         BasicDraw().Cube(mtx);
-        bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::ERROR_MODEL_SHADER));// , BGFX_DISCARD_NONE);
+        //bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::ERROR_MODEL_SHADER));// , BGFX_DISCARD_NONE);
     }
     virtual void Render(CModelTransform* transform)
     {
@@ -73,7 +73,7 @@ public:
         mtx = glm::scale(mtx, transform ? transform->GetAbsScale() : glm::vec3(2.5));
         mtx *= glm::yawPitchRoll(time * 1.75f, time * 0.5f, 0.0f);
         BasicDraw().Cube(mtx);
-        bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::ERROR_MODEL_SHADER));// , BGFX_DISCARD_NONE);
+       // bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::ERROR_MODEL_SHADER));// , BGFX_DISCARD_NONE);
     }
 };
 

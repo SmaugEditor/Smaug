@@ -16,8 +16,6 @@ public:
 
 private:
 
-	bgfx::VertexBufferHandle m_cubeVertexBuf;
-	bgfx::IndexBufferHandle m_cubeIndexBuf;
 
 	bgfx::VertexBufferHandle m_planeVertexBuf;
 	bgfx::IndexBufferHandle m_planeIndexBuf;
