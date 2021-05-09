@@ -1,8 +1,7 @@
 # Smaug
 A map editor designed for rapid iteration
 
-
-
+[Discord Server](https://discord.gg/ePnUDsKtWZ)
 
 All files under ./Smaug/mesh are licensed under LGPL-2.1
 
