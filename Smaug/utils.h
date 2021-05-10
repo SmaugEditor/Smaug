@@ -6,6 +6,7 @@
 #include <glm/vec3.hpp>
 #include <bgfx/bgfx.h>
 #include <cmath>
+#include <initializer_list>
 
 const double PI = 3.141592653589793238463;
 
@@ -124,3 +125,25 @@ inline enumName& operator ^=  (enumName& a, enumName b) { a = static_cast<enumNa
 inline enumName& operator <<= (enumName& a, int b)      { a = static_cast<enumName>(a >> b); return a; } \
 inline enumName& operator >>= (enumName& a, int b)      { a = static_cast<enumName>(a << b); return a; } \
 inline enumName  operator ~   (enumName a) { return static_cast<enumName>(~(char)a); }
+
+namespace CommandLine
+{
+	void Set(int argc, const char* const* argv);
+	
+	bool HasParam(const char* param);
+	const char* GetParam(const char* param);
+	int GetInt(const char* param);
+	float GetFloat(const char* param);
+	
+	template<class ...T>
+	inline bool HasAny(T...params)
+	{
+		const char* args[] = {
+			params...
+		};
+		for(int i = 0; i < sizeof...(params); i++)
+			if(HasParam(args[i]))
+				return true;
+		return false;
+	}
+}

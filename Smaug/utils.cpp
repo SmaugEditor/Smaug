@@ -1,5 +1,7 @@
 #include "utils.h"
 #include <bigg.hpp>
+#include <cstring>
+#include <charconv>
 
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
 {
@@ -231,3 +233,53 @@ glm::vec3 Angles(glm::vec3 forward, glm::vec3* up)
 	return { pitch, yaw, roll };
 }
 
+namespace CommandLine
+{
+	const char* const* argv; 
+	int argc;
+}
+
+
+void CommandLine::Set(int argc, const char* const* argv)
+{
+	CommandLine::argv = argv;
+	CommandLine::argc = argc;
+}
+	
+bool CommandLine::HasParam(const char* param)
+{
+	for(int i = 0; i < argc; i++)
+		if(std::strcmp(param, argv[i]) == 0)
+			return true;
+	return false;
+}
+
+const char* CommandLine::GetParam(const char* param)
+{
+	for(int i = 0; i < argc; i++)
+	{
+		if(!std::strcmp(param, argv[i]))
+		{
+			if(i < argc-1)
+				return argv[i+1];
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
+
+int CommandLine::GetInt(const char* param)
+{
+	const char* val = GetParam(param);
+	if(val)
+		return std::atoi(val);
+	return 0;
+}
+
+float CommandLine::GetFloat(const char* param)
+{
+	const char* val = GetParam(param);
+	if(val)
+		return std::atof(val);
+	return 0.f;
+}
