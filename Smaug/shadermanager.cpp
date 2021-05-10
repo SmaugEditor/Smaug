@@ -15,7 +15,7 @@ s_programInfo[] = {
 	{"fs_model.bin",        "vs_model.bin"}, // Shader::EDIT_VIEW_SHADER
 	{"fs_model.bin",        "vs_model.bin"}, // Shader::CURSOR_SHADER
 	{"fs_model.bin",        "vs_model.bin"}, // Shader::MODEL_SHADER
-	{"fs_cubes.bin",        "vs_cubes.bin"}, // Shader::ERROR_MODEL_SHADER
+	{"vs_line.bin",         "vs_line.bin"}, // Shader::ERROR_MODEL_SHADER
 	{"fs_grid.bin",         "vs_grid.bin" }, // Shader::GRID
 	{"fs_line.bin",         "vs_line.bin" }, // Shader::LINE
 	
