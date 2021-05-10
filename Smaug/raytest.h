@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/vec3.hpp>
+#include <cfloat>
 #include "mesh.h"
 
 // Ray and line have the same structure, but have different purposes
@@ -54,14 +55,12 @@ struct testLineLine_t : public test_t
 
 struct tri_t
 {
-	union
-	{
-		struct
-		{
-			glm::vec3 a, b, c;
-		};
-		glm::vec3 verts[3];
-	};
+	glm::vec3 verts[3];
+
+	glm::vec3& a() { return verts[0]; };
+	glm::vec3& b() { return verts[1]; };
+	glm::vec3& c() { return verts[2]; };
+
 	glm::vec3& operator[](int i) { return verts[i]; }
 };
 

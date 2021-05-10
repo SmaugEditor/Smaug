@@ -7,36 +7,19 @@ class CNode;
 
 typedef glm::vec3 vmfPlane_t[3];
 struct vmfBrush_t
-{
-	union
-	{
+{	
+	glm::vec3 top[4];
+	glm::vec3 bottom[4];
 
-		struct
-		{
-			glm::vec3 topFrontLeft;
-			glm::vec3 topFrontRight;
+	glm::vec3& bottomFrontLeft() { return bottom[0]; };
+	glm::vec3& bottomFrontRight() { return bottom[1]; };
+	glm::vec3& bottomBackLeft() { return bottom[2]; };
+	glm::vec3& bottomBackRight() { return bottom[3]; };
 
-			glm::vec3 topBackLeft;
-			glm::vec3 topBackRight;
-		};
-
-		glm::vec3 top[4];
-	};
-
-	union
-	{
-
-		struct
-		{
-			glm::vec3 bottomFrontLeft;
-			glm::vec3 bottomFrontRight;
-
-			glm::vec3 bottomBackLeft;
-			glm::vec3 bottomBackRight;
-		};
-
-		glm::vec3 bottom[4];
-	};
+	glm::vec3& topFrontLeft() { return top[0]; };
+	glm::vec3& topFrontRight() { return top[1]; };
+	glm::vec3& topBackLeft() { return top[2]; };
+	glm::vec3& topBackRight() { return top[3]; };
 };
 
 class CVMFExporter : public CBaseExporter
@@ -52,6 +35,7 @@ private:
 
 	void AddBrush(KeyValue* parentKv, vmfBrush_t brush);
 	void AddSide(KeyValue* parentKv, vmfPlane_t plane);
+	void AddSide(KeyValue* parentKv, glm::vec3 a, glm::vec3 b, glm::vec3 c);
 	void GetId(char* str);
 	size_t m_currentId;
 };

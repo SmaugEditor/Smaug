@@ -5,6 +5,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <bgfx/bgfx.h>
+#include <cmath>
 
 const double PI = 3.141592653589793238463;
 
@@ -85,7 +86,7 @@ inline constexpr bool closeTo(float value, float target, float threshold = 0.000
 
 inline constexpr glm::vec3 dirMask(glm::vec3 vec)
 {
-	return { 1.0f - fabs(vec.x), 1.0f - fabs(vec.y), 1.0f - fabs(vec.z) };
+	return { 1.0f - std::fabs(vec.x), 1.0f - std::fabs(vec.y), 1.0f - std::fabs(vec.z) };
 }
 
 
@@ -100,11 +101,11 @@ inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 {
 	const float hueRange = 2 * PI;
 	const float onesixth = hueRange / 6;
-	float oR = clamp<float>((fabs(hue - hueRange / 2.0f) - onesixth) / onesixth, 0.0f, 1.0f);
+	float oR = clamp<float>((std::fabs(hue - hueRange / 2.0f) - onesixth) / onesixth, 0.0f, 1.0f);
 	oR = (oR * saturation + (1.0f - saturation)) * value;
-	float oG = clamp<float>((onesixth * 2.0f - fabs(hue - onesixth * 2)) / onesixth, 0.0f, 1.0f);
+	float oG = clamp<float>((onesixth * 2.0f - std::fabs(hue - onesixth * 2)) / onesixth, 0.0f, 1.0f);
 	oG = (oG * saturation + (1.0f - saturation)) * value;
-	float oB = clamp<float>((onesixth * 2.0f - fabs(hue - onesixth * 4)) / onesixth, 0.0f, 1.0f);
+	float oB = clamp<float>((onesixth * 2.0f - std::fabs(hue - onesixth * 4)) / onesixth, 0.0f, 1.0f);
 	oB = (oB * saturation + (1.0f - saturation)) * value;
 	return glm::vec3(oR, oG, oB);
 }

@@ -7,7 +7,7 @@
 #include "grid.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <imgui_internal.h>
 
 
