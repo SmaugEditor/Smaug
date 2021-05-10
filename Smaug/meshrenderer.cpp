@@ -128,7 +128,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	for (auto p : m_mesh.parts)
 	{
 
-		glm::vec3 norm = glm::normalize(faceNormal(p));
+		glm::vec3 norm = p->normal;
 		int vs = vOffset;
 		for (auto v : p->verts)
 		{
