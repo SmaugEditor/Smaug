@@ -3,6 +3,9 @@
 #include <cstring>
 #include <charconv>
 
+// Keep this private
+RendererProperties_t gRenderProps;
+
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
 {
 	// Top point is always point1
@@ -282,4 +285,37 @@ float CommandLine::GetFloat(const char* param)
 	if(val)
 		return std::atof(val);
 	return 0.f;
+}
+
+void SetRendererType(bgfx::RendererType::Enum type)
+{
+	auto old = gRenderProps.renderType;
+	gRenderProps.renderType = type;
+	
+	// Init the rest of the fields 
+	if(old != type)
+	{
+		using RT = bgfx::RendererType::Enum;
+		switch(type)
+		{
+			case RT::Direct3D11:
+			case RT::Direct3D12:
+			case RT::Direct3D9:
+				gRenderProps.coordSystem = ECoordSystem::LEFT_HANDED; 
+				break;
+			default:
+				gRenderProps.coordSystem = ECoordSystem::RIGHT_HANDED;
+		}
+	}
+	
+}
+
+bgfx::RendererType::Enum RendererType()
+{
+	return gRenderProps.renderType;
+}
+
+const RendererProperties_t& RendererProperties()
+{
+	return gRenderProps;
 }

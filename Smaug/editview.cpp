@@ -187,9 +187,11 @@ glm::vec3 CEditView::TransformMousePos(float mx, float my, glm::vec3 cameraPos)
 	glm::vec3 forward, right, up;
 	Directions(m_editPlaneAngle, &forward, &right, &up);
 
+	float inv = RendererProperties().coordSystem == ECoordSystem::LEFT_HANDED ? -1.f : 1.f;
+
 	// Put the mouse pos into the world
 	mx =  (mx * 2 - 1) * (m_viewZoom * m_aspectRatio);
-	my = -(my * 2 - 1) * (m_viewZoom);
+	my = inv * (my * 2 - 1) * (m_viewZoom);
 
 
 	//printf("%f, %f, { %f, %f, %f } - { %f, %f, %f }\n", mx, my, forward.x, forward.y, forward.z, right.x, right.y, right.z);
