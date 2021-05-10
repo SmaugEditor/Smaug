@@ -67,7 +67,7 @@ set( GLSL_VERSION 430 )
 set( DX_MODEL 5_0 )
 
 if(UNIX)
-    set( SHADER_PLATFORMS glsl )
+    set( SHADER_PLATFORMS glsl spirv )
 else()
     set( SHADER_PLATFORMS glsl dx11 )
 endif()
