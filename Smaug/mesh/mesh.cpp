@@ -152,16 +152,15 @@ void defineMeshPartFaces(meshPart_t& mesh)
 	mesh.collision.clear();
 	mesh.tris.clear();
 
-	face_t* f = new face_t;
-	mesh.collision.push_back(f);
-	f->parent = &mesh;
-	
 	if (mesh.verts.size() == 0)
 		return;
 
-	// Only give it our verts
-	C2DPYSkipArray<vertex_t, glm::vec3*> skip(mesh.verts.data(), mesh.verts[0]->vert, 0);
-	defineFace(f, skip, mesh.verts.size());
+	// Create a face clone of the part
+	face_t* f = new face_t;
+	cloneFaceInto(&mesh, f);
+	f->parent = &mesh;
+	f->flags = FaceFlags::FF_NONE;
+	mesh.collision.push_back(f);
 	
 	// Mark our edges
 	for (auto e : f->edges)
