@@ -293,7 +293,8 @@ void CNode::PreviewUpdateThisOnly()
 
 	std::vector<mesh_t*> cutters;
 	for (auto c : GetWorldEditor().m_nodes)
-		cutters.push_back(&c.second->m_mesh);
+		if (c.second != this)
+			cutters.push_back(&c.second->m_mesh);
 	applyCuts(&m_mesh, cutters);
 
 	for (auto pa : m_mesh.parts)
