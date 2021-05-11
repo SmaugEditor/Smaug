@@ -95,7 +95,8 @@ void C3DView::Update(float dt, float mx, float my)
 
 	if (m_controllingCamera)
 	{
-		glm::vec3 angleDelta = glm::vec3(io.MouseDelta.y, -io.MouseDelta.x, 0);
+		float dyMul = RendererProperties().coordSystem == ECoordSystem::LEFT_HANDED ? 1.f : -1.f;
+		glm::vec3 angleDelta = glm::vec3(dyMul * io.MouseDelta.y, -io.MouseDelta.x, 0);
 
 		angleDelta *= s_3dViewSettings.mouseSensitivity.GetValue() / 1000.0f;
 		m_cameraAngle += angleDelta;
