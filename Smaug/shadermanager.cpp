@@ -36,8 +36,11 @@ void CShaderManager::Shutdown()
 {
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
-		bgfx::destroy(s_programInfo[i].programHandle);
-		s_programInfo[i].programHandle = BGFX_INVALID_HANDLE;
+		if (s_programInfo[i].programHandle.idx != bgfx::kInvalidHandle)
+		{
+			bgfx::destroy(s_programInfo[i].programHandle);
+			s_programInfo[i].programHandle = BGFX_INVALID_HANDLE;
+		}
 	}
 
 	bgfx::destroy(m_colorUniform);
