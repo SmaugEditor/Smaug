@@ -2,6 +2,7 @@
 #include <bigg.hpp>
 #include <cstring>
 #include <charconv>
+#include <cstdio>
 
 // Keep this private
 RendererProperties_t gRenderProps;
@@ -141,8 +142,8 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 		nullptr,		  // Gnm
 		nullptr,		  // Metal
 		nullptr,		  // Nvm
+		"shaders/essl/",  // OpenGL ES
 		"shaders/glsl/",  // OpenGL
-		nullptr,		  // OpenGL ES
 		"shaders/spirv/", // Vulkan
 	};
 
@@ -169,6 +170,8 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 	char fsPath[128];
 	strcpy(fsPath, shaderPath);
 	strcat(fsPath, fragment);
+	
+	printf("LoadShader: Loading %s and %s\n", vsPath, fsPath);
 
 	return bigg::loadProgram(vsPath, fsPath);
 }
