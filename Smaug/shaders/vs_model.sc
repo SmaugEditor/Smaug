@@ -11,5 +11,5 @@ void main()
 
 	
 	//vec3 normal = a_normal.xyz*2.0 - 1.0;
-	v_normal = mul(u_modelView, vec4(a_normal, 0.0) );
+	v_normal = mul(u_modelView, vec4(a_normal, 0.0) ).xyz;
 }
