@@ -1,6 +1,7 @@
 #include "shadermanager.h"
 #include "utils.h"
 #include <glm/vec4.hpp>
+#include <cstdio>
 
 static struct
 {
@@ -26,7 +27,15 @@ void CShaderManager::Init()
 {
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
+		
 		s_programInfo[i].programHandle = LoadShader(s_programInfo[i].fragmentShader, s_programInfo[i].vertexShader);
+		
+		if(s_programInfo[i].programHandle.idx == bgfx::kInvalidHandle)
+		{
+			printf("Failed to load program: fragment: %-20s  vertex: %-20s\n", s_programInfo[i].fragmentShader, 
+				s_programInfo[i].vertexShader);
+		}
+		
 	}
 
 	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
