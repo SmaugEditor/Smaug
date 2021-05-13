@@ -2,8 +2,6 @@
 #include <cstdio>
 #ifdef _WIN32
 #include <windows.h>
-#else
-#error UNIMPLEMENTED PLATFORM
 #endif
 
 
@@ -68,7 +66,8 @@ bool smaugAssert(bool condition, const char* expression, int line, const char* f
         
         }
 #else
-#error UNIMPLEMENTED PLATFORM
+    if(!condition)
+        printf("Assertion failed (%s:%d) %s: '%s'", file, line, function, expression);
 #endif
     }
     return condition;

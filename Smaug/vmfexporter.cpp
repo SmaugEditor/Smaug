@@ -54,17 +54,23 @@ void CVMFExporter::AddBrush(KeyValue* parentKv, vmfBrush_t brush)
     kv->Add("id", id);
 
     // Top
-    AddSide(kv, vmfPlane_t{ brush.topFrontLeft, brush.topBackLeft, brush.topBackRight });
+    AddSide(kv, brush.topFrontLeft(), brush.topBackLeft(), brush.topBackRight());
     // Bottom
-    AddSide(kv, vmfPlane_t{ brush.bottomFrontRight, brush.bottomBackRight, brush.bottomBackLeft });
+    AddSide(kv, brush.bottomFrontRight(), brush.bottomBackRight(), brush.bottomBackLeft());
     // Front
-    AddSide(kv, vmfPlane_t{ brush.bottomFrontLeft, brush.topFrontLeft, brush.topFrontRight });
+    AddSide(kv, brush.bottomFrontLeft(), brush.topFrontLeft(), brush.topFrontRight());
     // Back
-    AddSide(kv, vmfPlane_t{ brush.bottomBackRight, brush.topBackRight, brush.topBackLeft });
+    AddSide(kv, brush.bottomBackRight(), brush.topBackRight(), brush.topBackLeft());
     // Left
-    AddSide(kv, vmfPlane_t{ brush.bottomBackLeft, brush.topBackLeft, brush.topFrontLeft });
+    AddSide(kv, brush.bottomBackLeft(), brush.topBackLeft(), brush.topFrontLeft());
     // Right
-    AddSide(kv, vmfPlane_t{ brush.bottomFrontRight, brush.topFrontRight, brush.topBackRight });
+    AddSide(kv, brush.bottomFrontRight(), brush.topFrontRight(), brush.topBackRight());
+}
+
+void CVMFExporter::AddSide(KeyValue* parentKv, glm::vec3 a, glm::vec3 b, glm::vec3 c)
+{
+    vmfPlane_t plane = {a, b, c};
+    AddSide(parentKv, plane);
 }
 
 void CVMFExporter::AddSide(KeyValue* parentKv, vmfPlane_t plane)
@@ -101,6 +107,6 @@ void CVMFExporter::AddSide(KeyValue* parentKv, vmfPlane_t plane)
 
 void CVMFExporter::GetId(char* str)
 {
-    itoa(m_currentId, str, 10);
+    snprintf(str, 10, "%d", m_currentId);
     m_currentId++;
 }

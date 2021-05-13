@@ -2,6 +2,7 @@
 #include "worldeditor.h"
 
 #include <sstream>
+#include <cstring>
 
 static inline void WriteVertex(glm::vec3 vec, std::stringstream& stream)
 {
@@ -113,7 +114,7 @@ char* COBJExporter::Export(CWorldEditor* world)
 	std::string str = stream.str();
 	// I think this is probably dumb, but oh well
 	char* strBuf = new char[str.size() + 1];
-	memcpy(strBuf, str.c_str(), str.size());
+	std::memcpy(strBuf, str.c_str(), str.size());
 	strBuf[str.size()] = 0;
 	
 	return strBuf;
