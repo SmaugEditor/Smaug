@@ -127,7 +127,7 @@ glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, S
 bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 {
 	// Static so we don't reinitiate this
-	static const char** shaderPaths = new const char* [10]
+	static char const *const shaderPaths[bgfx::RendererType::Count] =
 	{
 		nullptr,		  // No Renderer
 		"shaders/dx9/",   // Direct3D9
@@ -135,10 +135,11 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 		"shaders/dx11/",  // Direct3D12
 		nullptr,		  // Gnm
 		nullptr,		  // Metal
-		nullptr,		  // Nvm
+		nullptr,		  // Nvn
 		"shaders/glsl/",  // OpenGL
 		nullptr,		  // OpenGL ES
 		"shaders/spirv/", // Vulkan
+		nullptr,		  // WebGPU
 	};
 
 	int type = bgfx::getRendererType();
