@@ -15,7 +15,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 
 	CNode* node = GetWorldEditor().CreateQuad();
-	node->m_mesh.origin = glm::vec3(0, 4, -16);
+	node->m_mesh.origin = glm::vec3(0, 4, 16);
 	for (auto v : node->m_mesh.verts)
 		*v = { v->x * 8, v->y * 4, v->z * 8 };
 	node->Update();

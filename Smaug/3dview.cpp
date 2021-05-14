@@ -43,8 +43,8 @@ DEFINE_SETTINGS_MENU("3D View", s_3dViewSettings);
 void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
-	m_cameraAngle = glm::vec3(0.25, 3.14, 0);
-	m_cameraPos = glm::vec3(0, 15, 15);
+	m_cameraAngle = glm::vec3(0.25, 0, 0);
+	m_cameraPos = glm::vec3(0, 15, -15);
 	m_controllingCamera = false;
 
 	m_gridCenter = ModelManager().LoadModel("assets/top.obj");
