@@ -1,8 +1,28 @@
 # Smaug
 A map editor designed for rapid iteration
 
-[Discord Server](https://discord.gg/ePnUDsKtWZ)
+[Discord Server]
 
+[Discord Server]: https://discord.gg/ePnUDsKtWZ
+
+## Installation
+Join the [Discord Server], and download the latest archive from the #announcements channel.
+
+## Getting Started
+(for Smaug Development)
+
+1. Run CMake to generate project files in a `build` folder.
+
+2. Clone the `SmaugAssets` using [Git LFS].
+Please check that the assets are properly cloned by opening an image in your photo viewer.
+
+[Git LFS]: https://www.atlassian.com/git/tutorials/git-lfs
+
+3. Copy the contents of `SmaugAssets` into your `build` folder.
+
+Smaug can now be run from the build directory
+
+## License
 All files under ./Smaug/mesh are licensed under LGPL-2.1
 
 ```
