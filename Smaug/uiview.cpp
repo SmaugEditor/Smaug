@@ -58,9 +58,25 @@ void CUIView::Update(float dt, float mx, float my)
 	GetCursor().Update(dt);
 	ImVec2 mv = ImGui::GetMousePos();
 
+	// In Smaug, Y+ is up Z+ is forward and X+ is right
+	ImVec2 uv0, uv1;
+	uv0.x = 1;
+	uv1.x = 0;
+	if (RendererProperties().coordSystem == ECoordSystem::RIGHT_HANDED)
+	{
+		uv0.y = 1;
+		uv1.y = 0;
+	}
+	else
+	{
+		uv0.y = 0;
+		uv1.y = 1;
+	}
+
+
 	// UI
 	ImGui::ShowDemoWindow();
-	 
+	
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -107,7 +123,8 @@ void CUIView::Update(float dt, float mx, float my)
 	
 			ImVec2 imageSize = ImGui::GetContentRegionAvail();
 			m_editViews[i].m_aspectRatio = imageSize.x / imageSize.y;
-			ImGui::Image(m_editViews[i].GetImTextureID(), imageSize);
+
+			ImGui::Image(m_editViews[i].GetImTextureID(), imageSize, uv0, uv1);
 
 			bool hoveredOn2DEditor = ImGui::IsItemHovered();
 			ImVec2 inv = ImGui::GetItemRectMin();
@@ -136,7 +153,7 @@ void CUIView::Update(float dt, float mx, float my)
 		
 		ImVec2 imageSize = ImGui::GetContentRegionAvail();
 		m_previewView.m_aspectRatio = imageSize.x / imageSize.y;
-		ImGui::Image(m_previewView.GetImTextureID(), imageSize);
+		ImGui::Image(m_previewView.GetImTextureID(), imageSize, uv0, uv1);
 		
 		bool hoveredOn3DPreview = ImGui::IsItemHovered();
 		ImVec2 inv = ImGui::GetItemRectMin();

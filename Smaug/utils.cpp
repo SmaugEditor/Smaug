@@ -195,9 +195,9 @@ void Directions(glm::vec3 angles, glm::vec3* forward, glm::vec3* right, glm::vec
 
 
 	glm::vec3 _right;
-	_right.x = -cos(roll) * cos(yaw);
+	_right.x = cos(roll) * cos(yaw);
 	_right.y = sin(roll);
-	_right.z = cos(roll) * sin(yaw);
+	_right.z = -cos(roll) * sin(yaw);
 	_right = glm::normalize(_right);
 
 
@@ -205,7 +205,7 @@ void Directions(glm::vec3 angles, glm::vec3* forward, glm::vec3* right, glm::vec
 		*right = _right;
 
 	if (up)
-		*up = glm::normalize(glm::cross(_right, _forward));
+		*up = -glm::normalize(glm::cross(_right, _forward));
 /*
 	if (up)
 	{

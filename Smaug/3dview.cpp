@@ -57,7 +57,8 @@ void C3DView::Draw(float dt)
 	glm::vec3 forwardDir;
 	Directions(m_cameraAngle, &forwardDir);
 
-	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, { 0,1,0 });
 	glm::mat4 proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
 	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 
@@ -95,8 +96,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 	if (m_controllingCamera)
 	{
-		float dyMul = RendererProperties().coordSystem == ECoordSystem::LEFT_HANDED ? 1.f : -1.f;
-		glm::vec3 angleDelta = glm::vec3(dyMul * io.MouseDelta.y, -io.MouseDelta.x, 0);
+		glm::vec3 angleDelta = glm::vec3(io.MouseDelta.y, io.MouseDelta.x, 0);
 
 		angleDelta *= s_3dViewSettings.mouseSensitivity.GetValue() / 1000.0f;
 		m_cameraAngle += angleDelta;

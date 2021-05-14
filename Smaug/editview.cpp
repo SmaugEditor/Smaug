@@ -123,12 +123,11 @@ void CEditView::Draw(float dt)
 
 	glm::vec3 forward, right, up;
 	Directions(m_editPlaneAngle, &forward, &right, &up);
+
 	// HACK: Not sure why this is how it is. Will find out soon. On a deadline
 	if (glm::length(m_editPlaneAngle) == 0)
 	{
-		view = glm::rotate(view, m_editPlaneAngle.x + glm::radians(90.0f), glm::vec3(1, 0, 0)); // Look down
-		view = glm::translate(view, m_cameraPos); // Set our pos to be 10 units up
-		view = glm::rotate(view, glm::radians(180.0f), glm::vec3(0, 1, 0)); // Flip 180
+		view = glm::lookAt(m_cameraPos, m_cameraPos - up, glm::vec3(0.0f, 0.0f, 1.0f));
 	}
 	else
 	{
@@ -187,11 +186,10 @@ glm::vec3 CEditView::TransformMousePos(float mx, float my, glm::vec3 cameraPos)
 	glm::vec3 forward, right, up;
 	Directions(m_editPlaneAngle, &forward, &right, &up);
 
-	float inv = RendererProperties().coordSystem == ECoordSystem::LEFT_HANDED ? -1.f : 1.f;
 
 	// Put the mouse pos into the world
-	mx =  (mx * 2 - 1) * (m_viewZoom * m_aspectRatio);
-	my = inv * (my * 2 - 1) * (m_viewZoom);
+	mx = (mx * 2 - 1) * (m_viewZoom * m_aspectRatio);
+	my = -(my * 2 - 1) * (m_viewZoom);
 
 
 	//printf("%f, %f, { %f, %f, %f } - { %f, %f, %f }\n", mx, my, forward.x, forward.y, forward.z, right.x, right.y, right.z);
