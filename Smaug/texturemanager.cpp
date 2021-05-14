@@ -6,8 +6,8 @@
 
 const static uint8_t s_errorTexture[] =
 {
-	255, 000, 000,   000, 000, 000,
-	000, 000, 000,   255, 000, 000
+	255, 000, 000,   255, 255, 255,
+	255, 255, 255,   255, 000, 000
 };
 
 class CErrorTexture
@@ -17,7 +17,7 @@ public:
 	{
 		const bgfx::Memory* mem = bgfx::alloc(sizeof(s_errorTexture));
 		memcpy(mem->data, s_errorTexture, sizeof(s_errorTexture));
-		m_textureHandle = bgfx::createTexture2D(2, 2, false, 1, bgfx::TextureFormat::Enum::RGB8, 0, mem);
+		m_textureHandle = bgfx::createTexture2D(2, 2, false, 1, bgfx::TextureFormat::Enum::RGB8, BGFX_TEXTURE_NONE | BGFX_SAMPLER_POINT, mem);
 	}
 
 	bgfx::TextureHandle m_textureHandle;
