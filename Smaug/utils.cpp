@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <bigg.hpp>
+#include <filesystem>
 
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
 {
@@ -124,7 +125,7 @@ glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, S
 	}
 }
 
-bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
+bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::ProgramHandle fallback)
 {
 	// Static so we don't reinitiate this
 	static char const *const shaderPaths[bgfx::RendererType::Count] =
@@ -158,13 +159,26 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex)
 		return BGFX_INVALID_HANDLE;
 	}
 
-	char vsPath[128];
-	strcpy(vsPath, shaderPath);
-	strcat(vsPath, vertex);
+	char vsPath[128] = "";
+	strncat(vsPath, shaderPath, sizeof(vsPath));
+	strncat(vsPath, vertex, sizeof(vsPath));
 
-	char fsPath[128];
-	strcpy(fsPath, shaderPath);
-	strcat(fsPath, fragment);
+	if (!std::filesystem::exists(vsPath))
+	{
+		printf("[Utils::LoadShader] Vertex shader %s not found\n", vsPath);
+		return fallback;
+	}
+
+	char fsPath[128] = "";
+	strncat(fsPath, shaderPath, sizeof(fsPath));
+	strncat(fsPath, fragment, sizeof(fsPath));
+
+	if (!std::filesystem::exists(fsPath))
+	{
+		printf("[Utils::LoadShader] Fragment shader %s not found\n", fsPath);
+		return fallback;
+	}
+
 
 	return bigg::loadProgram(vsPath, fsPath);
 }
