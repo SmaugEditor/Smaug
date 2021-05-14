@@ -21,7 +21,7 @@ enum class SolveToLine2DSnap
 };
 glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, SolveToLine2DSnap* snap = nullptr);
 
-bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex);
+bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::ProgramHandle fallback = BGFX_INVALID_HANDLE );
 
 // Pitch, Yaw, Roll
 void Directions(glm::vec3 angles, glm::vec3* forward = nullptr, glm::vec3* right = nullptr, glm::vec3* up = nullptr);
