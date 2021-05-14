@@ -185,10 +185,6 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 		return fallback;
 	}
 
-	char fsPath[128];
-	strcpy(fsPath, shaderPath);
-	strcat(fsPath, fragment);
-	
 	printf("[Utils::LoadShader]: Loading %s and %s\n", vsPath, fsPath);
 
 	return bigg::loadProgram(vsPath, fsPath);
