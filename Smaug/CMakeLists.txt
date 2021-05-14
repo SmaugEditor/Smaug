@@ -104,5 +104,8 @@ add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} shaders/v
 target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp mesh )
 target_link_libraries( smaug bigg keyvalues assimp )
 
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT smaug)
 
 install(DIRECTORY ${SHADER_OUT_DIR} DESTINATION bin)
+
+
