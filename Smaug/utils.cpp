@@ -1,6 +1,12 @@
 #include "utils.h"
 #include <bigg.hpp>
+#include <cstring>
+#include <charconv>
+#include <cstdio>
 #include <filesystem>
+
+// Keep this private
+RendererProperties_t gRenderProps;
 
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range)
 {
@@ -136,9 +142,9 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 		"shaders/dx11/",  // Direct3D12
 		nullptr,		  // Gnm
 		nullptr,		  // Metal
-		nullptr,		  // Nvn
+		nullptr,		  // Nvm
+		"shaders/essl/",  // OpenGL ES
 		"shaders/glsl/",  // OpenGL
-		nullptr,		  // OpenGL ES
 		"shaders/spirv/", // Vulkan
 		nullptr,		  // WebGPU
 	};
@@ -179,6 +185,11 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 		return fallback;
 	}
 
+	char fsPath[128];
+	strcpy(fsPath, shaderPath);
+	strcat(fsPath, fragment);
+	
+	printf("[Utils::LoadShader]: Loading %s and %s\n", vsPath, fsPath);
 
 	return bigg::loadProgram(vsPath, fsPath);
 }
@@ -202,9 +213,9 @@ void Directions(glm::vec3 angles, glm::vec3* forward, glm::vec3* right, glm::vec
 
 
 	glm::vec3 _right;
-	_right.x = -cos(roll) * cos(yaw);
+	_right.x = cos(roll) * cos(yaw);
 	_right.y = sin(roll);
-	_right.z = cos(roll) * sin(yaw);
+	_right.z = -cos(roll) * sin(yaw);
 	_right = glm::normalize(_right);
 
 
@@ -212,7 +223,7 @@ void Directions(glm::vec3 angles, glm::vec3* forward, glm::vec3* right, glm::vec
 		*right = _right;
 
 	if (up)
-		*up = glm::normalize(glm::cross(_right, _forward));
+		*up = -glm::normalize(glm::cross(_right, _forward));
 /*
 	if (up)
 	{
@@ -246,3 +257,86 @@ glm::vec3 Angles(glm::vec3 forward, glm::vec3* up)
 	return { pitch, yaw, roll };
 }
 
+namespace CommandLine
+{
+	const char* const* argv; 
+	int argc;
+}
+
+
+void CommandLine::Set(int argc, const char* const* argv)
+{
+	CommandLine::argv = argv;
+	CommandLine::argc = argc;
+}
+	
+bool CommandLine::HasParam(const char* param)
+{
+	for(int i = 0; i < argc; i++)
+		if(std::strcmp(param, argv[i]) == 0)
+			return true;
+	return false;
+}
+
+const char* CommandLine::GetParam(const char* param)
+{
+	for(int i = 0; i < argc; i++)
+	{
+		if(!std::strcmp(param, argv[i]))
+		{
+			if(i < argc-1)
+				return argv[i+1];
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
+
+int CommandLine::GetInt(const char* param)
+{
+	const char* val = GetParam(param);
+	if(val)
+		return std::atoi(val);
+	return 0;
+}
+
+float CommandLine::GetFloat(const char* param)
+{
+	const char* val = GetParam(param);
+	if(val)
+		return std::atof(val);
+	return 0.f;
+}
+
+void SetRendererType(bgfx::RendererType::Enum type)
+{
+	auto old = gRenderProps.renderType;
+	gRenderProps.renderType = type;
+	
+	// Init the rest of the fields 
+	if(old != type)
+	{
+		using RT = bgfx::RendererType::Enum;
+		switch(type)
+		{
+			case RT::Direct3D11:
+			case RT::Direct3D12:
+			case RT::Direct3D9:
+				gRenderProps.coordSystem = ECoordSystem::LEFT_HANDED; 
+				break;
+			default:
+				gRenderProps.coordSystem = ECoordSystem::RIGHT_HANDED;
+		}
+	}
+	
+}
+
+bgfx::RendererType::Enum RendererType()
+{
+	return gRenderProps.renderType;
+}
+
+const RendererProperties_t& RendererProperties()
+{
+	return gRenderProps;
+}

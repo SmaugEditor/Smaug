@@ -45,7 +45,7 @@ void CSettingsMenu::DrawMenu()
                 ISVar* var = link->m_table->m_varTable[i];
                 
                 //Figure out what type of edit prompt to display...
-                const type_info& info = link->m_table->m_varTable[i]->GetTypeInfo();
+                const std::type_info& info = link->m_table->m_varTable[i]->GetTypeInfo();
                 if (info == typeid(int))
                 {
                     ImGui::InputInt(var->GetName(), (int*)var->GetData(), 0);

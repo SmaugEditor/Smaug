@@ -65,8 +65,12 @@ set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc shaders/fs_
 set( SHADER_OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders" )
 set( GLSL_VERSION 430 )
 set( DX_MODEL 5_0 )
-set( SHADER_PLATFORMS glsl dx11 )
 
+if(UNIX)
+    set( SHADER_PLATFORMS glsl spirv )
+else()
+    set( SHADER_PLATFORMS glsl dx11 )
+endif()
 
 add_custom_target( invalidate_shaders )
 

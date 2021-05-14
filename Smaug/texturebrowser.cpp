@@ -2,6 +2,7 @@
 #include "texturemanager.h"
 #include <filesystem>
 #include <string>
+#include <cmath>
 #include "imgui.h"
 
 CTextureBrowser::CTextureBrowser()
@@ -27,7 +28,7 @@ void CTextureBrowser::Show()
 		// We want to take up as much space as we can with the buttons
 		ImVec2 buttonSize = ImVec2(100, 100);
 
-		int rowCount = floor(contentRegion.x / 100.0f);
+		int rowCount = std::floor(contentRegion.x / 100.0f);
 		// If we're wider than we are tall, we want to same line all of our buttons
 
 

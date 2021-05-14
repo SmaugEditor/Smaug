@@ -105,13 +105,13 @@ testRayPlane_t rayPlaneTest(ray_t ray, glm::vec3 normal, glm::vec3 planePoint, f
 template<bool cull = true>
 testRayPlane_t rayPlaneTest(ray_t ray, tri_t tri, float closestT)
 {
-    glm::vec3 edge1 = tri.b - tri.a;
-    glm::vec3 edge2 = tri.c - tri.b;
+    glm::vec3 edge1 = tri.b() - tri.a();
+    glm::vec3 edge2 = tri.c() - tri.b();
 
     // Unnormalized normal of the face
     glm::vec3 normal = glm::cross(edge1, edge2);
 
-    return rayPlaneTest<cull>(ray, normal, tri.a, closestT);
+    return rayPlaneTest<cull>(ray, normal, tri.a(), closestT);
 }
 
 template<bool cull = true>
@@ -128,13 +128,13 @@ void rayPlaneTest(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 template<bool cull = true>
 testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
 {
-    glm::vec3 edge1 = tri.b - tri.a;
-    glm::vec3 edge2 = tri.c - tri.b;
+    glm::vec3 edge1 = tri.b() - tri.a();
+    glm::vec3 edge2 = tri.c() - tri.b();
     
     // Unnormalized normal of the face
     glm::vec3 normal = glm::cross(edge1, edge2);
     
-    testRayPlane_t test = rayPlaneTest<cull>(ray, normal, tri.a, closestT);
+    testRayPlane_t test = rayPlaneTest<cull>(ray, normal, tri.a(), closestT);
     if (!test.hit)
         return {false};
 
@@ -170,8 +170,8 @@ testRayPlane_t rayTriangleTest(ray_t ray, tri_t tri, float closestT)
     }
 
     // Project plane onto axis
-    glm::vec3 u = { p[uAxis] - tri.a[uAxis], tri.b[uAxis] - tri.a[uAxis], tri.c[uAxis] - tri.a[uAxis] };
-    glm::vec3 v = { p[vAxis] - tri.a[vAxis], tri.b[vAxis] - tri.a[vAxis], tri.c[vAxis] - tri.a[vAxis] };
+    glm::vec3 u = { p[uAxis] - tri.a()[uAxis], tri.b()[uAxis] - tri.a()[uAxis], tri.c()[uAxis] - tri.a()[uAxis] };
+    glm::vec3 v = { p[vAxis] - tri.a()[vAxis], tri.b()[vAxis] - tri.a()[vAxis], tri.c()[vAxis] - tri.a()[vAxis] };
 
     // Denominator
     float temp = u[1] * v[2] - v[1] * u[2];
@@ -198,8 +198,8 @@ void rayTriangleTest(ray_t ray, tri_t tri, testRayPlane_t& lastTest)
 
 
 // In clockwise order from topleft
-struct quad_t { glm::vec3 topLeft, topRight, bottomRight, bottomLeft; };
-void rayQuadTest(ray_t ray, quad_t quad, testRayPlane_t& lastTest)
+struct Quad_t { glm::vec3 topLeft, topRight, bottomRight, bottomLeft; };
+void rayQuadTest(ray_t ray, Quad_t quad, testRayPlane_t& lastTest)
 {
     rayTriangleTest(ray, { quad.topLeft, quad.topRight, quad.bottomRight }, lastTest);
     rayTriangleTest(ray, { quad.bottomRight, quad.bottomLeft, quad.topLeft }, lastTest);

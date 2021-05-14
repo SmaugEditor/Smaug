@@ -5,6 +5,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <bgfx/bgfx.h>
+#include <cmath>
+#include <initializer_list>
 
 const double PI = 3.141592653589793238463;
 
@@ -85,7 +87,7 @@ inline constexpr bool closeTo(float value, float target, float threshold = 0.000
 
 inline constexpr glm::vec3 dirMask(glm::vec3 vec)
 {
-	return { 1.0f - fabs(vec.x), 1.0f - fabs(vec.y), 1.0f - fabs(vec.z) };
+	return { 1.0f - std::fabs(vec.x), 1.0f - std::fabs(vec.y), 1.0f - std::fabs(vec.z) };
 }
 
 
@@ -100,11 +102,11 @@ inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 {
 	const float hueRange = 2 * PI;
 	const float onesixth = hueRange / 6;
-	float oR = clamp<float>((fabs(hue - hueRange / 2.0f) - onesixth) / onesixth, 0.0f, 1.0f);
+	float oR = clamp<float>((std::fabs(hue - hueRange / 2.0f) - onesixth) / onesixth, 0.0f, 1.0f);
 	oR = (oR * saturation + (1.0f - saturation)) * value;
-	float oG = clamp<float>((onesixth * 2.0f - fabs(hue - onesixth * 2)) / onesixth, 0.0f, 1.0f);
+	float oG = clamp<float>((onesixth * 2.0f - std::fabs(hue - onesixth * 2)) / onesixth, 0.0f, 1.0f);
 	oG = (oG * saturation + (1.0f - saturation)) * value;
-	float oB = clamp<float>((onesixth * 2.0f - fabs(hue - onesixth * 4)) / onesixth, 0.0f, 1.0f);
+	float oB = clamp<float>((onesixth * 2.0f - std::fabs(hue - onesixth * 4)) / onesixth, 0.0f, 1.0f);
 	oB = (oB * saturation + (1.0f - saturation)) * value;
 	return glm::vec3(oR, oG, oB);
 }
@@ -123,3 +125,42 @@ inline enumName& operator ^=  (enumName& a, enumName b) { a = static_cast<enumNa
 inline enumName& operator <<= (enumName& a, int b)      { a = static_cast<enumName>(a >> b); return a; } \
 inline enumName& operator >>= (enumName& a, int b)      { a = static_cast<enumName>(a << b); return a; } \
 inline enumName  operator ~   (enumName a) { return static_cast<enumName>(~(char)a); }
+
+namespace CommandLine
+{
+	void Set(int argc, const char* const* argv);
+	
+	bool HasParam(const char* param);
+	const char* GetParam(const char* param);
+	int GetInt(const char* param);
+	float GetFloat(const char* param);
+	
+	template<class ...T>
+	inline bool HasAny(T...params)
+	{
+		const char* args[] = {
+			params...
+		};
+		for(int i = 0; i < sizeof...(params); i++)
+			if(HasParam(args[i]))
+				return true;
+		return false;
+	}
+}
+
+enum class ECoordSystem
+{
+	RIGHT_HANDED = 0,
+	LEFT_HANDED = 1
+};
+
+// Add more stuff to this if you want!
+struct RendererProperties_t
+{
+	ECoordSystem coordSystem;
+	bgfx::RendererType::Enum renderType;
+};
+
+void SetRendererType(bgfx::RendererType::Enum type);
+bgfx::RendererType::Enum RendererType();
+const RendererProperties_t& RendererProperties();

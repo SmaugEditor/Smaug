@@ -86,7 +86,7 @@ public:
 	virtual char* ToString() = 0;
 	virtual void  FromString(char* str) = 0;
 
-	virtual const type_info& GetTypeInfo() = 0;
+	virtual const std::type_info& GetTypeInfo() = 0;
 
 	virtual ISVar* MakeCopy() = 0;
 };
@@ -111,7 +111,7 @@ public:
 	virtual void SetValue(T value)  { m_data = value; }
 	T     GetValue()         { return m_data; }
 
-	virtual const type_info& GetTypeInfo() { return typeid(T); }
+	virtual const std::type_info& GetTypeInfo() { return typeid(T); }
 
 	virtual ISVar* MakeCopy() { return new CSVar<T>{ m_name,m_data }; }
 protected:

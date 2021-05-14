@@ -8,7 +8,7 @@ void RunningDirectory(char* path, size_t length)
 #ifdef _WIN32
     GetCurrentDirectory(length, path);
 #else
-#error UNSUPPORTED_PLATFORM
+    getcwd(path, length);
 #endif
 
 }

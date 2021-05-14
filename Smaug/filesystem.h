@@ -1,4 +1,7 @@
 #pragma once
+
+#include <cstddef>
+
 namespace filesystem
 {
 	bool SaveFile(const char* path, char* data);
