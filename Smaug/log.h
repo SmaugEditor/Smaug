@@ -23,7 +23,6 @@ enum class MessageType
 {
 	NONE,
 
-	ASSERT,
 	DEBUG,
 	MESSAGE,
 	WARNING,

@@ -87,7 +87,7 @@ bool Log::Assert(bool condition, const char* expression, int line, const char* f
     {
         char message[1024];
         formatAssertion(message, 1024, expression, line, file, function);
-        Drain(MessageType::ASSERT, message);
+        Drain(MessageType::FAULT, message);
 
 
 #ifdef _WIN32
@@ -119,7 +119,7 @@ bool Log::AssertSilent(bool condition, const char* expression, int line, const c
     {
         char message[1024];
         formatAssertion(message, 1024, expression, line, file, function);
-        Drain(MessageType::ASSERT, message);
+        Drain(MessageType::FAULT, message);
     }
     return condition;
 }
