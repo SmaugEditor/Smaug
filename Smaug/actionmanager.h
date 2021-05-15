@@ -85,6 +85,8 @@ public:
 	void CommitAction(IAction* action);
 	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
 
+	void Clear();
+
 	void Undo();
 	void Redo();
 
@@ -92,7 +94,6 @@ public:
 
 	std::vector<IAction*> m_actionHistory;
 	std::vector<IAction*> m_redoStack;
-	IAction* m_selectedAction;
 };
 
 CActionManager& GetActionManager();

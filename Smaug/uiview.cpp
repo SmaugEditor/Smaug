@@ -1,5 +1,4 @@
 #include "uiview.h"
-#include "imgui_internal.h"
 #include "objexporter.h"
 #include "vmfexporter.h"
 #include "filesystem.h"
@@ -9,6 +8,9 @@
 #include "texturebrowser.h"
 #include "grid.h"
 #include "utils.h"
+#include "worldsave.h"
+
+#include <imgui_internal.h>
 
 void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
@@ -81,6 +83,26 @@ void CUIView::Update(float dt, float mx, float my)
 	{
 		if (ImGui::BeginMenu("File"))
 		{
+
+			if (ImGui::MenuItem("Save File"))
+			{
+				char* str = saveWorld();
+				filesystem::SaveFileWithDialog(str, "*.smf");
+				delete[] str;
+			}
+
+			if (ImGui::MenuItem("Load File"))
+			{
+				size_t len;
+				char* str = filesystem::LoadFileWithDialog(len, "*.smf");
+				if (str)
+				{
+					if(*str)
+						loadWorld(str);
+					delete[] str;
+				}
+			}
+
 			if (ImGui::BeginMenu("Export"))
 			{
 				if (ImGui::MenuItem("Export to VMF"))

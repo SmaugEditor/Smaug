@@ -35,6 +35,7 @@ set( SOURCES
 
 	worldeditor.cpp 
 	worldrenderer.cpp 
+	worldsave.cpp
 
 	actionmanager.cpp 
 	editoractions.cpp 

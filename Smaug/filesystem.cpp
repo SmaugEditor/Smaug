@@ -29,7 +29,7 @@ bool filesystem::SaveFileWithDialog(char* data, const char* fileType)
     char runningDir[128];
     RunningDirectory(runningDir, 128);
 
-    pfd::save_file f = pfd::save_file("Choose files to read", runningDir,
+    pfd::save_file f = pfd::save_file("Choose file to save", runningDir,
         { fileType, fileType,
           "All Files", "*" });
     
@@ -72,4 +72,26 @@ char* filesystem::LoadFile(const char* path, size_t& length)
     data[length] = 0;
 
     return data;
+}
+
+char* filesystem::LoadFileWithDialog(size_t& length, const char* fileType)
+{
+
+    char runningDir[128];
+    RunningDirectory(runningDir, 128);
+
+    pfd::open_file f = pfd::open_file("Choose file to read", runningDir,
+        { fileType, fileType,
+          "All Files", "*" });
+    if (f.result().size())
+    {
+        std::string path = f.result().front();
+
+        return LoadFile(path.c_str(), length);
+    }
+    else
+    {
+        length = 0;
+        return nullptr;
+    }
 }

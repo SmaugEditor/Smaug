@@ -257,6 +257,16 @@ void CActionManager::Redo()
 	m_actionHistory.push_back(a);
 }
 
+void CActionManager::Clear()
+{
+	for (auto a : m_actionHistory)
+		delete a;
+	for (auto a : m_redoStack)
+		delete a;
+	m_actionHistory.clear();
+	m_redoStack.clear();
+}
+
 void CActionManager::Update()
 {
 	int redoTo = INT_MAX;
