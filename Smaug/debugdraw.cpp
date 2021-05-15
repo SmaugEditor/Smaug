@@ -93,6 +93,17 @@ void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
     Line(aabb.max, { aabb.min.x, aabb.max.y, aabb.max.z }, color, width, decay);
     Line(aabb.max, { aabb.max.x, aabb.min.y, aabb.max.z }, color, width, decay);
     Line(aabb.max, { aabb.max.x, aabb.max.y, aabb.min.z }, color, width, decay);
+
+    Line({ aabb.min.x, aabb.max.y, aabb.max.z }, { aabb.min.x, aabb.max.y, aabb.min.z }, color, width, decay);
+    Line({ aabb.min.x, aabb.max.y, aabb.max.z }, { aabb.min.x, aabb.min.y, aabb.max.z }, color, width, decay);
+    
+    Line({ aabb.max.x, aabb.min.y, aabb.max.z }, { aabb.min.x, aabb.min.y, aabb.max.z }, color, width, decay);
+    Line({ aabb.max.x, aabb.min.y, aabb.max.z }, { aabb.max.x, aabb.min.y, aabb.min.z }, color, width, decay);
+
+    Line({ aabb.max.x, aabb.max.y, aabb.min.z }, { aabb.min.x, aabb.max.y, aabb.min.z }, color, width, decay);
+    Line({ aabb.max.x, aabb.max.y, aabb.min.z }, { aabb.max.x, aabb.min.y, aabb.min.z }, color, width, decay);
+
+
 }
 
 void CDebugDraw::Draw()
