@@ -22,6 +22,9 @@ public:
 	void HEFace(face_t* face, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
 	void HEPart(meshPart_t* part, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
 
+	void AABB(aabb_t aabb, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
+	void AABB(glm::vec3 origin, aabb_t aabb, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
+
 	//	void Cube();
 	void Draw();
 private:

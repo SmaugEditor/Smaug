@@ -75,6 +75,26 @@ void CDebugDraw::HEPart(meshPart_t* part, glm::vec3 color, float width, float de
         HEFace(f, color, width, decay);
 }
 
+
+void CDebugDraw::AABB(glm::vec3 origin, aabb_t aabb, glm::vec3 color, float width, float decay)
+{
+    aabb.min += origin;
+    aabb.max += origin;
+
+    AABB(aabb, color, width, decay);
+}
+
+void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
+{
+    Line(aabb.min, { aabb.max.x, aabb.min.y, aabb.min.z }, color, width, decay);
+    Line(aabb.min, { aabb.min.x, aabb.max.y, aabb.min.z }, color, width, decay);
+    Line(aabb.min, { aabb.min.x, aabb.min.y, aabb.max.z }, color, width, decay);
+
+    Line(aabb.max, { aabb.min.x, aabb.max.y, aabb.max.z }, color, width, decay);
+    Line(aabb.max, { aabb.max.x, aabb.min.y, aabb.max.z }, color, width, decay);
+    Line(aabb.max, { aabb.max.x, aabb.max.y, aabb.min.z }, color, width, decay);
+}
+
 void CDebugDraw::Draw()
 {
     float curtime = glfwGetTime();
@@ -94,6 +114,7 @@ void CDebugDraw::Draw()
         }
     }
 }
+
 
 #else
 // We don't want debug stuff to pop up while in release!
@@ -115,6 +136,12 @@ void CDebugDraw::HEFace(face_t* face, glm::vec3 color, float width, float decay)
 }
 
 void CDebugDraw::HEPart(meshPart_t* part, glm::vec3 color, float width, float decay)
+{
+}
+void CDebugDraw::AABB(glm::vec3 origin, aabb_t aabb, glm::vec3 color, float width, float decay)
+{
+}
+void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
 {
 }
 #endif

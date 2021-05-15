@@ -207,3 +207,7 @@ void cloneFaceInto(face_t* in, face_t* cloneOut);
 
 inline meshPart_t* parentPart(face_t* f) { if (!f) return 0; if (f->flags & FaceFlags::FF_MESH_PART) return static_cast<meshPart_t*>(f); if (f->parent) return parentPart(f->parent); return 0; }
 inline mesh_t* parentMesh(face_t* f) { if (!f) return 0; meshPart_t* part = parentPart(f); if (part) return part->mesh; return 0; }
+
+
+// Bulks up an AABB if the point is outside
+aabb_t addPointToAABB(aabb_t aabb, glm::vec3 point);

@@ -224,6 +224,25 @@ void cloneFaceInto(face_t* in, face_t* cloneOut)
 	cloneOut->parent = in->parent;
 }
 
+aabb_t addPointToAABB(aabb_t aabb, glm::vec3 point)
+{
+	if (point.x > aabb.max.x)
+		aabb.max.x = point.x;
+	if (point.y > aabb.max.y)
+		aabb.max.y = point.y;
+	if (point.z > aabb.max.z)
+		aabb.max.z = point.z;
+
+	if (point.x < aabb.min.x)
+		aabb.min.x = point.x;
+	if (point.y < aabb.min.y)
+		aabb.min.y = point.y;
+	if (point.z < aabb.min.z)
+		aabb.min.z = point.z;
+
+	return aabb;
+}
+
 
 unsigned int edgeLoopCount(vertex_t* sv)
 {
@@ -240,7 +259,7 @@ unsigned int edgeLoopCount(vertex_t* sv)
 aabb_t meshAABB(mesh_t& mesh)
 {
 
-	glm::vec3 max = { FLT_MIN, FLT_MIN, FLT_MIN };
+	glm::vec3 max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 	glm::vec3 min = { FLT_MAX, FLT_MAX, FLT_MAX };
 	for (auto v : mesh.verts)
 	{
