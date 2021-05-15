@@ -48,14 +48,6 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 		// Set the color
 		// Precompute this?
 		ShaderManager().SetColor(nodeColor(node));
-		bgfx::setState(0
-			| BGFX_STATE_WRITE_RGB
-			| BGFX_STATE_WRITE_A
-			| BGFX_STATE_WRITE_Z
-			| BGFX_STATE_DEPTH_TEST_LESS
-			| BGFX_STATE_CULL_CCW
-			| BGFX_STATE_MSAA
-		);
 
 		bgfx::submit(viewId, shaderProgram);
 	}
