@@ -1,4 +1,5 @@
 #include "filesystem.h"
+#include "log.h"
 #include <portable-file-dialogs/portable-file-dialogs.h>
 #include <fstream>
 
@@ -55,7 +56,7 @@ char* filesystem::LoadFile(const char* path, size_t& length)
     FILE* file = fopen(path, "rb");
     if (!file)
     {
-        printf("Failed to read file: %s\n", path);
+        Log::Fault("Failed to read file: %s\n", path);
         return nullptr;
     }
 

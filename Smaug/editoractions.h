@@ -92,7 +92,7 @@ public:
 			m_originalPos = new glm::vec3[selectInfo.side->verts.size()];
 		}
 		else
-			printf("Yo! Bad call!");
+			Log::Fault("Yo! Bad call!");
 
 		for (int i = 0; auto v : selectInfo.side->verts)
 			m_originalPos[i++] = *v->vert;

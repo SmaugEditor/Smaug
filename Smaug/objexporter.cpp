@@ -93,7 +93,7 @@ char* COBJExporter::Export(CWorldEditor* world)
 						}
 						else
 						{
-							printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+							Log::Fault("[MeshRenderer] Mesh refering to vert not in list!!\n");
 						}
 					}
 

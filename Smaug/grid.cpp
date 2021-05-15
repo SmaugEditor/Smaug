@@ -85,7 +85,7 @@ void CGrid::Update()
 			m_iScale++;
 			m_vecScale = glm::vec4(1 / (float)(pow(2, m_iScale)));
 		}
-		printf("[Grid] Scale: %d\n", m_iScale);
+		Log::Msg("[Grid] Scale: %d\n", m_iScale);
 	}
 	incLastCheck = inc;
 
@@ -100,7 +100,7 @@ void CGrid::Update()
 			m_iScale--;
 			m_vecScale = glm::vec4(1 / (float)(pow(2, m_iScale)));
 		}
-		printf("[Grid] Scale: %d\n", m_iScale);
+		Log::Msg("[Grid] Scale: %d\n", m_iScale);
 
 	}
 	decLastCheck = dec;

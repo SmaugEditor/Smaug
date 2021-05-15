@@ -171,7 +171,7 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 
 	if (!std::filesystem::exists(vsPath))
 	{
-		printf("[Utils::LoadShader] Vertex shader %s not found\n", vsPath);
+		Log::Fault("[Utils::LoadShader] Vertex shader %s not found\n", vsPath);
 		return fallback;
 	}
 
@@ -181,12 +181,13 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 
 	if (!std::filesystem::exists(fsPath))
 	{
-		printf("[Utils::LoadShader] Fragment shader %s not found\n", fsPath);
+		Log::Fault("[Utils::LoadShader] Fragment shader %s not found\n", fsPath);
 		return fallback;
 	}
 
-	printf("[Utils::LoadShader]: Loading %s and %s\n", vsPath, fsPath);
-
+	Log::Print("[Utils::LoadShader]: Loading %s and %s\n", vsPath, fsPath);
+	
+	
 	return bigg::loadProgram(vsPath, fsPath);
 }
 

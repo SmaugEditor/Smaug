@@ -32,7 +32,7 @@ void CShaderManager::Init()
 		
 		if(s_programInfo[i].programHandle.idx == bgfx::kInvalidHandle)
 		{
-			printf("Failed to load program: fragment: %-20s  vertex: %-20s\n", s_programInfo[i].fragmentShader, 
+			Log::Fault("Failed to load program: fragment: %-20s  vertex: %-20s\n", s_programInfo[i].fragmentShader,
 				s_programInfo[i].vertexShader);
 		}
 		

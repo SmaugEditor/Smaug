@@ -18,18 +18,18 @@ enum class ConsoleColor
     DARKBLUE    = 1,
     DARKGREEN   = 2,
     DARKRED     = 4,
-    GRAY        = 8,
-    DARKGRAY    = DARKRED  | DARKGREEN | DARKBLUE,
+    DARKGRAY        = 8,
+    GRAY        = DARKRED  | DARKGREEN | DARKBLUE,
     DARKCYAN    = DARKBLUE | DARKGREEN,
     DARKMAGENTA = DARKRED  | DARKBLUE,
     DARKYELLOW  = DARKRED  | DARKGREEN,
-    WHITE       = GRAY     | DARKGRAY,
-    RED         = GRAY     | DARKRED,
-    BLUE        = GRAY     | DARKBLUE,
-    GREEN       = GRAY     | DARKGREEN,
-    MAGENTA     = GRAY     | DARKMAGENTA,
-    YELLOW      = GRAY     | DARKYELLOW,
-    CYAN        = GRAY     | DARKCYAN,
+    WHITE       = DARKGRAY | GRAY,
+    RED         = DARKGRAY | DARKRED,
+    BLUE        = DARKGRAY | DARKBLUE,
+    GREEN       = DARKGRAY | DARKGREEN,
+    MAGENTA     = DARKGRAY | DARKMAGENTA,
+    YELLOW      = DARKGRAY | DARKYELLOW,
+    CYAN        = DARKGRAY | DARKCYAN,
 };
 
 
@@ -142,7 +142,7 @@ void defaultSink(Log::MessageType type, const char* message)
     switch (type)
     {
     case Log::MessageType::NONE:
-        SetConsoleTextForegroundColor(ConsoleColor::WHITE);
+        SetConsoleTextForegroundColor(ConsoleColor::GRAY);
         break;
     case Log::MessageType::DEBUG:
         SetConsoleTextForegroundColor(ConsoleColor::GREEN);
@@ -162,7 +162,7 @@ void defaultSink(Log::MessageType type, const char* message)
         printf(message);
 
         // Incase anything wants to print after Smaug's done running
-        SetConsoleTextForegroundColor(ConsoleColor::WHITE);
+        SetConsoleTextForegroundColor(ConsoleColor::GRAY);
 
 #ifdef _WIN32
         MessageBoxA(nullptr, message, "Fatal Error!", MB_OK);
@@ -175,12 +175,12 @@ void defaultSink(Log::MessageType type, const char* message)
     }
         break;
     default:
-        SetConsoleTextForegroundColor(ConsoleColor::WHITE);
+        SetConsoleTextForegroundColor(ConsoleColor::GRAY);
         break;
     }
 
     printf(message);
-    SetConsoleTextForegroundColor(ConsoleColor::WHITE);
+    SetConsoleTextForegroundColor(ConsoleColor::GRAY);
 }
 
 void Log::SetSink(messageSink_t sink)

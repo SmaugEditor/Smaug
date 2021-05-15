@@ -196,7 +196,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 				if(!found)
 				{
-					printf("[MeshRenderer] Mesh refering to vert not in list!!\n");
+					Log::Fault("[MeshRenderer] Mesh refering to vert not in list!!\n");
 				}
 
 				idxData[iOffset] = vert;

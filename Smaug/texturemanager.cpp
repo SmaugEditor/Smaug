@@ -1,4 +1,5 @@
 #include "texturemanager.h"
+#include "log.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -51,7 +52,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 		FILE* f = stbi__fopen(path, "rb");
 		if (!f)
 		{
-			printf("[Texture Manager] Failed to load image %s: File not found\n", path);
+			Log::Warn("[Texture Manager] Failed to load image %s: File not found\n", path);
 			return ErrorTexture();
 		}
 
@@ -62,8 +63,8 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 		// if (strcmp(contents, "version") == 0)
 		if (*(uint64_t*)contents == *(uint64_t*)"version")
 		{
-			printf("[Texture Manager] Failed to load image %s: LFS detected\n", path);
-			printf("[Texture Manager] See the Getting Started section of the README for more info\n");
+			Log::Warn("[Texture Manager] Failed to load image %s: LFS detected\n", path);
+			Log::Warn("[Texture Manager] See the Getting Started section of the README for more info\n");
 			return ErrorTexture();
 		}
 
@@ -75,7 +76,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	if (!image)
 	{
 		// Oh, no. We failed to load the image...
-		printf("[Texture Manager] Failed to load image %s: Corrupt image\n", path);
+		Log::Warn("[Texture Manager] Failed to load image %s: Corrupt image\n", path);
 		return ErrorTexture();
 	}
 
@@ -111,7 +112,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	m_textureMap.insert({ path, textureHandle });
 
 
-	printf("[Texture Manager] Loaded image %s\n", path);
+	Log::Print("[Texture Manager] Loaded image %s\n", path);
 	return textureHandle;
 }
 
