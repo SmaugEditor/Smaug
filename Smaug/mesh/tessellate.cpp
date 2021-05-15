@@ -1,7 +1,7 @@
 #include "tessellate.h"
 #include "raytest.h"
 #include "meshtest.h"
-#include "sassert.h"
+#include "log.h"
 
 #include <glm/geometric.hpp>
 

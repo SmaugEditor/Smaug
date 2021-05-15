@@ -23,7 +23,7 @@ set( SOURCES
 
 	cursor.cpp 
 
-	sassert.cpp
+	log.cpp
 	utils.cpp 
 
 	raytest.cpp

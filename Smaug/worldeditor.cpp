@@ -2,7 +2,7 @@
 #include "raytest.h"
 #include "tessellate.h"
 #include "slice.h"
-#include "sassert.h"
+#include "log.h"
 
 #include <glm/geometric.hpp>
 #include <glm/common.hpp>
