@@ -78,20 +78,22 @@ void CUIView::Update(float dt, float mx, float my)
 
 	// UI
 	ImGui::ShowDemoWindow();
-	
+
+	bool openNewFilePrompt = false;
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
 		{
+			openNewFilePrompt = ImGui::MenuItem("New");
 
-			if (ImGui::MenuItem("Save File"))
+			if (ImGui::MenuItem("Save"))
 			{
 				char* str = saveWorld();
 				filesystem::SaveFileWithDialog(str, "*.smf");
 				delete[] str;
 			}
 
-			if (ImGui::MenuItem("Load File"))
+			if (ImGui::MenuItem("Load"))
 			{
 				size_t len;
 				char* str = filesystem::LoadFileWithDialog(len, "*.smf");
@@ -137,6 +139,31 @@ void CUIView::Update(float dt, float mx, float my)
 
 		ImGui::EndMainMenuBar();
 	}
+
+
+	if(openNewFilePrompt)
+		ImGui::OpenPopup("NewFilePrompt");
+
+	if (ImGui::BeginPopupModal("NewFilePrompt", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Clear the world and create a new file?\n");
+
+		if (ImGui::Button("OK", ImVec2(120, 0)))
+		{
+			defaultWorld();
+			ImGui::CloseCurrentPopup();
+		}
+		
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+
 	for (int i = 0; i < 3; i++)
 	{
 		if(ImGui::Begin(i == 0 ? "2D Editor" : i == 1 ? "2D Editor 2" : "2D Editor 3"))

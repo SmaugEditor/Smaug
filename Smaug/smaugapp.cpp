@@ -1,6 +1,7 @@
 #include "smaugapp.h"
 #include "worldrenderer.h"
 #include "shadermanager.h"
+#include "worldsave.h"
 
 void CSmaugApp::initialize(int _argc, char** _argv)
 {
@@ -13,12 +14,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 	GetWorldRenderer().Init();
 
-
-	CNode* node = GetWorldEditor().CreateQuad();
-	node->m_mesh.origin = glm::vec3(0, 4, 16);
-	for (auto v : node->m_mesh.verts)
-		*v = { v->x * 8, v->y * 4, v->z * 8 };
-	node->Update();
+	defaultWorld();
 
 
 	m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
