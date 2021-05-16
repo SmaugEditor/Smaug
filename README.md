@@ -5,6 +5,8 @@ A map editor designed for rapid iteration
 
 [Discord Server]: https://discord.gg/ePnUDsKtWZ
 
+[See what the editor currently looks like here](https://www.youtube.com/playlist?list=PLax6C9LWTmvg0Rcfii0m-aNgTbeQpjJ7K)
+
 ## Installation
 Join the [Discord Server], and download the latest archive from the #announcements channel.
 
