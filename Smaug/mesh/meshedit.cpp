@@ -58,7 +58,7 @@ meshPart_t* endcapEdges(std::vector<vertex_t*>& stems)
 	return addMeshFace(parent, points.data(), points.size());
 }
 
-void invertNormal(meshPart_t* part)
+void invertPartNormal(meshPart_t* part)
 {
 	if (part->verts.size() < 2 || part->edges.size() < 2)
 		return;

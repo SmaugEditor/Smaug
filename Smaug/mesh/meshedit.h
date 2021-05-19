@@ -15,7 +15,7 @@ std::vector<vertex_t*> extrudeEdges(std::vector<vertex_t*>& stems, glm::vec3 off
 meshPart_t* endcapEdges(std::vector<vertex_t*>& stems);
 
 // Inverts the normal of a mesh part
-void invertNormal(meshPart_t* part);
+void invertPartNormal(meshPart_t* part);
 
 // Pushes verts from a face into a vector. Vector is guaranteed to be ordered.
 void vertexLoopToVector(face_t* face, std::vector<vertex_t*>& stems);
