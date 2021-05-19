@@ -85,8 +85,10 @@ struct face_t
 	// Do we really need vectors for this?
 
 	// These edges use the verts 
+	// Not ordered!
 	std::vector<halfEdge_t*> edges;
 
+	// Not ordered!
 	std::vector<vertex_t*> verts;
 
 	// What do we belong to? Could be a meshpart, face, or etc.
@@ -184,8 +186,8 @@ struct cuttableMesh_t : public mesh_t
 // Returns start of the points within mesh.verts
 glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount);
 
-// Does not add points to mesh! Only adds face
-void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
+// Does not add points to mesh! Only adds a face
+meshPart_t* addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount);
 
 void defineMeshPartFaces(meshPart_t& mesh);
 

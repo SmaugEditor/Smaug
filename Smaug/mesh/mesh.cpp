@@ -33,11 +33,12 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 	}
 
 	glm::vec3 faceNormal = { 0,0,0 };
-	for (int i = 1; i < face->verts.size(); i++)
-	{
-		faceNormal += glm::cross((center - (*face->verts[i]->vert)), (*face->verts[i - 1]->vert) - center);
-	}
 
+	vertex_t* vs = face->verts.front(), * l = vs, * v = l->edge->vert;
+	do
+	{
+		faceNormal += glm::cross((center - (*v->vert)), (*l->vert) - center);
+	} 	while (l != vs);
 
 	return faceNormal;
 }
@@ -81,13 +82,15 @@ glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount)
 
 // Creates and defines a new face within a mesh
 void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
-void addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
+meshPart_t* addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
 {
 	meshPart_t* mp = new meshPart_t;
 	mp->mesh = &mesh;
 	mesh.parts.push_back(mp);
 
 	defineFace(mp, points, pointCount);
+
+	return mp;
 }
 
 

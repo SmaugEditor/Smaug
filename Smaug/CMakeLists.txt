@@ -31,6 +31,7 @@ set( SOURCES
 	mesh/tessellate.cpp
 	mesh/slice.cpp
 	mesh/meshtest.cpp
+	mesh/meshedit.cpp
 	meshrenderer.cpp
 
 	worldeditor.cpp 
