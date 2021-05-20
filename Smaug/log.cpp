@@ -1,4 +1,5 @@
 #include "log.h"
+#include <portable-file-dialogs/portable-file-dialogs.h>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN 1
 #define VC_EXTRALEAN 1
@@ -89,25 +90,19 @@ bool Log::Assert(bool condition, const char* expression, int line, const char* f
         formatAssertion(message, 1024, expression, line, file, function);
         Drain(MessageType::FAULT, message);
 
-
-#ifdef _WIN32
-        int ret = MessageBoxA(nullptr, message, "Assertion failed!", MB_ABORTRETRYIGNORE);
+        pfd::button b = pfd::message("Assertion failed!", message, pfd::choice::abort_retry_ignore).result();
 
         // This is counterintuitive to the buttons...
-
-        switch (ret)
+        switch (b)
         {
-        case IDABORT:
+        case pfd::button::abort:
             exit(1);
             break;
-        case IDRETRY:
+        case pfd::button::retry:
             DebugBreak();
             break;
 
         }
-#else
-
-#endif
     }
     return condition;
 }
@@ -164,11 +159,7 @@ void defaultSink(Log::MessageType type, const char* message)
         // Incase anything wants to print after Smaug's done running
         SetConsoleTextForegroundColor(ConsoleColor::GRAY);
 
-#ifdef _WIN32
-        MessageBoxA(nullptr, message, "Fatal Error!", MB_OK);
-#else
-
-#endif
+        pfd::message("Fatal Error!", message, pfd::choice::abort_retry_ignore).result();
 
         exit(1);
         return;
