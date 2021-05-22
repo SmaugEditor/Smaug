@@ -61,13 +61,11 @@ char* COBJExporter::Export(CWorldEditor* world)
 
 		cuttableMesh_t& mesh = node->m_mesh;
 		stream << "# Node " << node->NodeID() << "\n";
-		stream << "# Floor Face\n";
-		
 
 		for (auto p : mesh.parts)
 		{
 
-			for (auto f : p->tris)
+			for (auto f : p->sliced ? p->sliced->collision : p->collision)
 			{
 				// If we have < 3 verts, dump this bozo
 				if (f->verts.size() < 3)
