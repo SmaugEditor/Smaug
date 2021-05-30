@@ -33,8 +33,10 @@ CMeshRenderer::CMeshRenderer(cuttableMesh_t& mesh) : m_mesh(mesh), m_indexCount(
 
 CMeshRenderer::~CMeshRenderer()
 {
-	bgfx::destroy(m_vertexBuf);
-	bgfx::destroy(m_indexBuf);
+	if(m_vertexBuf.idx != bgfx::kInvalidHandle)
+		bgfx::destroy(m_vertexBuf);
+	if (m_indexBuf.idx != bgfx::kInvalidHandle)
+		bgfx::destroy(m_indexBuf);
 }
 
 void CMeshRenderer::RebuildRenderData()
