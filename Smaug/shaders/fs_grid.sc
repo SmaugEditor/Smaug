@@ -55,8 +55,8 @@ void main()
 	blue += gridDirMask.z * float(bigGridCoords.z > lineWidthBigGrid);
 	blue =  clamp(blue, 0.0, 1.0);
 
-
-	gl_FragColor = vec4(drawLine * ( 1.0 - blue ) * redDisable + redDampen, drawLine * redDisable * ( 1.0 - blue ), (drawLine * (1.0 - blue) + blue * 0.75) * redDisable , drawLine + blue);
+	vec3 col = vec3(drawLine * ( 1.0 - blue ) * redDisable + redDampen, drawLine * redDisable * ( 1.0 - blue ), (drawLine * (1.0 - blue) + blue * 0.75) * redDisable);
+	gl_FragColor = vec4(col, float(col.x > 0 || col.y > 0 || col.z > 0));
 
 	
 }

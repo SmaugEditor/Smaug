@@ -36,7 +36,7 @@ void CSelectedView::Draw(float dt)
 
 		// Set the color
 		// Precompute this?
-		ShaderManager().SetColor(nodeColor(m_selectedNode.Node()));
+		ShaderManager().SetColor(glm::vec4(nodeColor(m_selectedNode.Node()),1.0f));
 		bgfx::submit(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
 	}
 }

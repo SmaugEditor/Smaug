@@ -140,7 +140,16 @@ void CGrid::Draw(glm::vec2 screenSize, glm::vec3 pos, glm::vec3 angles, bool sub
 
 	bgfx::setUniform(m_gridScale, &m_vecScale);
 	bgfx::setUniform(m_gridDirMask, &m_vecGridDirMask);
-
+	bgfx::setState(
+		BGFX_STATE_CULL_CW
+		| BGFX_STATE_WRITE_RGB
+		| BGFX_STATE_WRITE_A
+		| BGFX_STATE_DEPTH_TEST_ALWAYS
+		| BGFX_STATE_MSAA
+		| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_ONE, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+		| BGFX_STATE_BLEND_INDEPENDENT
+		, BGFX_STATE_BLEND_FUNC_RT_1(BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_SRC_COLOR)
+	);
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::GRID));
 }
 

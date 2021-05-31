@@ -1,6 +1,6 @@
 #pragma once
 #include <bgfx/bgfx.h>
-#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 // Probably a WAAAAAY better way to do this.
 
 enum class Shader
@@ -24,7 +24,7 @@ public:
 	void Init();
 	void Shutdown();
 
-	void SetColor(glm::vec3 color);
+	void SetColor(glm::vec4 color);
 	bgfx::ProgramHandle GetShaderProgram(Shader shader);
 private:
 	bgfx::UniformHandle m_colorUniform;

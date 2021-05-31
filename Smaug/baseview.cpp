@@ -12,7 +12,7 @@ void CBaseView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	if (m_viewId != 0)
 	{
 
-		m_fbColorTexture = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::BGRA8, (uint64_t( 1) << BGFX_TEXTURE_RT_MSAA_SHIFT) | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+		m_fbColorTexture = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::RGBA16F, (uint64_t( 1) << BGFX_TEXTURE_RT_MSAA_SHIFT) | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
 		
 		uint64_t textureFlags = BGFX_TEXTURE_RT_WRITE_ONLY;
 		bgfx::TextureFormat::Enum depthFormat =

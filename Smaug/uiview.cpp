@@ -26,7 +26,7 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_editViews[2].m_editPlaneAngle = { -PI / 2, PI / 2, 0 };
 
 	for(int i = 0; i < 3; i++)
-		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x383838FF);
+		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x121212FF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
 	SelectedView().Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
 

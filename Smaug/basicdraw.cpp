@@ -100,7 +100,7 @@ void CBasicDraw::Cube(glm::mat4 mtx)
 	bgfx::setVertexBuffer(0, m_lineVertexBuf);
 	bgfx::setIndexBuffer(m_lineIndexBuf);
 
-	ShaderManager().SetColor({1,0,0});
+	ShaderManager().SetColor({1,0,0,1});
 	bgfx::setState(0
 		| BGFX_STATE_WRITE_RGB
 		| BGFX_STATE_WRITE_A
@@ -143,7 +143,7 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 	bgfx::setVertexBuffer(0, m_lineVertexBuf);
 	bgfx::setIndexBuffer(m_lineIndexBuf);
 
-	ShaderManager().SetColor(color);
+	ShaderManager().SetColor(glm::vec4(color, 1.0f));
 	bgfx::setState(0
 		| BGFX_STATE_WRITE_RGB
 		| BGFX_STATE_WRITE_A

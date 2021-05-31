@@ -56,10 +56,9 @@ void CShaderManager::Shutdown()
 	m_colorUniform = BGFX_INVALID_HANDLE;
 }
 
-void CShaderManager::SetColor(glm::vec3 color)
+void CShaderManager::SetColor(glm::vec4 color)
 {
-	glm::vec4 container = glm::vec4(color, 1.0);
-	bgfx::setUniform(m_colorUniform, &container);
+	bgfx::setUniform(m_colorUniform, &color);
 }
 
 bgfx::ProgramHandle CShaderManager::GetShaderProgram(Shader shader)

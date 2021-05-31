@@ -47,8 +47,17 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 
 		// Set the color
 		// Precompute this?
-		ShaderManager().SetColor(nodeColor(node));
-
+		ShaderManager().SetColor(glm::vec4(nodeColor(node), 0.85f));
+		bgfx::setState(
+			  BGFX_STATE_CULL_CW
+			| BGFX_STATE_WRITE_RGB
+			| BGFX_STATE_WRITE_A
+			| BGFX_STATE_DEPTH_TEST_ALWAYS
+			| BGFX_STATE_MSAA
+			| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_ONE, BGFX_STATE_BLEND_ONE)
+			| BGFX_STATE_BLEND_INDEPENDENT
+			, BGFX_STATE_BLEND_FUNC_RT_1(BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_SRC_COLOR)
+		);
 		bgfx::submit(viewId, shaderProgram);
 	}
 }
@@ -67,8 +76,7 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 
 			// Set the color
 			// Precompute this?
-			ShaderManager().SetColor(nodeColor(node));
-
+			ShaderManager().SetColor(glm::vec4(nodeColor(node), 1.0f));
 			bgfx::submit(viewId, shaderProgram);
 		}
 	}
