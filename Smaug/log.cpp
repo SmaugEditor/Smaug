@@ -1,5 +1,6 @@
 #include "log.h"
 #include <portable-file-dialogs/portable-file-dialogs.h>
+#include <debugbreak.h>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN 1
 #define VC_EXTRALEAN 1
@@ -101,7 +102,7 @@ bool Log::Assert(bool condition, const char* expression, int line, const char* f
             exit(1);
             break;
         case pfd::button::retry:
-            DebugBreak();
+            debug_break();
             break;
 
         }
