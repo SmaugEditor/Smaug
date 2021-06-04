@@ -11,6 +11,8 @@
 void defaultSink(Log::MessageType type, const char* message);
 static Log::messageSink_t s_messageSink = &defaultSink;
 
+thread_local std::vector<char> Log::_g_priv_fmt_buf;
+
 // Windows colors
 // Maybe change their values on Linux?
 enum class ConsoleColor
