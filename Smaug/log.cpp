@@ -46,6 +46,12 @@ void SetConsoleTextForegroundColor(ConsoleColor color)
 #endif
 }
 
+#if defined(__GNUC__) && __GNUC__ < 10
+// consteval was only added in G++10, and so we remove the const-related markings from this calculation
+#define consteval
+#define constexpr
+#define CONSTS_DISABLED
+#endif
 
 // Cheesy move to strip off the path from the file name 
 // Note: This does require log.cpp to exist at the base of the file tree!
@@ -78,6 +84,11 @@ consteval int baseFilePathLength()
 
 static constexpr int BASE_FILE_PATH_LENGTH = baseFilePathLength();
 
+#ifdef CONSTS_DISABLED
+#undef consteval
+#undef constexpr
+#undef CONSTS_DISABLED
+#endif
 
 // Use this so that all assertions look consistent
 void formatAssertion(char* message, size_t length, const char* expression, int line, const char* file, const char* function)
