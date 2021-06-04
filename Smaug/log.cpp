@@ -156,7 +156,7 @@ void defaultSink(Log::MessageType type, const char* message)
     case Log::MessageType::FATAL:
     {
         SetConsoleTextForegroundColor(ConsoleColor::MAGENTA);
-        printf(message);
+        fputs(message, stdout);
 
         // Incase anything wants to print after Smaug's done running
         SetConsoleTextForegroundColor(ConsoleColor::GRAY);
@@ -172,7 +172,7 @@ void defaultSink(Log::MessageType type, const char* message)
         break;
     }
 
-    printf(message);
+    fputs(message, stdout);
     SetConsoleTextForegroundColor(ConsoleColor::GRAY);
 }
 
