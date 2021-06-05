@@ -1,6 +1,4 @@
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(ASSIMP_NO_EXPORT ON)
 
 set( SOURCES 
@@ -111,6 +109,7 @@ target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp mes
 target_link_libraries( smaug bigg keyvalues assimp )
 set_target_properties( smaug PROPERTIES
 	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+	CXX_STANDARD 20
 )
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT smaug)

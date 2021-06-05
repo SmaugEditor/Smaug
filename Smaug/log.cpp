@@ -1,5 +1,6 @@
 #include "log.h"
 #include <portable-file-dialogs/portable-file-dialogs.h>
+#include <debugbreak.h>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN 1
 #define VC_EXTRALEAN 1
@@ -10,6 +11,8 @@
 
 void defaultSink(Log::MessageType type, const char* message);
 static Log::messageSink_t s_messageSink = &defaultSink;
+
+thread_local std::vector<char> Log::_g_priv_fmt_buf;
 
 // Windows colors
 // Maybe change their values on Linux?
@@ -43,6 +46,12 @@ void SetConsoleTextForegroundColor(ConsoleColor color)
 #endif
 }
 
+#if defined(__GNUC__) && __GNUC__ < 10
+// consteval was only added in G++10, and so we remove the const-related markings from this calculation
+#define consteval
+#define constexpr
+#define CONSTS_DISABLED
+#endif
 
 // Cheesy move to strip off the path from the file name 
 // Note: This does require log.cpp to exist at the base of the file tree!
@@ -75,6 +84,11 @@ consteval int baseFilePathLength()
 
 static constexpr int BASE_FILE_PATH_LENGTH = baseFilePathLength();
 
+#ifdef CONSTS_DISABLED
+#undef consteval
+#undef constexpr
+#undef CONSTS_DISABLED
+#endif
 
 // Use this so that all assertions look consistent
 void formatAssertion(char* message, size_t length, const char* expression, int line, const char* file, const char* function)
@@ -99,7 +113,7 @@ bool Log::Assert(bool condition, const char* expression, int line, const char* f
             exit(1);
             break;
         case pfd::button::retry:
-            DebugBreak();
+            debug_break();
             break;
 
         }
@@ -154,7 +168,7 @@ void defaultSink(Log::MessageType type, const char* message)
     case Log::MessageType::FATAL:
     {
         SetConsoleTextForegroundColor(ConsoleColor::MAGENTA);
-        printf(message);
+        fputs(message, stdout);
 
         // Incase anything wants to print after Smaug's done running
         SetConsoleTextForegroundColor(ConsoleColor::GRAY);
@@ -170,7 +184,7 @@ void defaultSink(Log::MessageType type, const char* message)
         break;
     }
 
-    printf(message);
+    fputs(message, stdout);
     SetConsoleTextForegroundColor(ConsoleColor::GRAY);
 }
 

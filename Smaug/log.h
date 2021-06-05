@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <malloc.h>
+#include <vector>
 
 
 #ifdef _DEBUG
@@ -18,6 +19,8 @@
 
 namespace Log
 {
+
+extern thread_local std::vector<char> _g_priv_fmt_buf;
 
 enum class MessageType
 {
@@ -54,12 +57,12 @@ void DrainFormat(MessageType type, const char* str, T... args)
 	// How many bytes do we need?
 	int size = snprintf(nullptr, 0, str, args...) + 1;
 
-	// Try to not kill our stack please?
-	SASSERT_FATAL(size < 4096);
-
 	// I would use std::format, if it was supported
 	// Maybe make use of it at a later date!
-	char* buf = (char*)alloca(size);
+
+	_g_priv_fmt_buf.reserve( size );
+	char* buf = _g_priv_fmt_buf.data();
+
 	snprintf(buf, size, str, args...);
 	Drain(type, buf);
 }

@@ -14,8 +14,7 @@
 #include "grid.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp> 
-#include <numbers>
+#include <glm/gtx/euler_angles.hpp>
 #include <debugdraw.h>
 
 BEGIN_SVAR_TABLE(CEditViewSettings)
