@@ -1,6 +1,6 @@
 [submodule "thirdparty/bigg"]
 	path = thirdparty/bigg
-	url = https://github.com/ozxybox/bigg.git
+	url = https://github.com/SmaugEditor/bigg.git
 [submodule "thirdparty/portable-file-dialogs"]
 	path = thirdparty/portable-file-dialogs
 	url = https://github.com/samhocevar/portable-file-dialogs.git
