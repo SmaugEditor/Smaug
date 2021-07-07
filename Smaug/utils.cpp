@@ -1,9 +1,8 @@
 #include "utils.h"
-#include <bigg.hpp>
 #include <cstring>
 #include <charconv>
 #include <cstdio>
-#include <filesystem>
+#include <glm/glm.hpp>
 
 // Keep this private
 RendererProperties_t gRenderProps;
@@ -129,66 +128,6 @@ glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, S
 		if (snap) *snap = SolveToLine2DSnap::Y_SNAP;
 		return glm::vec2(pos.x, (pos.x - lineStart.x) * slope + lineStart.y);
 	}
-}
-
-bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::ProgramHandle fallback)
-{
-	// Static so we don't reinitiate this
-	static char const *const shaderPaths[bgfx::RendererType::Count] =
-	{
-		nullptr,		  // No Renderer
-		"shaders/dx9/",   // Direct3D9
-		"shaders/dx11/",  // Direct3D11
-		"shaders/dx11/",  // Direct3D12
-		nullptr,		  // Gnm
-		nullptr,		  // Metal
-		nullptr,		  // Nvm
-		"shaders/essl/",  // OpenGL ES
-		"shaders/glsl/",  // OpenGL
-		"shaders/spirv/", // Vulkan
-		nullptr,		  // WebGPU
-	};
-
-	int type = bgfx::getRendererType();
-
-	// Out of bounds. Return an invalid handle
-	if (type >= bgfx::RendererType::Count || type < 0)
-	{
-		return BGFX_INVALID_HANDLE;
-	}
-
-	const char* shaderPath = shaderPaths[bgfx::getRendererType()];
-
-	// Unsupported platform. Return invalid handle
-	if (!shaderPath)
-	{
-		return BGFX_INVALID_HANDLE;
-	}
-
-	char vsPath[128] = "";
-	strncat(vsPath, shaderPath, sizeof(vsPath));
-	strncat(vsPath, vertex, sizeof(vsPath));
-
-	if (!std::filesystem::exists(vsPath))
-	{
-		Log::Fault("[Utils::LoadShader] Vertex shader %s not found\n", vsPath);
-		return fallback;
-	}
-
-	char fsPath[128] = "";
-	strncat(fsPath, shaderPath, sizeof(fsPath));
-	strncat(fsPath, fragment, sizeof(fsPath));
-
-	if (!std::filesystem::exists(fsPath))
-	{
-		Log::Fault("[Utils::LoadShader] Fragment shader %s not found\n", fsPath);
-		return fallback;
-	}
-
-	Log::Print("[Utils::LoadShader]: Loading %s and %s\n", vsPath, fsPath);
-	
-	
-	return bigg::loadProgram(vsPath, fsPath);
 }
 
 static const float s_MathPI = acos(-1);

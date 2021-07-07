@@ -2,6 +2,8 @@
 #include "utils.h"
 #include <glm/vec4.hpp>
 #include <cstdio>
+#include <filesystem>
+#include <bigg.hpp>
 
 static struct
 {
@@ -23,20 +25,81 @@ s_programInfo[] = {
 };
 
 
+bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::ProgramHandle fallback)
+{
+	// Static so we don't reinitiate this
+	static char const* const shaderPaths[bgfx::RendererType::Count] =
+	{
+		nullptr,		  // No Renderer
+		"shaders/dx9/",   // Direct3D9
+		"shaders/dx11/",  // Direct3D11
+		"shaders/dx11/",  // Direct3D12
+		nullptr,		  // Gnm
+		nullptr,		  // Metal
+		nullptr,		  // Nvm
+		"shaders/essl/",  // OpenGL ES
+		"shaders/glsl/",  // OpenGL
+		"shaders/spirv/", // Vulkan
+		nullptr,		  // WebGPU
+	};
+
+	int type = bgfx::getRendererType();
+	
+	// Out of bounds. Return an invalid handle
+	if (type >= bgfx::RendererType::Count || type < 0)
+	{
+		return BGFX_INVALID_HANDLE;
+	}
+
+	const char* shaderPath = shaderPaths[bgfx::getRendererType()];
+
+	// Unsupported platform. Return invalid handle
+	if (!shaderPath)
+	{
+		return BGFX_INVALID_HANDLE;
+	}
+
+	char vsPath[128] = "";
+	strncat(vsPath, shaderPath, sizeof(vsPath));
+	strncat(vsPath, vertex, sizeof(vsPath));
+
+	if (!std::filesystem::exists(vsPath))
+	{
+		Log::Fault("[ShaderManager::LoadShader] Vertex shader %s not found\n", vsPath);
+		return fallback;
+	}
+
+	char fsPath[128] = "";
+	strncat(fsPath, shaderPath, sizeof(fsPath));
+	strncat(fsPath, fragment, sizeof(fsPath));
+
+	if (!std::filesystem::exists(fsPath))
+	{
+		Log::Fault("[ShaderManager::LoadShader] Fragment shader %s not found\n", fsPath);
+		return fallback;
+	}
+
+	Log::Print("[ShaderManager::LoadShader] Loading %s and %s\n", vsPath, fsPath);
+
+	return bigg::loadProgram(vsPath, fsPath);
+}
+
+
 void CShaderManager::Init()
 {
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
 		
-		s_programInfo[i].programHandle = LoadShader(s_programInfo[i].fragmentShader, s_programInfo[i].vertexShader);
+		s_programInfo[i].programHandle = LoadShader(s_programInfo[i].fragmentShader, s_programInfo[i].vertexShader, BGFX_INVALID_HANDLE);
 		
 		if(s_programInfo[i].programHandle.idx == bgfx::kInvalidHandle)
 		{
-			Log::Fault("Failed to load program: fragment: %-20s  vertex: %-20s\n", s_programInfo[i].fragmentShader,
+			Log::TFault("Failed to load program: fragment: %-20s  vertex: %-20s\n", s_programInfo[i].fragmentShader,
 				s_programInfo[i].vertexShader);
 		}
 		
 	}
+
 
 	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
 }
