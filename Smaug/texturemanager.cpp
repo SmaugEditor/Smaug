@@ -1,9 +1,8 @@
 #include "texturemanager.h"
 #include "log.h"
+#include "filesystem.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
+#include <lodepng/lodepng.h>
 
 const static uint8_t s_errorTexture[] =
 {
@@ -43,68 +42,68 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	// We don't have it loaded... Guess we'll have to grab it then!
 
 	// Comp is how many components each pixel is made up of
-	int width, height, comp;
-	stbi_uc* image;
+	unsigned int width, height;
+	std::vector<unsigned char> pixels;
 
 	// An unrolled version of stbi_load
 	// lets us do better error reporting
 	{
-		FILE* f = stbi__fopen(path, "rb");
-		if (!f)
+
+		size_t len;
+		const unsigned char* buf = (const unsigned char*)filesystem::LoadFile(path, len);
+		if (!buf)
 		{
 			Log::Warn("[Texture Manager] Failed to load image %s: File not found\n", path);
+			delete[] buf;
+			return ErrorTexture();
+		}
+
+		if (len < 10)
+		{
+			Log::Warn("[Texture Manager] Failed to load image %s: file is too small to be a png\n", path);
+			delete[] buf;
 			return ErrorTexture();
 		}
 
 		// LFS check
-		char contents[8];
-		fgets(contents, sizeof(contents), f);
 		// An LFS meta file starts with "version"
 		// if (strcmp(contents, "version") == 0)
-		if (*(uint64_t*)contents == *(uint64_t*)"version")
+		if (*(uint64_t*)buf == *(uint64_t*)"version ") // Space is here so that we don't try to test an unexpected \0
 		{
 			Log::Warn("[Texture Manager] Failed to load image %s: LFS detected\n", path);
 			Log::Warn("[Texture Manager] See the Getting Started section of the README for more info\n");
+			delete[] buf;
 			return ErrorTexture();
 		}
 
-		rewind(f);
-		image = stbi_load_from_file(f, &width, &height, &comp, 0);
-		fclose(f);
+		unsigned int error = lodepng::decode(pixels, width, height, buf, len);
+
+		if (error)
+		{
+			const char* errorMessage = lodepng_error_text(error);
+			Log::Warn("[Texture Manager] Failed to load image %s: Lodepng error - %s\n", path, errorMessage);
+
+			delete[] buf;
+			return ErrorTexture();
+		}
+
+		delete[] buf;
 	}
 
-	if (!image)
+	if (!pixels.size() || width == 0 || height == 0)
 	{
 		// Oh, no. We failed to load the image...
-		Log::Warn("[Texture Manager] Failed to load image %s: Corrupt image\n", path);
+		Log::Warn("[Texture Manager] Failed to load image %s: Empty image\n", path);
 		return ErrorTexture();
 	}
 
-	size_t size = (size_t)width * height * comp * sizeof(stbi_uc);
 
 	// If we use a reference here, we'd have to maintain the pixel data ourselves. This just makes it easier
-	const bgfx::Memory* mem = bgfx::alloc(size);
-	memcpy(mem->data, image, size);
-	delete[] image;
+	const bgfx::Memory* mem = bgfx::alloc(pixels.size());
+	memcpy(mem->data, pixels.data(), pixels.size());
 
-	// Figure out what kinda foramt this uses
-	bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Enum::Unknown;
-	switch (comp)
-	{
-	case 1:
-		format = bgfx::TextureFormat::Enum::R8; // Wrong. Should be Gray
-		break;
-	case 2:
-		format = bgfx::TextureFormat::Enum::RG8; // Wrong. Should be Gray Alpha
-		break;
-	case 3:
-		format = bgfx::TextureFormat::Enum::RGB8;
-		break;
-	case 4:
-		format = bgfx::TextureFormat::Enum::RGBA8;
-		break;
-	}
-
+	// Lode png puts everything in rgba8 unless requested otherwise
+	bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Enum::RGBA8;
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(width, height, false, 1, format, 0, mem);
 

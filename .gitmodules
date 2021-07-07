@@ -10,3 +10,6 @@
 [submodule "thirdparty/assimp"]
 	path = thirdparty/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "thirdparty/lodepng.cmake/lodepng"]
+	path = thirdparty/lodepng.cmake/lodepng
+	url = https://github.com/lvandeve/lodepng.git

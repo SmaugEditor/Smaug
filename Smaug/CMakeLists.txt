@@ -106,7 +106,7 @@ endforeach()
 include_directories( . )
 add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} shaders/varying.def.sc )
 target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp mesh )
-target_link_libraries( smaug bigg keyvalues assimp )
+target_link_libraries( smaug bigg keyvalues assimp lodepng )
 set_target_properties( smaug PROPERTIES
 	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 	CXX_STANDARD 20
