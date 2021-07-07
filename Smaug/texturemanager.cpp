@@ -2,7 +2,7 @@
 #include "log.h"
 #include "filesystem.h"
 
-#include <lodepng/lodepng.h>
+#include <lodepng.h>
 
 const static uint8_t s_errorTexture[] =
 {
