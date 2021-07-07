@@ -29,6 +29,7 @@ static bgfx::TextureHandle GetErrorTexture()
 	return s_errorT.m_textureHandle;
 }
 
+
 bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 {
 	auto textureSearch = m_textureMap.find(path);
@@ -50,14 +51,14 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 		const unsigned char* buf = (const unsigned char*)filesystem::LoadFile(path, len);
 		if (!buf)
 		{
-			Log::Warn("[Texture Manager] Failed to load image %s: File not found\n", path);
+			Log::TWarn("Failed to load image %s: File not found\n", path);
 			delete[] buf;
 			return ErrorTexture();
 		}
 
 		if (len < 10)
 		{
-			Log::Warn("[Texture Manager] Failed to load image %s: file is too small to be a png\n", path);
+			Log::TWarn("Failed to load image %s: file is too small to be a png\n", path);
 			delete[] buf;
 			return ErrorTexture();
 		}
@@ -67,8 +68,8 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 		// if (strcmp(contents, "version") == 0)
 		if (*(uint64_t*)buf == *(uint64_t*)"version ") // Space is here so that we don't try to test an unexpected \0
 		{
-			Log::Warn("[Texture Manager] Failed to load image %s: LFS detected\n", path);
-			Log::Warn("[Texture Manager] See the Getting Started section of the README for more info\n");
+			Log::TWarn("Failed to load image %s: LFS detected\n", path);
+			Log::TWarn("See the Getting Started section of the README for more info\n");
 			delete[] buf;
 			return ErrorTexture();
 		}
@@ -78,7 +79,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 		if (error)
 		{
 			const char* errorMessage = lodepng_error_text(error);
-			Log::Warn("[Texture Manager] Failed to load image %s: Lodepng error - %s\n", path, errorMessage);
+			Log::TWarn("Failed to load image %s: Lodepng error - %s\n", path, errorMessage);
 
 			delete[] buf;
 			return ErrorTexture();
@@ -90,7 +91,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	if (!pixels.size() || width == 0 || height == 0)
 	{
 		// Oh, no. We failed to load the image...
-		Log::Warn("[Texture Manager] Failed to load image %s: Empty image\n", path);
+		Log::TWarn("Failed to load image %s: Empty image\n", path);
 		return ErrorTexture();
 	}
 
@@ -106,7 +107,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	m_textureMap.insert({ path, textureHandle });
 
 
-	Log::Print("[Texture Manager] Loaded image %s\n", path);
+	Log::TPrint("Loaded image %s\n", path);
 	return textureHandle;
 }
 

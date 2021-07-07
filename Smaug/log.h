@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <malloc.h>
 #include <vector>
-
+#include <typeinfo>
 
 #ifdef _DEBUG
 #define SASSERT(cond) Log::Assert(cond, #cond, __LINE__, __FILE__, __FUNCTION__)
@@ -114,4 +114,29 @@ void Fatal(const char* str, T... args)
 	DrainFormat(MessageType::FATAL, str, args...);
 }
 
+// "This Tagged" Messages
+// - Creates logs that are prefixed with "this" class
+// - Relies on the calling class being prefixed with a 'C'
+
+template<typename T>
+constexpr const char* ClassName()
+{
+	// Our classes always start with a C, which means we can use it to poke around and find the start of the class, even this is implementation defined function
+	const char* name = typeid(T).name();
+	const char* pos = strchr(name, 'C');
+
+	// Found the C? Increment by one, to skip the C, and return it 
+	if (pos)
+		return pos + 1;
+
+	// Failed to find it! Return the mangled name???
+	return name;
+}
+
+#define TDebug(str, ...) Debug("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
+#define TPrint(str, ...) Print("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
+#define TMsg(str, ...) Msg("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
+#define TFault(str, ...) Fault("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
+#define TWarn(str, ...) Warn("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
+#define TFatal(str, ...) Fatal("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
 }

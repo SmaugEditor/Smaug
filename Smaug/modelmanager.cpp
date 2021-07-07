@@ -206,7 +206,7 @@ IModel* CModelManager::LoadModel(const char* path)
     if (!scene || scene->mNumMeshes == 0)
     {
         // Oh, no. We failed to load the image...
-        Log::Warn("[Model Manager] Failed to load model %s\n", path);
+        Log::TWarn("Failed to load model %s\n", path);
         return GetErrorModel();
     }
 
@@ -243,7 +243,7 @@ IModel* CModelManager::LoadModel(const char* path)
 
 
 
-    Log::Print("[Model Manager] Loaded model %s\n", path);
+    Log::TPrint("Loaded model %s\n", path);
     return model;
 }
 
