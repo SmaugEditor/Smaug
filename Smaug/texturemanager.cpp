@@ -41,12 +41,9 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 
 	// We don't have it loaded... Guess we'll have to grab it then!
 
-	// Comp is how many components each pixel is made up of
 	unsigned int width, height;
 	std::vector<unsigned char> pixels;
 
-	// An unrolled version of stbi_load
-	// lets us do better error reporting
 	{
 
 		size_t len;
@@ -103,9 +100,7 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	memcpy(mem->data, pixels.data(), pixels.size());
 
 	// Lode png puts everything in rgba8 unless requested otherwise
-	bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Enum::RGBA8;
-
-	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(width, height, false, 1, format, 0, mem);
+	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::Enum::RGBA8, 0, mem);
 
 	// Put this in our map so we can grab it later instead of loading it again.
 	m_textureMap.insert({ path, textureHandle });
