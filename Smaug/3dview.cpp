@@ -34,6 +34,8 @@ BEGIN_SVAR_TABLE(C3DViewSettings)
 	DEFINE_TABLE_SVAR_INPUT(down,         GLFW_KEY_LEFT_CONTROL, false)
 	DEFINE_TABLE_SVAR_INPUT(enable,       GLFW_KEY_Z, false)
 	DEFINE_TABLE_SVAR_INPUT(panView,	  GLFW_MOUSE_BUTTON_3, true)
+
+	DEFINE_TABLE_SVAR_INPUT(wireframe,	  GLFW_KEY_F1, false)
 END_SVAR_TABLE()
 
 static C3DViewSettings s_3dViewSettings;
@@ -189,7 +191,9 @@ void C3DView::Update(float dt, float mx, float my)
 		m_cameraPos += moveDelta;
 	}
 
-#if 0 && defined( _DEBUG )
+#if defined( _DEBUG )
+	
+#if 0
 	// Nice little debug view for testing
 	ImGui::SetNextWindowFocus();
 	if (ImGui::Begin("Camera Debug", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration))
@@ -201,7 +205,19 @@ void C3DView::Update(float dt, float mx, float my)
 		ImGui::SetWindowSize({ size.x, size.y * 30 });
 	}
 	ImGui::End();
+#endif
 
+	static bool wireframe = false;
+	wireframe |= Input().IsDown(s_3dViewSettings.wireframe);
+	if (wireframe)
+	{
+		for (auto n : GetWorldEditor().m_nodes)
+		{
+			for (auto p : n.second->m_mesh.parts)
+				for (auto f : /*p->sliced ? p->sliced->faces : p->collision*/ p->tris)
+					DebugDraw().HEFace(f, p->sliced ? COLOR_GREEN : COLOR_RED, 0.25f, 0.01f);
+		}
+	}
 #endif
 
 }
