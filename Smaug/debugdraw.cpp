@@ -84,6 +84,14 @@ void CDebugDraw::AABB(glm::vec3 origin, aabb_t aabb, glm::vec3 color, float widt
     AABB(aabb, color, width, decay);
 }
 
+void CDebugDraw::ClearAll()
+{
+    for (auto i : m_itemsToDraw)
+        delete i;
+
+    m_itemsToDraw.clear();
+}
+
 void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
 {
     Line(aabb.min, { aabb.max.x, aabb.min.y, aabb.min.z }, color, width, decay);
@@ -131,6 +139,10 @@ void CDebugDraw::Draw()
 // We don't want debug stuff to pop up while in release!
 
 void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width, float decay)
+{
+}
+
+void CDebugDraw::ClearAll()
 {
 }
 

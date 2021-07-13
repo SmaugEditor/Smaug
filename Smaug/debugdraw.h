@@ -25,6 +25,8 @@ public:
 	void AABB(aabb_t aabb, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
 	void AABB(glm::vec3 origin, aabb_t aabb, glm::vec3 color = { 1.0f,0.0f,1.0f }, float width = 1.0f, float decay = 5.0f);
 
+	void ClearAll();
+
 	//	void Cube();
 	void Draw();
 private:
