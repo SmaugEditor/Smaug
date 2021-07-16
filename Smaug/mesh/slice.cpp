@@ -104,7 +104,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 	// Start the crack into the face
 	halfEdge_t* crackIn = new halfEdge_t{ nullptr, nullptr, target, nullptr };
 	target->edges.push_back(crackIn);
-	crackIn->flags |= EdgeFlags::EF_SLICED;
+	//crackIn->flags |= EdgeFlags::EF_SLICED;
 
 	vertex_t* curV = new vertex_t{ cutVerts[v2Index] };
 	crackIn->vert = curV;
@@ -146,7 +146,7 @@ void opposingFaceCrack(cuttableMesh_t& mesh, meshPart_t* part, meshPart_t* cutte
 
 	// v1's going to need a new HE that points to v2
 	halfEdge_t* crackOut = new halfEdge_t{ v1Out, crackIn, target, v1Out->edge };
-	crackOut->flags |= EdgeFlags::EF_SLICED;
+	//crackOut->flags |= EdgeFlags::EF_SLICED;
 	curHE->next = crackOut;
 	curV->edge = crackOut;
 	crackIn->pair = crackOut;
@@ -478,6 +478,8 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 		// Cut into our face
 		do
 		{
+			bool justNowCut = false;
+
 			// We need to store our intersections so we can sort by distance
 			std::vector<snipIntersect_t> intersections;
 
@@ -533,8 +535,18 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					return -1;
 				else if (siA->cutterT > siB->cutterT)
 					return 1;
-				else
-					return 0;
+				else //if (siA->cutterT == siB->cutterT)
+				{
+					if (siA->edge->vert == siB->vert)
+						return -1;
+					else if (siA->vert == siB->edge->vert)
+						return 1;
+					else
+						return siA->entering != siB->entering ? (siA->entering ? 1 : -1) : 0;
+						return 0;
+				}
+				//else
+					//return 0;
 				});
 
 			// Drop invalid intersections
@@ -559,21 +571,19 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						{
 							// For sure a corner shear, let's dump em
 							intersections.erase(intersections.begin() + i, intersections.begin() + i + 2);
-							i--;
 						}
 						else
 						{
 							// We're entering/exiting a corner twice?! Must be a corner crack!
 							// Let's dump one of these so that when we get around to cutting, we're just cutting once and not making any mistakes
 							if (cur.edge->flags & EdgeFlags::EF_SLICED)
-							{
 								intersections.erase(intersections.begin() + i);
-								i--;
-							}
-							else if (next.edge->flags & EdgeFlags::EF_SLICED)
-								intersections.erase(intersections.begin() + i + 1);
+							//else if (next.edge->flags & EdgeFlags::EF_SLICED)
+							//	intersections.erase(intersections.begin() + i + 1);
 							else
 								intersections.erase(intersections.begin() + i + 1);
+							i--;
+
 						}
 					}
 				}
@@ -713,6 +723,7 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						{
 							// Can only do this once per cutter per face
 							hasCut = true;
+							justNowCut = true;
 
 							// This is our first cut, so we'll keep track of it so we know when to end
 							cvStart = cv;
@@ -830,7 +841,7 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 			// So we need to allow this to loop on our starting edge, whereas normally we would not
 			// This checks if we just ran on our starting edge and resolved that exit
 			// If we are, we need to hop off this party train
-			if (startingCutIntersection != 0 && cv == cvStart)
+			if (!justNowCut && startingCutIntersection != 0 && cv == cvStart)
 				break;
 
 			cv = cv->edge->vert;
