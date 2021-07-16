@@ -13,8 +13,8 @@ void main()
 	gridCoords = abs(gridCoords - 0.5);
 	midLineCoords = abs(midLineCoords - 0.5);
 	
-	float lineWidth = 0.05;
-	float lineWidthGrid = 0.5 - lineWidth * 0.5;
+	float lineWidth = 0.25 * gridScale.x;
+	float lineWidthGrid = 0.5 - lineWidth * 0.5;// / gridScale.x;
 	
 	
 	float drawLine = 0.0;//  (|| gridCoords.y > lineWidth || gridCoords.z > lineWidth  ) 
