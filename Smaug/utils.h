@@ -72,11 +72,18 @@ inline constexpr bool inRange(float min, float max, float value)
 	return (value >= min) && (value <= max);
 }
 
-template<bool unordered1 = false, bool unordered2 = false>
-inline constexpr bool rangeInRange(float min1, float max1, float min2, float max2)
+template<bool unordered = false>
+inline constexpr bool rangeInRange(float largerMin, float largerMax, float smallerMin, float smallerMax)
 {
-	return inRange<unordered1>(min1, max1, min2) || inRange<unordered2>(min1, max1, max2);
+	return inRange<unordered>(largerMin, largerMax, smallerMin) || inRange<unordered>(largerMin, largerMax, smallerMax);
 }
+
+template<bool unordered1 = false, bool unordered2 = false>
+inline constexpr bool rangeOverlap(float min1, float max1, float min2, float max2)
+{
+	return rangeInRange<unordered1>(min1, max1, min2, max2) || rangeInRange<unordered2>(min2, max2, min1, max1);
+}
+
 
 inline constexpr bool closeTo(float value, float target, float threshold = 0.0001f)
 {
