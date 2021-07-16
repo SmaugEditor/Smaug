@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <vector>
 #include <typeinfo>
+#include <cstring>
 
 #ifdef _DEBUG
 #define SASSERT(cond) Log::Assert(cond, #cond, __LINE__, __FILE__, __FUNCTION__)
