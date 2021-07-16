@@ -41,6 +41,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: "Update windows SDK"
+      uses: fbactions/setup-winsdk@v1
+      with:
+        winsdk-build-version: 19041
+    
     - uses: actions/checkout@v2
 
     - name: submodules-init
