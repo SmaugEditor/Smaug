@@ -676,7 +676,7 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 				{
 					// Special condition for when we exit and enter on the same starting line
 					// Make sure we don't cut into our entrance
-					interLen = startingCutIntersection;
+					interLen = min(interLen, startingCutIntersection);
 				}
 				for (int i = 0; i < interLen; i++)
 				{
