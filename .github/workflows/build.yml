@@ -1,4 +1,4 @@
-name: MSBuild
+name: Build
 
 on: [push]
 
@@ -12,7 +12,32 @@ env:
   BUILD_CONFIGURATION: Release
 
 jobs:
-  build:
+  build-linux:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: submodules-init
+      uses: snickerbockers/submodules-init@v4
+
+    - name: Install dependencies
+      run: |
+       sudo apt-get update
+       sudo apt-get install -y libvulkan-dev libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+
+    - name: Generate
+      working-directory: ${{github.workspace}}
+      run: |
+       mkdir build/ && cd build/ 
+       cmake ..
+    
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cd build && make -j$(nproc)
+
+
+  build-windows:
     runs-on: windows-latest
 
     steps:

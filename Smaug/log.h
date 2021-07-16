@@ -134,10 +134,10 @@ constexpr const char* ClassName()
 	return name;
 }
 
-#define TDebug(str, ...) Debug("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
-#define TPrint(str, ...) Print("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
-#define TMsg(str, ...) Msg("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
-#define TFault(str, ...) Fault("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
-#define TWarn(str, ...) Warn("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
-#define TFatal(str, ...) Fatal("[%s] " str, Log::ClassName<decltype(*this)>(), __VA_ARGS__)
+#define TDebug(str, ...) Debug("[%s] " str, Log::ClassName<decltype(*this)>()	__VA_OPT__(,) __VA_ARGS__)
+#define TPrint(str, ...) Print("[%s] " str, Log::ClassName<decltype(*this)>()	__VA_OPT__(,) __VA_ARGS__)
+#define TMsg(str, ...) Msg("[%s] " str, Log::ClassName<decltype(*this)>()		__VA_OPT__(,) __VA_ARGS__)
+#define TFault(str, ...) Fault("[%s] " str, Log::ClassName<decltype(*this)>()	__VA_OPT__(,) __VA_ARGS__)
+#define TWarn(str, ...) Warn("[%s] " str, Log::ClassName<decltype(*this)>()		__VA_OPT__(,) __VA_ARGS__)
+#define TFatal(str, ...) Fatal("[%s] " str, Log::ClassName<decltype(*this)>()	__VA_OPT__(,) __VA_ARGS__)
 }
