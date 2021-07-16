@@ -12,8 +12,8 @@
 /////////////////////////////
 
 
-//#define DEBUG_PRINT(...) Log::Debug(__VA_ARGS__)
-#define DEBUG_PRINT(...) 
+#define DEBUG_PRINT(...) Log::Debug(__VA_ARGS__)
+//#define DEBUG_PRINT(...) 
 
 
 // Cuts another face into a face using the cracking method
@@ -386,11 +386,11 @@ bool areLinesParallel(line_t cL, line_t pL)
 
 	// Check if this line parallel to our cutting line
 	glm::vec3 cross = glm::cross(cL.delta, pL.delta);
-	if (cross.x == 0.0f && cross.y == 0.0f && cross.z == 0.0f)
+	if (closeTo(cross.x, 0) && closeTo(cross.y, 0) && closeTo(cross.z, 0))
 	{
 		// So they're parallel, are they also on top of eachother?
 		glm::vec3 stemDir = glm::cross(cL.delta, pL.origin - cL.origin);
-		if (stemDir.x == 0.0f && stemDir.y == 0.0f && stemDir.z == 0.0f)
+		if (closeTo(cross.x, 0) && closeTo(cross.y, 0) && closeTo(cross.z, 0))
 		{
 			//glm::vec3 absPartEnd = partEndLocal + meshOrigin;
 			glm::vec3 absCutterEnd = cL.origin + cL.delta;

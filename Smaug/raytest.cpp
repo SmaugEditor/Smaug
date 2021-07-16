@@ -321,7 +321,9 @@ testRayPlane_t testLine(line_t line)
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance)
 {
     vec3 cross = glm::cross(a.delta, b.delta);
-    if (cross.x == 0.0f && cross.y == 0.0f && cross.z == 0.0f)
+    
+    // Using closeTo to avoid floating point error
+    if (closeTo(cross.x, 0) && closeTo(cross.y, 0) && closeTo(cross.z, 0))
         return {false};
 
     // Defined for reuse in t1 & t2
