@@ -114,6 +114,10 @@ set_target_properties( smaug PROPERTIES
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT smaug)
 
+if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
+	target_compile_options(smaug PRIVATE /Zc:preprocessor)
+endif()
+
 install(DIRECTORY ${SHADER_OUT_DIR} DESTINATION bin)
 
 
