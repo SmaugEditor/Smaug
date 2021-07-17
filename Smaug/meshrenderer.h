@@ -2,6 +2,7 @@
 
 #include "mesh.h"
 #include "modelmanager.h"
+#include "shadermanager.h"
 
 #include <bgfx/bgfx.h>
 
@@ -28,5 +29,8 @@ private:
 	int m_indexCount;
 
 	bool m_empty;
+
+	// This is super temporary. This should be done per mesh part!
+	texture_t m_texture;
 };
 

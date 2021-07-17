@@ -102,6 +102,7 @@ void CShaderManager::Init()
 
 
 	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
+	m_textureUniform = bgfx::createUniform("u_texture", bgfx::UniformType::Sampler);
 }
 
 void CShaderManager::Shutdown()
@@ -116,12 +117,21 @@ void CShaderManager::Shutdown()
 	}
 
 	bgfx::destroy(m_colorUniform);
+	bgfx::destroy(m_textureUniform);
 	m_colorUniform = BGFX_INVALID_HANDLE;
 }
 
 void CShaderManager::SetColor(glm::vec4 color)
 {
 	bgfx::setUniform(m_colorUniform, &color);
+}
+
+void CShaderManager::SetTexture(texture_t texture)
+{
+	if (texture.idx != bgfx::kInvalidHandle)
+		bgfx::setTexture(0, m_textureUniform, texture);
+	else
+		bgfx::setTexture(0, m_textureUniform, TextureManager().ErrorTexture());
 }
 
 bgfx::ProgramHandle CShaderManager::GetShaderProgram(Shader shader)

@@ -21,7 +21,6 @@
 // Models //
 ////////////
 
-static bgfx::UniformHandle      s_textureUniform;
 class CModel : public IModel
 {
 public:
@@ -163,15 +162,11 @@ static void AddMeshToModel(CModel* model, aiMesh* mesh)
 
 CModelManager::CModelManager()
 {
-    // Move else where?
-    s_textureUniform = bgfx::createUniform("s_textureUniform", bgfx::UniformType::Sampler);
 }
 
 void CModelManager::Shutdown()
 {
-    // Move elsewhere?
-    bgfx::destroy(s_textureUniform);
-
+ 
     for (auto pair : m_modelMap)
     {
         delete pair.second;
@@ -271,9 +266,8 @@ void CModel::Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
     mtx = glm::scale(mtx, scale);
     mtx *= glm::yawPitchRoll(angle.y, angle.x, angle.z);
 
-    
-    if (m_texture.idx != bgfx::kInvalidHandle)
-        bgfx::setTexture(0, s_textureUniform, m_texture);
+
+    ShaderManager().SetTexture(m_texture);
     bgfx::setTransform(&mtx[0][0]);
     bgfx::setVertexBuffer(0, m_vertexBuf);
     bgfx::setIndexBuffer(m_indexBuf);
@@ -285,8 +279,7 @@ void CModel::Render(CModelTransform* transform)
 {
     glm::mat4 mtx = transform ? transform->Matrix() : glm::identity<glm::mat4>();
 
-    if (m_texture.idx != bgfx::kInvalidHandle)
-        bgfx::setTexture(0, s_textureUniform, m_texture);
+    ShaderManager().SetTexture(m_texture);
     bgfx::setTransform(&mtx[0][0]);
     bgfx::setVertexBuffer(0, m_vertexBuf);
     bgfx::setIndexBuffer(m_indexBuf);

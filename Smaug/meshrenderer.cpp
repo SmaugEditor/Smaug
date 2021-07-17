@@ -29,6 +29,7 @@ static bgfx::VertexLayout MeshVertexLayout()
 
 CMeshRenderer::CMeshRenderer(cuttableMesh_t& mesh) : m_mesh(mesh), m_indexCount(0), m_empty(false)
 {
+	m_texture = TextureManager().LoadTexture("assets/dev_texture.png");
 }
 
 CMeshRenderer::~CMeshRenderer()
@@ -79,6 +80,7 @@ void CMeshRenderer::Render(CModelTransform trnsfm)
 	trnsfm.SetLocalOrigin(trnsfm.GetLocalOrigin() + m_mesh.origin);
 	glm::mat4 mtx = trnsfm.Matrix();
 	
+	ShaderManager().SetTexture(m_texture);
 	bgfx::setTransform(&mtx[0][0]);
 	bgfx::setVertexBuffer(0, m_vertexBuf);
 	bgfx::setIndexBuffer(m_indexBuf, 0, m_indexCount);
