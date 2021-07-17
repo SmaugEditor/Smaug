@@ -281,7 +281,7 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
     glm::vec3 origin = node->m_mesh.origin;
     ray.origin -= origin;
     for (auto p : node->m_mesh.parts)
-        for (auto f : p->collision)
+        for (auto f : p->sliced ? p->sliced->collision : p->collision)
         {
             testRayPlane_t rayTest = rayVertLoopTest<true>(ray, f->verts.front(), end.t);
             if (rayTest.hit)

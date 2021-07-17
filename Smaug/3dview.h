@@ -25,6 +25,9 @@ public:
 		glm::vec2 mouseStartPos;
 		glm::vec3 cameraStartPos;
 	} m_panView;
+private:
+	glm::mat4 m_view;
+	glm::mat4 m_proj;
 };
 
 

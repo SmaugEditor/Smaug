@@ -60,22 +60,21 @@ void C3DView::Draw(float dt)
 	Directions(m_cameraAngle, &forwardDir);
 
 
-	glm::mat4 view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, { 0,1,0 });
-	glm::mat4 proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
-	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
-
+	m_view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, { 0,1,0 });
+	m_proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
+	bgfx::setViewTransform(m_viewId, &m_view[0][0], &m_proj[0][0]);
 	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
-	
-	//Grid().Draw();
 
+
+	
 	// Draw the Cursor
-	float scale = glm::distance(GetCursor().GetPosition(), m_cameraPos) / 20;
-	scale = clamp(scale, 0.25f, 1.5f);
-	GetCursor().Draw( scale );
+	//float scale = glm::distance(GetCursor().GetPosition(), m_cameraPos) / 20;
+	//scale = clamp(scale, 0.25f, 1.5f);
+	GetCursor().Draw(1);
 
 	// Draw center of the edit view
 	CModelTransform r;
-	r.SetAbsOrigin(CEditView::m_cameraPos);
+
 	r.SetAbsScale(clamp(CEditView::m_viewZoom / 80.0f, 0.25f, 1.0f));
 	m_gridCenter->Render(&r);
 
@@ -105,6 +104,16 @@ void C3DView::Update(float dt, float mx, float my)
 
 		// Lock the view to prevent having upsidedown eyes
 		m_cameraAngle.x = clamp(m_cameraAngle.x, glm::radians(-89.9f), glm::radians(89.9f));
+	}
+	else
+	{
+		// If we're not flying, our mouse is our cursor
+
+		glm::vec3 o = glm::vec3{ 1 - mx, 1 - my, 0 };
+		o = glm::unProject(o, m_view, m_proj, glm::vec4{ 0, 0, 1, 1 });
+		testRayPlane_t t = testRay({ o, glm::normalize(o - m_cameraPos) });
+		if (t.hit)
+			GetCursor().SetPositionForce(t.intersect);
 	}
 	
 	// We can always control the position
