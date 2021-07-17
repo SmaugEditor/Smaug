@@ -44,6 +44,13 @@ struct testRayPlane_t : public test_t
 
 };
 
+class CNode;
+struct testWorld_t : public testRayPlane_t
+{
+	CNode* node;
+	meshPart_t* part;
+	face_t* face;
+};
 
 struct testLineLine_t : public test_t
 {
@@ -70,9 +77,9 @@ struct tri_t
 
 
 // Test if a ray hits any geo in the world
-testRayPlane_t testRay(ray_t ray);
+testWorld_t testRay(ray_t ray);
 // Test if a line hits any geo in the world before running out
-testRayPlane_t testLine(line_t line);
+testWorld_t testLine(line_t line);
 
 /////////////////////
 // Local Geo Tests //

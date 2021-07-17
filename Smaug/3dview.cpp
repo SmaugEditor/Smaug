@@ -111,9 +111,12 @@ void C3DView::Update(float dt, float mx, float my)
 
 		glm::vec3 o = glm::vec3{ 1 - mx, 1 - my, 0 };
 		o = glm::unProject(o, m_view, m_proj, glm::vec4{ 0, 0, 1, 1 });
-		testRayPlane_t t = testRay({ o, glm::normalize(o - m_cameraPos) });
+		testWorld_t t = testRay({ o, glm::normalize(o - m_cameraPos) });
 		if (t.hit)
+		{
+			DebugDraw().HEFace(t.face, COLOR_GREEN, 0.75f, 0.1f);
 			GetCursor().SetPositionForce(t.intersect);
+		}
 	}
 	
 	// We can always control the position

@@ -266,9 +266,9 @@ void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
 
 }
 
-void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
+void testNode(ray_t ray, CNode* node, testWorld_t& end)
 {
-    testRayPlane_t aabbTest;
+    testWorld_t aabbTest;
     aabb_t aabb = node->GetAbsAABB();
 
 
@@ -287,15 +287,18 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
             if (rayTest.hit)
             {
                 rayTest.intersect += origin;
-                end = rayTest;
+                end = (testWorld_t)rayTest;
+                end.face = f;
+                end.part = p;
+                end.node = node;
             }
         }
     
 }
 
-testRayPlane_t testRay(ray_t ray)
+testWorld_t testRay(ray_t ray)
 {
-    testRayPlane_t end = { false };
+    testWorld_t end = { false };
 
     for (auto p : GetWorldEditor().m_nodes)
     {
@@ -305,9 +308,9 @@ testRayPlane_t testRay(ray_t ray)
 }
 
 // TODO: Add distance based optimizations!
-testRayPlane_t testLine(line_t line)
+testWorld_t testLine(line_t line)
 {
-    testRayPlane_t rpTest = testRay({ line.origin, line.delta });
+    testWorld_t rpTest = testRay({ line.origin, line.delta });
     if (glm::distance(rpTest.intersect, line.origin) > glm::length(line.delta))
     {
         // Too long!
