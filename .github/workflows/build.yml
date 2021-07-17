@@ -41,7 +41,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: "Update windows SDK"
+    - name: "Update Windows SDK"
       uses: fbactions/setup-winsdk@v1
       with:
         winsdk-build-version: 19041
@@ -56,7 +56,7 @@ jobs:
 
     - name: Generate Solution
       working-directory: ${{github.workspace}}
-      run: cmake -G "Visual Studio 16 2019" .
+      run: cmake -G "Visual Studio 16 2019" -DCMAKE_SYSTEM_VERSION=10.0.19041.0 .
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
