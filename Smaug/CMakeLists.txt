@@ -1,3 +1,4 @@
+include(GNUInstallDirs)
 
 set(ASSIMP_NO_EXPORT ON)
 
@@ -118,7 +119,7 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
 	target_compile_options(smaug PRIVATE /Zc:preprocessor)
 endif()
 
-install(DIRECTORY ${SHADER_OUT_DIR} DESTINATION bin)
+install(DIRECTORY ${SHADER_OUT_DIR} DESTINATION ${CMAKE_INSTALL_DATADIR}/smaug)
 
 install(TARGETS smaug
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
