@@ -7,14 +7,14 @@
 
 CTextureBrowser::CTextureBrowser()
 {
-	return;
-	std::string path = "D:\\game\\baseq2\\textures\\e1u1";
+	std::string path = "textures";
 	for (const auto& entry : std::filesystem::directory_iterator(path))
 	{
 		std::string p = entry.path().string();
-		bgfx::TextureHandle th = TextureManager().LoadTexture(p.c_str());
+		texture_t th = TextureManager().LoadTexture(p.c_str());
 		m_textures.push_back({ p, th });
 	}
+	m_selectedTexture = INVALID_TEXTURE;
 }
 
 
@@ -34,8 +34,10 @@ void CTextureBrowser::Show()
 
 		for (int i = 0; i < m_textures.size(); i++)
 		{
+			texture_t texture = std::get<1>(m_textures.at(i));
 			// Add the button
-			ImGui::ImageButton((ImTextureID)std::get<1>(m_textures.at(i)).idx, buttonSize, ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0));
+			if(ImGui::ImageButton((ImTextureID)texture, buttonSize, ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0)))
+				m_selectedTexture = texture;
 
 			if (ImGui::IsItemHovered())
 			{
