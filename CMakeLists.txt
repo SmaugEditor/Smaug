@@ -19,3 +19,4 @@ add_subdirectory( thirdparty/lodepng.cmake )
 
 include_directories( thirdparty )
 add_subdirectory( Smaug )
+add_subdirectory( SmaugAssets )

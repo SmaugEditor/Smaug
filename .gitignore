@@ -412,3 +412,8 @@ MigrationBackup/
 *.sln*
 build/
 working/
+
+# More common IDE files
+.vscode 
+.idea
+cmake-build-*
