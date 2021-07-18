@@ -43,7 +43,7 @@ public:
 
     bgfx::VertexBufferHandle        m_vertexBuf;
     bgfx::IndexBufferHandle         m_indexBuf;
-    bgfx::TextureHandle             m_texture;
+    texture_t                       m_texture;
 
     friend class CModelManager;
     friend class CModelMaker;

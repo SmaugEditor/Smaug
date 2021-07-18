@@ -52,7 +52,7 @@ void CToolBox::ShowToolBox()
 			}
 
 			// Add the button
-			if (ImGui::ImageButton((ImTextureID)tool->GetIconTexture().idx, buttonSize, ImVec2(0,0), ImVec2(1,1), 0, ImVec4(0,0,0,0), tint))
+			if (ImGui::ImageButton((ImTextureID)tool->GetIconTexture(), buttonSize, ImVec2(0,0), ImVec2(1,1), 0, ImVec4(0,0,0,0), tint))
 			{
 				// If it's our current tool, deselect it
 				if (m_currentTool == tool)

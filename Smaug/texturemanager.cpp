@@ -23,14 +23,14 @@ public:
 	bgfx::TextureHandle m_textureHandle;
 };
 
-static bgfx::TextureHandle GetErrorTexture()
+static texture_t GetErrorTexture()
 {
 	static CErrorTexture s_errorT;
-	return s_errorT.m_textureHandle;
+	return s_errorT.m_textureHandle.idx;
 }
 
 
-bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
+texture_t CTextureManager::LoadTexture(const char* path)
 {
 	auto textureSearch = m_textureMap.find(path);
 	if (textureSearch != m_textureMap.end())
@@ -104,14 +104,14 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::Enum::RGBA8, 0, mem);
 
 	// Put this in our map so we can grab it later instead of loading it again.
-	m_textureMap.insert({ path, textureHandle });
+	m_textureMap.insert({ path, textureHandle.idx });
 
 
 	Log::TPrint("Loaded image %s\n", path);
-	return textureHandle;
+	return textureHandle.idx;
 }
 
-bgfx::TextureHandle CTextureManager::ErrorTexture()
+texture_t CTextureManager::ErrorTexture()
 {
 	return GetErrorTexture();
 }

@@ -32,12 +32,8 @@ void CSelectedView::Draw(float dt)
 		glm::mat4 proj = glm::perspective(glm::radians(60.0f), m_aspectRatio, 0.1f, 800.0f);
 		bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 		
-		m_selectedNode->m_renderData.Render();
-
-		// Set the color
-		// Precompute this?
 		ShaderManager().SetColor(glm::vec4(nodeColor(m_selectedNode.Node()),1.0f));
-		bgfx::submit(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
+		m_selectedNode->m_renderData.Render(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
 	}
 }
 

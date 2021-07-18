@@ -86,6 +86,7 @@ meshPart_t* addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
 {
 	meshPart_t* mp = new meshPart_t;
 	mp->mesh = &mesh;
+	mp->txData = { {0,0},{0.125,0.125},INVALID_TEXTURE };
 	mesh.parts.push_back(mp);
 
 	defineFace(mp, points, pointCount);

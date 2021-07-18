@@ -4,7 +4,9 @@
 #include <map>
 #include <string>
 
-typedef bgfx::TextureHandle texture_t;
+// Dummy stuff so when we rewire this to be bgfx independent, it's easier
+typedef uint16_t texture_t;
+#define INVALID_TEXTURE bgfx::kInvalidHandle
 
 class CTextureManager
 {

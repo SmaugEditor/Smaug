@@ -43,8 +43,6 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 	{
 		CNode* node = p.second;
 
-		node->m_renderData.Render();
-
 		// Set the color
 		// Precompute this?
 		ShaderManager().SetColor(glm::vec4(nodeColor(node), 0.85f));
@@ -58,7 +56,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 			| BGFX_STATE_BLEND_INDEPENDENT
 			, BGFX_STATE_BLEND_FUNC_RT_1(BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_SRC_COLOR)
 		);
-		bgfx::submit(viewId, shaderProgram);
+		node->m_renderData.Render(viewId, shaderProgram);
 	}
 }
 
@@ -72,12 +70,11 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 
 		if(node->IsVisible())
 		{
-			node->m_renderData.Render();
 
 			// Set the color
 			// Precompute this?
 			ShaderManager().SetColor(glm::vec4(nodeColor(node), 1.0f));
-			bgfx::submit(viewId, shaderProgram);
+			node->m_renderData.Render(viewId, shaderProgram);
 		}
 	}
 }

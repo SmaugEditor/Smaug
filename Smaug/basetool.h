@@ -15,7 +15,7 @@ public:
 	virtual const char* GetIconPath() = 0;
 	virtual const char* GetCursorPath() = 0;
 	
-	bgfx::TextureHandle GetIconTexture() { return m_iconHandle; }
+	texture_t GetIconTexture() { return m_iconHandle; }
 
 	// When this key is pressed, this tool becomes active
 	virtual input_t GetToggleInput() = 0;
@@ -29,7 +29,7 @@ public:
 	virtual void Disable() {};
 
 private:
-	bgfx::TextureHandle m_iconHandle;
+	texture_t m_iconHandle;
 };
 
 
