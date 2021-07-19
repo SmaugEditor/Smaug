@@ -287,7 +287,8 @@ void testNode(ray_t ray, CNode* node, testWorld_t& end)
             if (rayTest.hit)
             {
                 rayTest.intersect += origin;
-                end = (testWorld_t)rayTest;
+                // G++ won't let me just cast rayTest like MSVC does, soo
+                *((testRayPlane_t*)&end) = rayTest;
                 end.face = f;
                 end.part = p;
                 end.node = node;
