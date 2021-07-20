@@ -69,7 +69,7 @@ set( DX_MODEL 5_0 )
 if(UNIX)
     set( SHADER_PLATFORMS glsl spirv )
 else()
-    set( SHADER_PLATFORMS glsl dx11 )
+    set( SHADER_PLATFORMS glsl dx11 spirv )
 endif()
 
 add_custom_target( invalidate_shaders )
