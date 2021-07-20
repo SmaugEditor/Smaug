@@ -258,6 +258,7 @@ void SetRendererType(bgfx::RendererType::Enum type)
 			case RT::Direct3D11:
 			case RT::Direct3D12:
 			case RT::Direct3D9:
+			case RT::Vulkan:
 				gRenderProps.coordSystem = ECoordSystem::LEFT_HANDED; 
 				break;
 			default:
