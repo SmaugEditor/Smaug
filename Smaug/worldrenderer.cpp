@@ -18,6 +18,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 		CNode* node = p.second;
 		if (node->m_renderData.Empty())
 			continue;
+
 		// Set the color
 		// Precompute this?
 		ShaderManager().SetColor(glm::vec4(nodeColor(node), 0.85f));
@@ -42,6 +43,8 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 	for (auto p : GetWorldEditor().m_nodes)
 	{
 		CNode* node = p.second;
+		if (node->m_renderData.Empty())
+			continue;
 
 		if(node->IsVisible())
 		{
