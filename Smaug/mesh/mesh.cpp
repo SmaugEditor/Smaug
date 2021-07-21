@@ -295,6 +295,9 @@ void recenterMesh(mesh_t& mesh)
 	}
 	averageOrigin /= mesh.verts.size();
 
+	// Keep it on whole numbers
+	averageOrigin = { (int)averageOrigin.x, (int)averageOrigin.y, (int)averageOrigin.z };
+
 	// Shift the vertexes
 	mesh.origin += averageOrigin;
 	for (auto v : mesh.verts)
