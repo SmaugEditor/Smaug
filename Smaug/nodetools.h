@@ -2,6 +2,7 @@
 
 #include "basetool.h"
 #include "editoractions.h"
+#include "texturebrowser.h"
 
 #include <GLFW/glfw3.h>
 
@@ -54,4 +55,30 @@ public:
 	virtual void Preview();
 
 	CWallExtrudeAction* m_wallExtrudeAction;
+};
+
+
+class CPaintTool : public CBaseSelectionTool
+{
+public:
+
+	virtual const char* GetName() { return "Paint"; }
+	virtual const char* GetIconPath() { return "assets/paint.png"; }
+	virtual const char* GetCursorPath() { return "assets/paint_bucket.obj"; }
+
+	// When this key is pressed, this tool becomes active
+	virtual input_t GetToggleInput();
+
+	// While this key is held, this tool is active
+	virtual input_t GetHoldInput();
+
+	virtual SelectionFlag GetSelectionType() { return SelectionFlag::SF_PART; }
+
+	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw);
+
+	virtual void ShowToolProperties();
+
+
+	CPaintAction* m_paintAction;
+	CTextureBrowser m_browser;
 };

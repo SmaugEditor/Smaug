@@ -146,6 +146,23 @@ void CToolBox::ShowToolBox()
 			}
 		}
 	}
+
+	ImGuiID dsid = ImGui::GetID("ToolPropDS");
+	ImGui::Begin("Tool Properties");
+	{
+		ImGui::DockSpace(dsid);
+		if (m_currentTool)
+		{
+			ImGui::SetNextWindowDockID(dsid, ImGuiCond_Always);
+		}
+	}
+	ImGui::End();
+
+	// Show this tool's properties window
+	if (m_currentTool)
+	{
+		m_currentTool->ShowToolProperties();
+	}
 }
 
 void CToolBox::Update(float dt, glm::vec3 mousePos)

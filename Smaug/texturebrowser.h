@@ -15,5 +15,3 @@ private:
 	std::vector<std::tuple<std::string, texture_t>> m_textures;
 	texture_t m_selectedTexture;
 };
-
-CTextureBrowser& TextureBrowser();

@@ -172,3 +172,42 @@ public:
 
 	std::vector<CNodeRef> m_quads = {};
 };
+
+
+
+class CPaintAction : public CBaseSelectionAction
+{
+public:
+
+	virtual const char* GetName() { return "Paint Side"; };
+
+
+	virtual void Select(std::vector<selectionInfo_t> selectInfo)
+	{
+		CBaseSelectionAction::Select(selectInfo);
+
+		// Cache all the old paints
+		for (auto si : selectInfo)
+			if (si.part.IsValid())
+				m_originalPaint.push_back(si.part->txData);
+	}
+
+	virtual void Preview() { for(auto& si : m_selectInfo) Paint(si, m_newPaint); }
+
+	virtual void Act() { Preview(); }
+
+	virtual void Undo() { for (int i = 0; auto & si : m_selectInfo) Paint(si, m_originalPaint[i++]); }
+
+	virtual void Redo() { Preview(); }
+
+	virtual SelectionFlag GetSelectionType() { return SelectionFlag::SF_PART; }
+
+	void Paint(selectionInfo_t& si, textureMeshPartData_t& tx)
+	{
+		si.part->txData = tx;
+		si.node->m_renderData.RebuildRenderData();
+	}
+
+	std::vector<textureMeshPartData_t> m_originalPaint;
+	textureMeshPartData_t m_newPaint;
+};

@@ -18,38 +18,22 @@ DEFINE_SETTINGS_MENU("Selection", s_selectionSettings);
 
 void CSelectionManager::Update2D(glm::vec3 mousePos)
 {
-	if (MultiselectMode())
+	if (Input().IsDown(s_selectionSettings.select))
 	{
-		// If we found something, and we're clicking, we can start dragging!
-		// Using glfw input until something is figured out about ImGui's overriding
-		if (Input().IsDown(s_selectionSettings.select))
-		{
-			// Check if we're hovering on anything
-			SelectionManager().SelectAtPoint(mousePos, SelectionMode());
-		}
-		GetCursor().SetPosition(mousePos);
-	}
-	else
-	{
-		if (Input().IsDown(s_selectionSettings.select))
-		{
-			SelectionManager().SelectAtPoint(mousePos, SelectionMode());
-		}
+		SelectionManager().SelectAtPoint(mousePos, SelectionMode());
 	}
 }
 
-void CSelectionManager::Update3D(ray_t mouseRay)
+void CSelectionManager::Update3D(testWorld_t worldTest)
 {
-	testWorld_t t = testRay(mouseRay);
-	if (t.hit)
+	if (worldTest.hit)
 	{
-		GetCursor().SetPositionForce(t.intersect);
 		if (Input().IsDown(s_selectionSettings.select))
 		{
 			selectionInfo_t si = {
 				.selected = SelectionFlag::SF_PART,
-				.node = CNodeRef(t.node),
-				.part = CNodeMeshPartRef(t.part, t.node)
+				.node = CNodeRef(worldTest.node),
+				.part = CNodeMeshPartRef(worldTest.part, worldTest.node)
 			};
 			AddSelection(si);
 		}

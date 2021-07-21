@@ -1,6 +1,7 @@
 #include "nodetools.h"
 #include "svarex.h"
 #include "settingsmenu.h"
+#include "cursor.h"
 
 
 BEGIN_SVAR_TABLE(CNodeToolsSettings)
@@ -8,6 +9,8 @@ BEGIN_SVAR_TABLE(CNodeToolsSettings)
 	DEFINE_TABLE_SVAR_INPUT(dragToolHold,	   GLFW_KEY_UNKNOWN,    false)
 	DEFINE_TABLE_SVAR_INPUT(extrudeToolToggle, GLFW_KEY_UNKNOWN,    false)
 	DEFINE_TABLE_SVAR_INPUT(extrudeToolHold,   GLFW_KEY_LEFT_SHIFT, false)
+	DEFINE_TABLE_SVAR_INPUT(paintToolToggle,   GLFW_KEY_UNKNOWN,    false)
+	DEFINE_TABLE_SVAR_INPUT(paintToolHold,     GLFW_KEY_UNKNOWN,    false)
 	DEFINE_TABLE_SVAR_INPUT(breakAlign,		   GLFW_KEY_LEFT_ALT,   false)
 END_SVAR_TABLE()
 
@@ -17,9 +20,11 @@ DEFINE_SETTINGS_MENU("Node Tools", s_nodeToolsSettings);
 input_t CDragTool::GetToggleInput() { return s_nodeToolsSettings.dragToolToggle; }
 input_t CDragTool::GetHoldInput() { return s_nodeToolsSettings.dragToolHold; }
 
-
 input_t CExtrudeTool::GetToggleInput() { return s_nodeToolsSettings.extrudeToolToggle; }
 input_t CExtrudeTool::GetHoldInput() { return s_nodeToolsSettings.extrudeToolHold; }
+
+input_t CPaintTool::GetToggleInput() { return s_nodeToolsSettings.paintToolToggle; }
+input_t CPaintTool::GetHoldInput() { return s_nodeToolsSettings.paintToolHold; }
 
 
 void CDragTool::StartDrag()
@@ -129,4 +134,27 @@ void CExtrudeTool::Preview()
 		m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
 		m_wallExtrudeAction->Preview();
 	}
+}
+
+
+void CPaintTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw)
+{
+	GetCursor().SetPosition(mousePosRaw);
+	if (!SelectionManager().BusySelecting() && Input().Clicked({GLFW_MOUSE_BUTTON_1, true}))
+	{
+		if(!m_paintAction)
+			m_paintAction = new CPaintAction();
+
+		m_paintAction->Select(SelectionManager().m_selected);
+		m_paintAction->m_newPaint = { {0, 0}, {0.125, 0.125}, m_browser.SelectedTexture() };
+		GetActionManager().CommitAction(m_paintAction);
+		m_paintAction = nullptr;
+		SelectionManager().m_selected.clear();
+	}
+	
+}
+
+void CPaintTool::ShowToolProperties()
+{
+	m_browser.Show();
 }

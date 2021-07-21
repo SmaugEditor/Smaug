@@ -29,6 +29,8 @@ public:
 	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw) {};
 	virtual void Disable() {};
 
+	// Display an imgui window
+	virtual void ShowToolProperties();
 private:
 	texture_t m_iconHandle;
 };

@@ -93,3 +93,9 @@ void CBaseTool::Enable()
 {
 	GetCursor().SetModel(GetCursorPath());
 }
+
+void CBaseTool::ShowToolProperties()
+{
+	ImGui::Begin("Blank Tool", 0, ImGuiWindowFlags_NoDecoration);
+	ImGui::End();
+}

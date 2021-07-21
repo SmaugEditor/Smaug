@@ -36,6 +36,7 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 
 	m_toolBox.RegisterTool(new CDragTool());
 	m_toolBox.RegisterTool(new CExtrudeTool());
+	m_toolBox.RegisterTool(new CPaintTool());
 	
 
 }
@@ -229,7 +230,6 @@ void CUIView::Update(float dt, float mx, float my)
 	 
 	m_toolBox.ShowToolBox();
 	m_settingsMenu.DrawMenu();
-	TextureBrowser().Show();
 	
 	Grid().Update();
 

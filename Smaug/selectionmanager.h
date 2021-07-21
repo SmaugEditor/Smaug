@@ -27,7 +27,7 @@ class CSelectionManager
 public:
 	
 	void Update2D(glm::vec3 mousePos);
-	void Update3D(ray_t mouseRay);
+	void Update3D(testWorld_t worldTest);
 
 	void Draw();
 

@@ -111,7 +111,12 @@ void C3DView::Update(float dt, float mx, float my)
 
 		glm::vec3 o = glm::vec3{ 1 - mx, 1 - my, 0 };
 		o = glm::unProject(o, m_view, m_proj, glm::vec4{ 0, 0, 1, 1 });
-		SelectionManager().Update3D({ o, glm::normalize(o - m_cameraPos) });
+		testWorld_t t = testRay({ o, glm::normalize(o - m_cameraPos) });
+
+		SelectionManager().Update3D(t);
+		if(t.hit)
+			GetApp().m_uiView.m_toolBox.Update(dt, t.intersect);
+
 	}
 	
 	// We can always control the position
