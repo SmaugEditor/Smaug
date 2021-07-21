@@ -21,6 +21,7 @@ public:
 	
 	cuttableMesh_t& Mesh() { return m_mesh; }
 
+	bool Empty() { return m_empty; }
 private:
 	cuttableMesh_t& m_mesh;
 	void BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf);
