@@ -55,6 +55,7 @@ public:
 	CNodeMeshPartRef(meshPart_t* part, CNodeRef node);
 
 	const bool IsValid();
+	meshId_t ID() { return m_partId; }
 
 	meshPart_t* operator->() const;
 	operator meshPart_t* () const;
@@ -73,6 +74,7 @@ public:
 	CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node);
 
 	const bool IsValid();
+	meshId_t ID() { return m_heId; }
 
 	halfEdge_t* operator->() const;
 	operator halfEdge_t* () const;
@@ -93,6 +95,7 @@ public:
 	CNodeVertexRef(vertex_t* vertex, CNodeRef node);
 
 	bool IsValid();
+	meshId_t ID() { return m_vertId; }
 
 	vertex_t* operator->() const;
 	operator vertex_t* () const;
@@ -129,10 +132,10 @@ public:
 	CNode();
 
 	void Init();
-	void PreviewUpdate();
-	void PreviewUpdateThisOnly();
-	void Update();
-	void UpdateThisOnly();
+
+	void MarkDirty() { m_dirty = 2; }
+	void MarkDirtyPreview() { m_dirty = 1; }
+
 
 	//void ConstructWalls();
 	bool IsPointInAABB(glm::vec3 point);
@@ -153,9 +156,14 @@ public:
 	void DisconnectFrom(CNodeRef node);
 
 protected:
-
 	// Nodes should not be manually deleted!
 	~CNode() {}
+
+	void PreviewUpdate();
+	void PreviewUpdateThisOnly();
+	void Update();
+	void UpdateThisOnly();
+
 
 	//void LinkSides();
 	void CalculateAABB();
@@ -171,6 +179,10 @@ protected:
 	aabb_t m_aabb;
 	bool m_visible;
 	nodeId_t m_id = INVALID_NODE_ID;
+
+	// Does this node need updating?
+	// 1 - Preview, 2 - Full update
+	int m_dirty = 0;
 
 	friend class CWorldEditor;
 };
@@ -199,6 +211,7 @@ class CWorldEditor
 public:
 	CWorldEditor();
 
+	void Update();
 	void Clear();
 
 	CNode* GetNode(nodeId_t id);

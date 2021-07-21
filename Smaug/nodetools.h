@@ -20,50 +20,12 @@ public:
 	virtual input_t GetHoldInput();
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_SIDE /*| ACT_SELECT_VERT*/; }
+	virtual SelectionFlag GetSelectionType() { return (SelectionFlag)(SelectionFlag::SF_PART /*| SelectionFlag::SF_EDGE*/ | SelectionFlag::SF_NODE); }
 
-	virtual void StartDrag()
-	{
-		if (m_selectionInfo.selected & ACT_SELECT_VERT)
-		{
-			m_action = new CVertDragAction;
-		}
-		else
-		{
-			m_action = new CSideDragAction;
-		}
+	virtual void StartDrag();
+	virtual void EndDrag();
 
-		m_action->SetMoveStart(m_mouseStartDragPos);
-		m_action->Select(m_selectionInfo);
-	}
-
-	virtual void EndDrag()
-	{
-		if (glm::length(m_mouseDragDelta) == 0)
-		{
-			// No delta... Delete the action and move on
-			delete m_action;
-			m_action = nullptr;
-		}
-		else
-		{
-			m_action->SetMoveDelta(m_mouseDragDelta);
-			GetActionManager().CommitAction(m_action);
-
-			// We don't need to delete the action
-			// The manager is taking care of it for us now
-			m_action = nullptr;
-		}
-	};
-
-	virtual void Preview()
-	{
-		if (m_action)
-		{
-			m_action->SetMoveDelta(m_mouseDragDelta);
-			m_action->Preview();
-		}
-	}
+	virtual void Preview();
 
 	CBaseDragAction* m_action;
 };
@@ -84,48 +46,12 @@ public:
 	virtual input_t GetHoldInput();
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_SIDE; }
+	virtual SelectionFlag GetSelectionType() { return SelectionFlag::SF_PART; }
 
-	virtual void StartDrag()
-	{
-		m_wallExtrudeAction = new CWallExtrudeAction;
-		m_wallExtrudeAction->Select(m_selectionInfo);
-		m_wallExtrudeAction->SetMoveStart(m_mouseStartDragPos);
-	}
+	virtual void StartDrag();
+	virtual void EndDrag();
 
-	virtual void EndDrag()
-	{
-		if (glm::length(m_mouseDragDelta) == 0)
-		{
-			// No delta... Delete the action and move on
-			delete m_wallExtrudeAction;
-			m_wallExtrudeAction = nullptr;
-		}
-		else if (0)//glm::dot(faceNormal(m_selectionInfo.side), m_mouseDragDelta) >= 0)
-		{
-			// Backwards extrude... Delete and move on
-			delete m_wallExtrudeAction;
-			m_wallExtrudeAction = nullptr;
-		}
-		else
-		{
-			m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
-			GetActionManager().CommitAction(m_wallExtrudeAction);
-			// We don't need to delete the action
-			// The manager is taking care of it for us now
-			m_wallExtrudeAction = nullptr;
-		}
-
-	};
-
-	virtual void Preview()
-	{
-		if (m_wallExtrudeAction)
-		{
-			m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
-			m_wallExtrudeAction->Preview();
-		}
-	}
+	virtual void Preview();
 
 	CWallExtrudeAction* m_wallExtrudeAction;
 };

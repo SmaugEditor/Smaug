@@ -36,6 +36,7 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 
 	m_toolBox.RegisterTool(new CDragTool());
 	m_toolBox.RegisterTool(new CExtrudeTool());
+	
 
 }
 
@@ -232,4 +233,6 @@ void CUIView::Update(float dt, float mx, float my)
 	
 	Grid().Update();
 
+	// Must be last!
+	GetWorldEditor().Update();
 }

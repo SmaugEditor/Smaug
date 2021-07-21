@@ -38,7 +38,7 @@ void CCursor::Draw(float scale)
 	}
 	else
 	{
-		pos = Grid().Snap(m_position);
+		//pos = Grid().Snap(m_position);
 	}
 
 	m_model->Render(pos, rot, glm::vec3(scale));
@@ -57,6 +57,7 @@ glm::vec3 CCursor::GetPosition()
 
 glm::vec3 CCursor::SetSelection(glm::vec3 pos, selectionInfo_t info)
 {
+	/*
 	if (info.selected != ACT_SELECT_NONE)
 	{
 		SetMode(CursorMode::HOVERING);
@@ -88,6 +89,7 @@ glm::vec3 CCursor::SetSelection(glm::vec3 pos, selectionInfo_t info)
 		SetMode(CursorMode::NONE);
 		return pos;
 	}
+	*/
 	return pos;
 }
 

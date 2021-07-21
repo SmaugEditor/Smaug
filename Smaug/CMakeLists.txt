@@ -41,6 +41,7 @@ set( SOURCES
 	toolbox.cpp 
 	basetool.cpp 
 	nodetools.cpp 
+	selectionmanager.cpp
 
 	filesystem.cpp 
 	baseexporter.cpp 

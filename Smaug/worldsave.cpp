@@ -193,7 +193,7 @@ void loadWorld(char* input)
 	}
 
 	for (auto n : GetWorldEditor().m_nodes)
-		n.second->UpdateThisOnly();
+		n.second->MarkDirty();
 
 }
 
@@ -210,5 +210,5 @@ void defaultWorld()
 	node->m_mesh.origin = glm::vec3(0, 4, 16);
 	for (auto v : node->m_mesh.verts)
 		*v = { v->x * 8, v->y * 4, v->z * 8 };
-	node->Update();
+	node->MarkDirty();
 }

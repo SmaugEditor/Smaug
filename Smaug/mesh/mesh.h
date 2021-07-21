@@ -226,3 +226,7 @@ inline mesh_t* parentMesh(face_t* f) { if (!f) return 0; meshPart_t* part = pare
 
 // Bulks up an AABB if the point is outside
 aabb_t addPointToAABB(aabb_t aabb, glm::vec3 point);
+
+// This AABB will have it's max and min flipped and as FLT_MAX
+// Useful for creating a new AABB
+inline aabb_t invertedAABB() { return { {FLT_MAX,FLT_MAX,FLT_MAX}, {-FLT_MAX,-FLT_MAX,-FLT_MAX} }; }

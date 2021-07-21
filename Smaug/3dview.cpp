@@ -30,8 +30,8 @@ BEGIN_SVAR_TABLE(C3DViewSettings)
 	DEFINE_TABLE_SVAR_INPUT(backward,     GLFW_KEY_S, false)
 	DEFINE_TABLE_SVAR_INPUT(left,         GLFW_KEY_A, false)
 	DEFINE_TABLE_SVAR_INPUT(right,        GLFW_KEY_D, false)
-	DEFINE_TABLE_SVAR_INPUT(up,           GLFW_KEY_SPACE, false)
-	DEFINE_TABLE_SVAR_INPUT(down,         GLFW_KEY_LEFT_CONTROL, false)
+	DEFINE_TABLE_SVAR_INPUT(up,           GLFW_KEY_E, false)
+	DEFINE_TABLE_SVAR_INPUT(down,         GLFW_KEY_Q, false)
 	DEFINE_TABLE_SVAR_INPUT(enable,       GLFW_KEY_Z, false)
 	DEFINE_TABLE_SVAR_INPUT(panView,	  GLFW_MOUSE_BUTTON_3, true)
 
@@ -82,7 +82,7 @@ void C3DView::Draw(float dt)
 #ifdef _DEBUG
 	DebugDraw().Draw();
 #endif
-
+	SelectionManager().Draw();
 }
 
 void C3DView::Update(float dt, float mx, float my)
@@ -111,12 +111,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 		glm::vec3 o = glm::vec3{ 1 - mx, 1 - my, 0 };
 		o = glm::unProject(o, m_view, m_proj, glm::vec4{ 0, 0, 1, 1 });
-		testWorld_t t = testRay({ o, glm::normalize(o - m_cameraPos) });
-		if (t.hit)
-		{
-			DebugDraw().HEFace(t.face, COLOR_GREEN, 0.75f, 0.1f);
-			GetCursor().SetPositionForce(t.intersect);
-		}
+		SelectionManager().Update3D({ o, glm::normalize(o - m_cameraPos) });
 	}
 	
 	// We can always control the position

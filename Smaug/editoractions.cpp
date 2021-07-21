@@ -2,20 +2,18 @@
 #include "debugdraw.h"
 #include <utils.h>
 
-CNode* CWallExtrudeAction::CreateExtrusion()
+CNode* CWallExtrudeAction::CreateExtrusion(CNode* node, meshPart_t* part)
 {
 	CQuadNode* quad = new CQuadNode();
-	quad->m_mesh.origin = m_node->Origin();
-
-	meshPart_t* selectedPart = m_selectInfo.side;
+	quad->m_mesh.origin = node->Origin();
 
 	meshPart_t* newFront = quad->m_mesh.parts[0];
 	meshPart_t* newBack = quad->m_mesh.parts[1];
 
-	for (int i = 0; auto v : selectedPart->verts)
+	for (int i = 0; auto v : part->verts)
 		*newBack->verts[i++]->vert = *v->vert + m_moveDelta;
 
-	for (int i = 0; auto v : selectedPart->verts)
+	for (int i = 0; auto v : part->verts)
 		*newFront->verts[newFront->verts.size() - 1 - (i++)]->vert = *v->vert;
 
 	return quad;
@@ -23,45 +21,48 @@ CNode* CWallExtrudeAction::CreateExtrusion()
 
 void CWallExtrudeAction::Preview()
 {
-	meshPart_t* selectedPart = m_selectInfo.side;
-	glm::vec3 color = glm::dot(selectedPart->normal, m_moveDelta) < 0 ? COLOR_BLUE : COLOR_RED;
-	for(auto v : selectedPart->verts)
-		DebugDraw().LineDelta(*v->vert + m_node->m_mesh.origin, m_moveDelta, color, 0.75f, 0.01f );
+	for (auto info : m_selectInfo)
+	{
+		meshPart_t* selectedPart = info.part;
+		glm::vec3 color = glm::dot(selectedPart->normal, m_moveDelta) < 0 ? COLOR_BLUE : COLOR_RED;
+		for(auto v : selectedPart->verts)
+			DebugDraw().LineDelta(*v->vert + info.node->m_mesh.origin, m_moveDelta, color, 0.75f, 0.01f );
+	}
 
 }
 
 void CWallExtrudeAction::Act()
 {
-	CNode* node = CreateExtrusion();
-	GetWorldEditor().RegisterNode(node);
-	m_quad = node;
-	node->ConnectTo(m_node);
-	node->Update();
+	for (auto info : m_selectInfo)
+	{
+		CNode* node = CreateExtrusion(info.node.Node(), info.part);
+		GetWorldEditor().RegisterNode(node);
+		m_quads.push_back(node);
+		node->MarkDirty();
+	}
 }
 
 void CWallExtrudeAction::Undo()
 {
-	if (m_quad.IsValid())
+	for (int i = 0; auto info: m_selectInfo)
 	{
-		GetWorldEditor().DeleteNode(m_quad.Node());
-		m_node->DisconnectFrom(m_quad);
-		m_node->UpdateThisOnly();
+		CNodeRef quad = m_quads[i++];
+		if (quad.IsValid())
+		{
+			GetWorldEditor().DeleteNode(quad.Node());
+			info.node->MarkDirty();
+		}
 	}
-
 }
 
 void CWallExtrudeAction::Redo()
 {
-	SASSERT(!m_quad.Node());
-
-	CNode* node = CreateExtrusion();
-	GetWorldEditor().AssignID(node, m_quad.ID());
-	node->ConnectTo(m_node);
-	node->Update();
-
-}
-
-int CVertDragAction::GetSelectionType()
-{
-	return ACT_SELECT_VERT;
+	for (int i = 0; auto info: m_selectInfo)
+	{
+		CNodeRef quadRef = m_quads[i++];
+		CNode* node = CreateExtrusion(info.node.Node(), info.part);
+		GetWorldEditor().AssignID(node, quadRef.ID());
+		m_quads.push_back(node);
+		node->MarkDirty();
+	}
 }

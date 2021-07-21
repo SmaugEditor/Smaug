@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actionmanager.h"
+#include "selectionmanager.h"
 #include "input.h"
 #include <glm/vec3.hpp>
 
@@ -38,8 +39,8 @@ class CBaseSelectionTool : public CBaseTool
 {
 public:
 
-	// Override this with your ACT_SELECT_ to request types for selection
-	virtual int GetSelectionType() = 0;
+	// Override this with your SelectionFlag::SF_ to request types for selection
+	virtual SelectionFlag GetSelectionType() = 0;
 };
 
 // This base tool implements basic mouse dragging
@@ -57,5 +58,5 @@ public:
 	bool m_inDrag;
 	glm::vec3 m_mouseStartDragPos;
 	glm::vec3 m_mouseDragDelta;
-	selectionInfo_t m_selectionInfo;
+	std::vector<selectionInfo_t> m_selectionInfo;
 };

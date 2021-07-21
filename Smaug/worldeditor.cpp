@@ -46,14 +46,14 @@ const bool CNodeMeshPartRef::IsValid()
 
 meshPart_t* CNodeMeshPartRef::operator->() const
 {
-	if(m_node->m_mesh.parts.size() > m_partId)
+	if(m_node.IsValid() && m_node->m_mesh.parts.size() > m_partId)
 		return m_node->m_mesh.parts[m_partId];
 	return nullptr;
 }
 
 CNodeMeshPartRef::operator meshPart_t* () const
 {
-	if (m_node->m_mesh.parts.size() > m_partId)
+	if (m_node.IsValid() && m_node->m_mesh.parts.size() > m_partId)
 		return m_node->m_mesh.parts[m_partId];
 	return nullptr;
 }
@@ -158,6 +158,56 @@ void CNodeVertexRef::operator=(const CNodeVertexRef& ref)
 CWorldEditor::CWorldEditor()
 {
 	m_currentNodeId = 0;
+}
+
+void CWorldEditor::Update()
+{
+	// All this junk should get replaced with an octtree or something similar
+
+	// We put it all in a vector so we don't accidentally mark the whole map
+	std::vector<CNode*> dirty;
+	for (auto n : m_nodes)
+	{
+		CNode* node = n.second;
+		if (node->m_dirty != 0)
+			dirty.push_back(node);
+	}
+	
+	size_t len = dirty.size();
+	// Find everything dirty, bump up its AABB and find everything within
+	for (int i = 0; i < len; i++)
+	{
+		CNode* n = dirty[i];
+
+		if (n->m_dirty == 2)
+		{
+			// Found a muddy one! Let's see what's colliding with it
+			for (auto o : m_nodes)
+			{
+				if (o.second != n && n->m_dirty != 0)
+				{
+					aabb_t oA = o.second->GetAbsAABB();
+					aabb_t nA = n->GetAbsAABB();
+
+					if (testAABBInAABB(oA, nA, 1) || testAABBInAABB(nA, oA, 1))
+					{
+						o.second->MarkDirtyPreview();
+						dirty.push_back(o.second);
+					}
+				}
+			}
+		}
+	}
+
+	// Go through and update everything marked
+	for (auto n : dirty)
+	{
+		CNode* node = n;
+		if (node->m_dirty == 2)
+			node->UpdateThisOnly();
+		if (node->m_dirty == 1)
+			node->PreviewUpdateThisOnly();
+	}
 }
 
 void CWorldEditor::Clear()
@@ -280,11 +330,13 @@ void CNode::PreviewUpdate()
 {
 	PreviewUpdateThisOnly();
 
+	/*
 	// Update what we're cutting
 	for (auto m : m_cutting)
 	{
 		m->PreviewUpdateThisOnly();
 	}
+	*/
 }
 
 void CNode::PreviewUpdateThisOnly()
@@ -358,6 +410,8 @@ void CNode::PreviewUpdateThisOnly()
 	}
 
 	m_renderData.RebuildRenderData();
+
+	m_dirty = 0;
 }
 
 void CNode::Update()

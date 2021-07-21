@@ -8,14 +8,125 @@ BEGIN_SVAR_TABLE(CNodeToolsSettings)
 	DEFINE_TABLE_SVAR_INPUT(dragToolHold,	   GLFW_KEY_UNKNOWN,    false)
 	DEFINE_TABLE_SVAR_INPUT(extrudeToolToggle, GLFW_KEY_UNKNOWN,    false)
 	DEFINE_TABLE_SVAR_INPUT(extrudeToolHold,   GLFW_KEY_LEFT_SHIFT, false)
+	DEFINE_TABLE_SVAR_INPUT(breakAlign,		   GLFW_KEY_LEFT_ALT,   false)
 END_SVAR_TABLE()
 
-static CNodeToolsSettings s_NodeToolsSettings;
-DEFINE_SETTINGS_MENU("Node Tools", s_NodeToolsSettings);
+static CNodeToolsSettings s_nodeToolsSettings;
+DEFINE_SETTINGS_MENU("Node Tools", s_nodeToolsSettings);
 
-input_t CDragTool::GetToggleInput() { return s_NodeToolsSettings.dragToolToggle; }
-input_t CDragTool::GetHoldInput() { return s_NodeToolsSettings.dragToolHold; }
+input_t CDragTool::GetToggleInput() { return s_nodeToolsSettings.dragToolToggle; }
+input_t CDragTool::GetHoldInput() { return s_nodeToolsSettings.dragToolHold; }
 
 
-input_t CExtrudeTool::GetToggleInput() { return s_NodeToolsSettings.extrudeToolToggle; }
-input_t CExtrudeTool::GetHoldInput() { return s_NodeToolsSettings.extrudeToolHold; }
+input_t CExtrudeTool::GetToggleInput() { return s_nodeToolsSettings.extrudeToolToggle; }
+input_t CExtrudeTool::GetHoldInput() { return s_nodeToolsSettings.extrudeToolHold; }
+
+
+void CDragTool::StartDrag()
+{
+	m_action = new CDragAction;
+
+	m_action->SetMoveStart(m_mouseStartDragPos);
+	m_action->Select(m_selectionInfo);
+}
+
+void CDragTool::EndDrag()
+{
+	// If we've got just one item, lock it to the axis of the norm
+	if (m_selectionInfo.size() == 1 && !Input().IsDown(s_nodeToolsSettings.breakAlign))
+	{
+		auto& si = m_selectionInfo[0];
+		if (si.part.IsValid())
+			m_mouseDragDelta = si.part->normal * glm::dot(m_mouseDragDelta, si.part->normal);
+	}
+
+	if (glm::length(m_mouseDragDelta) == 0)
+	{
+		// No delta... Delete the action and move on
+		delete m_action;
+		m_action = nullptr;
+	}
+	else
+	{
+		m_action->SetMoveDelta(m_mouseDragDelta);
+		GetActionManager().CommitAction(m_action);
+
+		// We don't need to delete the action
+		// The manager is taking care of it for us now
+		m_action = nullptr;
+	}
+};
+
+void CDragTool::Preview()
+{
+	// If we've got just one item, lock it to the axis of the norm
+	if (m_selectionInfo.size() == 1 && !Input().IsDown(s_nodeToolsSettings.breakAlign))
+	{
+		auto& si = m_selectionInfo[0];
+		if (si.part.IsValid())
+		{
+			m_mouseDragDelta = si.part->normal * glm::dot(m_mouseDragDelta, si.part->normal);
+		}
+	}
+
+	if (m_action)
+	{
+		m_action->SetMoveDelta(m_mouseDragDelta);
+		m_action->Preview();
+	}
+}
+
+void CExtrudeTool::StartDrag()
+{
+	m_wallExtrudeAction = new CWallExtrudeAction;
+	m_wallExtrudeAction->Select(m_selectionInfo);
+	m_wallExtrudeAction->SetMoveStart(m_mouseStartDragPos);
+}
+
+void CExtrudeTool::EndDrag()
+{
+	// If we've got just one item, lock it to the axis of the norm
+	if (m_selectionInfo.size() == 1 && !Input().IsDown(s_nodeToolsSettings.breakAlign))
+	{
+		auto& si = m_selectionInfo[0];
+		if (si.part.IsValid())
+		{
+			m_mouseDragDelta = si.part->normal * glm::dot(m_mouseDragDelta, si.part->normal);
+		}
+	}
+
+	if (glm::length(m_mouseDragDelta) == 0)
+	{
+		// No delta... Delete the action and move on
+		delete m_wallExtrudeAction;
+		m_wallExtrudeAction = nullptr;
+	}
+	else
+	{
+		m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
+		GetActionManager().CommitAction(m_wallExtrudeAction);
+		// We don't need to delete the action
+		// The manager is taking care of it for us now
+		m_wallExtrudeAction = nullptr;
+	}
+
+};
+
+void CExtrudeTool::Preview()
+{
+	// If we've got just one item, lock it to the axis of the norm
+	if (m_selectionInfo.size() == 1 && !Input().IsDown(s_nodeToolsSettings.breakAlign))
+	{
+		auto& si = m_selectionInfo[0];
+		if (si.part.IsValid())
+		{
+			m_mouseDragDelta = si.part->normal * glm::dot(m_mouseDragDelta, si.part->normal);
+		}
+	}
+
+	if (m_wallExtrudeAction)
+	{
+		m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
+		m_wallExtrudeAction->Preview();
+	}
+}

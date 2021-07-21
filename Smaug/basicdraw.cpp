@@ -2,6 +2,7 @@
 #include "modelmanager.h"
 #include "utils.h"
 #include "shadermanager.h"
+#include "mesh.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -152,6 +153,19 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 		| BGFX_STATE_MSAA);
 
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::LINE));
+}
+
+void CBasicDraw::Face(face_t* face, glm::vec3 color, float width)
+{
+	glm::vec3 offset = parentMesh(face)->origin;
+
+	vertex_t* cur = face->verts.front(), * end = cur;
+	do
+	{
+		vertex_t* next = cur->edge->vert;
+		Line(*cur->vert + offset, *next->vert + offset, color, width);
+		cur = next;
+	} while (cur != end);
 }
 
 CBasicDraw& BasicDraw()

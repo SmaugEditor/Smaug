@@ -56,12 +56,13 @@ void CEditView::Update(float dt, float mx, float my)
 	
 	ImGuiIO& io = ImGui::GetIO();
 
+	glm::vec3 mousePos = TransformMousePos(mx, my);
+
 	// View zooming
 	float scrollDelta = io.MouseWheel * s_editViewSettings.scrollSpeed.GetValue();
 	if (scrollDelta != 0)
 	{
 		// Scroll and solve mouse to stay in the same pos
-		glm::vec3 startMouseStartPos = TransformMousePos(mx, my);
 
 		if(s_editViewSettings.proportionalScroll.GetValue())
 			m_viewZoom -= m_viewZoom / s_editViewSettings.proportionalScrollScale.GetValue() * scrollDelta;
@@ -74,7 +75,7 @@ void CEditView::Update(float dt, float mx, float my)
 
 		glm::vec3 forward, right, up;
 		Directions(m_editPlaneAngle, &forward, &right, &up);
-		m_cameraPos = nx * right + ny * forward + startMouseStartPos;
+		m_cameraPos = nx * right + ny * forward + mousePos;
 	}
 
 	if (m_viewZoom <= 0)
@@ -91,6 +92,9 @@ void CEditView::Update(float dt, float mx, float my)
 			m_panView.cameraStartPos = m_cameraPos;
 			m_panView.panning = true;
 		}
+
+		// If we're not panning, we can do selecting!
+		SelectionManager().Update2D(mousePos);
 	}
 	else
 	{
@@ -172,6 +176,8 @@ void CEditView::Draw(float dt)
 #ifdef _DEBUG
 	DebugDraw().Draw();
 #endif
+	SelectionManager().Draw();
+
 }
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)

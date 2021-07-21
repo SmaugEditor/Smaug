@@ -1,0 +1,156 @@
+#pragma once
+
+#include "fileFromThisProject.h"
+#include "fileFromThisProject.h"
+#include "fileFromThisProject.h"
+
+#include <fileFromElsewhere>
+#include <fileFromElsewhere>
+
+#include <fileFromSTD>
+#include <fileFromSTD>
+
+
+static constexpr int CATS_PER_SQUARE_KILOMETER = 12;
+#define SUPER_MACRO(nameOfSomething) nameOfSomething "is totally cool!"
+
+
+// There are no rules for globals
+// Because there are no globals
+
+
+/*
+
+Massive comment spanning many lines
+Massive comment spanning many lines
+Massive comment spanning many lines
+Massive comment spanning many lines
+Massive comment spanning many lines
+Massive comment spanning many lines
+Huge explanation about insane thing 
+Use one of these when you get to about 6 lines of //'s
+
+*/
+
+
+enum class SuperCoolDogs
+{
+	MORKIE_POO = 0,
+	CORGI,
+	NEWFOUNDLAND
+};
+
+// If you have to make an enum for bitflags or other such, a normal enum is fine. No need to bend backwards for a feature
+enum DogFlags
+{
+	DF_LARGE  = 0,
+	DF_SOFT   = 1,
+	DF_KIND   = 2,
+	DF_SLEEPY = 4
+};
+
+namespace NiceNamespace
+{
+// Contents should be organized by their purpose and ordered based on most use, with public first
+// CPascalCase
+class CClassName : public CNeatBase
+{
+public:
+	// Constructor first
+	CClassName(); 
+	~CClassName(); 
+	
+	// Functions second, categorized by topic
+	void PascalCase();
+	
+	virtual void Overriden() override;
+	virtual void PascalCase() = 0;
+
+	void FunctionAboutCats();
+	void AnotherThingAboutCats();
+
+	void DogFunction();
+	void PetTheDog();
+	
+	int  m_camelCase;
+	int* m_coolVariable;
+	
+private:
+	
+	// Private functions first
+	
+	void CoolerSecretFunction();
+	
+	bool m_coolHiddenVariable;
+};
+
+// If this an accessor management style class, its accessor should return a reference
+// A pointer is more mental overhead for the programmer
+// PascalCase
+CClassName& ClassName();
+
+// camelCase_t
+struct radStorageThing_t
+{
+	// Ideally don't use a struct as a class, but go ham if you need deconstructors or etc
+	// Don't prevent functionality just because it's against the style guide
+	radStorageThing_t();
+	~radStorageThing_t();
+	
+	int totallyRadicalNumber;
+	bool isMyDogBlue;
+	float percentPurple;
+};
+
+// If this is for external accessing, PascalCase
+// Log::Debug()
+void SuperCoolFunctionInANamespace();
+
+namespace
+{
+	// For hidden functions for internal use only, camelCase
+	// These most likely will be in .cpp files and not in headers
+	// It's an odd edge of the "camel out of class" rule and "pascal in class" rule
+	void totallySecretSuperCoolFunction();
+}
+	
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Big Division Title Between Two Things That Should Really Be In Separate Files But Aren't As They Share Some Strange Functions //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+// camelCase so we know when we're calling something in a class or outside of a class
+
+// Blah blah
+//   - Cool thing here
+// Yadah yah
+// This function bricks their whole PC
+// And calls the cops for their crimes
+template<typename T>
+inline void superCoolFunction(T coolArgument, int anotherCoolArgument)
+{
+	bool isTheDogFlying = false;
+	std::vector<T> dogList;
+	
+	// If our dog is flying, we need all red dogs that exist to bark 10 times
+	// This is a hack, right now if we don't do this, the renderer inverts all normals
+	// Really no clue why this happens
+	if(isTheDogFlying)
+		for(int i = 0; i < 10; i++)
+			for(auto dog : dogList)
+			{
+				// If we bark the red dogs, they'll turn upside down
+				// Woofing is good enough for now
+				if(dog.IsRed())
+					dog.Woof();
+				
+			}
+		
+}
+
+

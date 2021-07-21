@@ -1,28 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include "worldeditor.h"
+#include "selectionmanager.h"
+#include <glm/glm.hpp>
 #include <typeinfo>
-
-#define ACT_SELECT_NONE 0
-#define ACT_SELECT_NODE	1
-#define ACT_SELECT_VERT 2
-#define ACT_SELECT_SIDE 4
-#define ACT_SELECT_WALL 8
-
-struct selectionInfo_t
-{
-	int selected = ACT_SELECT_NONE;
-	CNodeRef node;
-	CNodeVertexRef vertex;
-	CNodeMeshPartRef side;
-	//face_t* wall = nullptr;
-};
-
-enum class SolveToLine2DSnap;
-glm::vec3 GetSelectionPos(selectionInfo_t info);
-glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2DSnap* snap = nullptr);
-
 
 class CActionManager;
 
@@ -50,17 +31,17 @@ protected:
 class CBaseSelectionAction : public IAction
 {
 public:
-	virtual int GetSelectionType() = 0;
+	virtual SelectionFlag GetSelectionType() = 0;
 
-	virtual void Select(selectionInfo_t selectionInfo)
+	virtual void Select(std::vector<selectionInfo_t> selectionInfo)
 	{
-		m_selectInfo = selectionInfo;
-		m_node = selectionInfo.node;
+		m_selectInfo.clear();
+		for(auto i : selectionInfo)
+			m_selectInfo.push_back(i);
 	}
 
 protected:
-	selectionInfo_t m_selectInfo;
-	CNodeRef m_node;
+	std::vector<selectionInfo_t> m_selectInfo;
 };
 
 
@@ -83,7 +64,7 @@ class CActionManager
 public:
 
 	void CommitAction(IAction* action);
-	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
+	//bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
 
 	void Clear();
 
