@@ -3,6 +3,30 @@
 #include "shadermanager.h"
 #include "worldsave.h"
 
+
+void smaugKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	if (key >= 0 && key < IM_ARRAYSIZE(io.KeysDown))
+		io.KeysDown[key] = action != GLFW_RELEASE;
+
+	io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+	io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+	io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+
+	Input().SetInput({key, false}, action);
+}
+
+void smaugMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	if (button >= 0 && button < IM_ARRAYSIZE(io.MouseDown))
+		io.MouseDown[button] = action != GLFW_RELEASE;
+
+	Input().SetInput({ button, true }, action);
+}
+
 void CSmaugApp::initialize(int _argc, char** _argv)
 {
 	ShaderManager().Init();
@@ -21,6 +45,11 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 	m_mouseLocked = false;
 	mFpsLock = 120;
+
+	// Bigg's gonna redirect our input to imgui, and we can't have that
+	// Let's take it over ourselves
+	glfwSetKeyCallback(mWindow, smaugKeyCallback);
+	glfwSetMouseButtonCallback(mWindow, smaugMouseButtonCallback);
 }
 
 int CSmaugApp::shutdown()
@@ -64,6 +93,7 @@ void CSmaugApp::update(float dt)
 {
 	m_uiView.Update(dt,0,0);
 	m_uiView.Draw(dt);
+	Input().EndFrame();
 }
 
 

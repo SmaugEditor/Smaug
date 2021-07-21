@@ -28,7 +28,10 @@ public:
 	CInputManager();
 
 	bool IsDown(input_t in);
+	bool Clicked(input_t in);
 	float Axis(input_t up, input_t down);
+	void SetInput(input_t in, int state);
+	void EndFrame();
 };
 
 CInputManager& Input();

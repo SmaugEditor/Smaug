@@ -1,6 +1,19 @@
 #include "input.h"
 #include "smaugapp.h"
 
+
+#define PRESSED 0x1
+#define JUST_PRESSED 0x2
+struct buttonState_t
+{
+	char state;
+	bool Pressed() { return state & PRESSED; }
+	bool JustPressed() { return state & JUST_PRESSED; }
+};
+
+static buttonState_t m_keyboardButtons[512];
+static buttonState_t s_mouseButtons[8];
+
 CInputManager& Input()
 {
 	static CInputManager s_input;
@@ -9,7 +22,12 @@ CInputManager& Input()
 
 CInputManager::CInputManager()
 {
+	memset(s_mouseButtons, 0, sizeof(s_mouseButtons));
+	memset(m_keyboardButtons,  0, sizeof(m_keyboardButtons));
+
 }
+
+
 
 bool CInputManager::IsDown(input_t in)
 {
@@ -19,11 +37,47 @@ bool CInputManager::IsDown(input_t in)
 		return glfwGetKey(GetApp().GetWindow(), in.code) == GLFW_PRESS;
 }
 
+bool CInputManager::Clicked(input_t in)
+{
+	if (in.isMouseButton)
+		return s_mouseButtons[in.code].JustPressed();
+	else
+		return m_keyboardButtons[in.code].JustPressed();
+}
+
 float CInputManager::Axis(input_t up, input_t down)
 {
 	return IsDown(up) - (int)IsDown(down);
 }
 
+void CInputManager::SetInput(input_t in, int state)
+{
+	buttonState_t* s = 0;
+	if (in.isMouseButton)
+		s = &s_mouseButtons[in.code];
+	else
+		s = &m_keyboardButtons[in.code];
+
+	if (state == GLFW_PRESS || state == GLFW_REPEAT)
+	{
+		if (s->Pressed())
+			s->state = PRESSED;
+		else
+			s->state = PRESSED | JUST_PRESSED;
+	}
+	else
+		s->state = 0;
+	printf("%d %d", in.code, state);
+}
+
+void CInputManager::EndFrame()
+{
+	// Mask off our just pressed stuff
+	for(int i = 0; i < sizeof(s_mouseButtons) / sizeof(buttonState_t); i++)
+		s_mouseButtons[i].state &= PRESSED;
+	for (int i = 0; i < sizeof(m_keyboardButtons) / sizeof(buttonState_t); i++)
+		m_keyboardButtons[i].state &= PRESSED;
+}
 
 
 #define KEY(name) {GLFW_KEY_##name, #name, false},
@@ -170,6 +224,7 @@ static inputName_t s_inputNames[] =
 
 #undef KEY
 #undef MOUSE
+
 
 inputName_t* GetAllInputs(size_t* length)
 {
