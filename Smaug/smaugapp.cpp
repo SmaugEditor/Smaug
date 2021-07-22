@@ -2,7 +2,7 @@
 #include "worldrenderer.h"
 #include "shadermanager.h"
 #include "worldsave.h"
-
+#include "interfaceimpl.h"
 
 void smaugKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -38,6 +38,8 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 	GetWorldRenderer().Init();
 
+
+	SupplyWorldInterface(new CWorldInterface);
 	defaultWorld();
 
 

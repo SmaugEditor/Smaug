@@ -3,6 +3,7 @@
 #include "tessellate.h"
 #include "slice.h"
 #include "log.h"
+#include "worldinterface.h"
 
 #include <glm/geometric.hpp>
 #include <glm/common.hpp>
@@ -41,19 +42,19 @@ CNodeMeshPartRef::CNodeMeshPartRef(meshPart_t* part, CNodeRef node) : CNodeMeshP
 
 const bool CNodeMeshPartRef::IsValid()
 {
-	return m_partId != MAX_MESH_ID && m_node.IsValid();
+	return m_partId != MAX_MESH_ID && m_node.IsValid() && m_node->m_mesh.parts.size() > m_partId && m_node->m_mesh.parts[m_partId];
 }
 
 meshPart_t* CNodeMeshPartRef::operator->() const
 {
-	if(m_node.IsValid() && m_node->m_mesh.parts.size() > m_partId)
+	if(m_node.IsValid())
 		return m_node->m_mesh.parts[m_partId];
 	return nullptr;
 }
 
 CNodeMeshPartRef::operator meshPart_t* () const
 {
-	if (m_node.IsValid() && m_node->m_mesh.parts.size() > m_partId)
+	if (m_node.IsValid())
 		return m_node->m_mesh.parts[m_partId];
 	return nullptr;
 }
@@ -297,11 +298,6 @@ CTriNode* CWorldEditor::CreateTri()
 }
 */
 
-static INodeRenderer* (*s_nodeSupplier)();
-void SupplyNodeRenderer(INodeRenderer* (*func)())
-{
-	s_nodeSupplier = func;
-}
 
 CWorldEditor& GetWorldEditor()
 {
@@ -312,9 +308,9 @@ CWorldEditor& GetWorldEditor()
 
 CNode::CNode() : m_renderData(nullptr), m_id(MAX_NODE_ID), m_visible(true)
 {
-	if (s_nodeSupplier)
+	m_renderData = WorldInterface()->CreateNodeRenderer();
+	if (m_renderData)
 	{
-		m_renderData = s_nodeSupplier();
 		m_renderData->SetOwner(this);
 	}
 }

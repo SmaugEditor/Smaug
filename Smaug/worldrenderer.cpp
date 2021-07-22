@@ -13,7 +13,6 @@ INodeRenderer* createMeshRenderer()
 
 void CWorldRenderer::Init()
 {
-	SupplyNodeRenderer(&createMeshRenderer);
 }
 
 void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)

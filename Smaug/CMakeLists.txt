@@ -45,6 +45,8 @@ set( SOURCES
 	grid.cpp
 	
 	input.cpp
+
+	interfaceimpl.cpp
 )
 
 set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc shaders/vs_grid.sc shaders/vs_line.sc )

@@ -5,7 +5,7 @@
 
 #include <KeyValue.h>
 
-static const int SAVE_FILE_VERSION = 0;
+static const int SAVE_FILE_VERSION = 1;
 
 
 char* saveWorld()
@@ -41,6 +41,8 @@ char* saveWorld()
 			if (p->verts.size() == 0)
 				continue;
 
+			KeyValue* curPart = parts->AddNode("part");
+
 			vertex_t* v = p->verts.front(), *vs = v;
 			do
 			{
@@ -70,7 +72,12 @@ char* saveWorld()
 				v = v->edge->vert;
 			} while (v != vs);
 			
-			parts->Add("part", buf);
+			curPart->Add("verts", buf);
+
+			WorldInterface()->LookupTextureName(p->txData.texture, buf, sizeof(buf));
+			curPart->Add("texture", buf);
+			snprintf(buf, sizeof(buf), "%a %a %a %a", p->txData.offset.x, p->txData.offset.y, p->txData.scale.x, p->txData.scale.y);
+			curPart->Add("txinf", buf);
 		}
 
 		
@@ -87,6 +94,9 @@ void loadWorld(char* input)
 
 	KeyValueRoot kvFile(input);
 
+	char* verstr = kvFile.Get("smf").value.string;
+	int versionNum = verstr ? strtol(verstr, 0, 10) : SAVE_FILE_VERSION;
+
 	for (KeyValue* kvNode = kvFile.children; kvNode; kvNode = kvNode->next)
 	{
 
@@ -94,7 +104,7 @@ void loadWorld(char* input)
 		{
 			
 			std::vector<glm::vec3> verts;
-			std::vector<std::vector<int>> parts;
+			std::vector<std::pair<std::vector<int>, textureMeshPartData_t>> parts;
 			int id = 0;
 			glm::vec3 origin{0,0,0};
 
@@ -125,15 +135,32 @@ void loadWorld(char* input)
 
 							if (strncmp(part->key.string, "part", part->key.length) == 0)
 							{
+								textureMeshPartData_t txinf = { {0,0}, {0.125, 0.125}, INVALID_TEXTURE };
+
+								char* szIdx;
+								// ver 0 maps don't have texture info
+								if (versionNum == 0)
+									szIdx = part->value.string;
+								else
+								{
+									szIdx = part->Get("verts").value.string;
+
+									txinf.texture = WorldInterface()->LookupTextureId(part->Get("texture").value.string);
+									
+									char* txInfo = part->Get("txinf").value.string;
+									int success = sscanf(txInfo, "%a %a %a %a", &txinf.offset.x, &txinf.offset.y, &txinf.scale.x, &txinf.scale.y );
+									if (success != 4)
+										Log::Fault("[LoadWorld] Failed to completely read texture info!\n");
+								}
+
 								std::vector<int> face;
-								char* szIdx = part->value.string;
 								while (szIdx && *szIdx)
 								{
 									int idx = strtol(szIdx, &szIdx, 10);
 									face.push_back(idx);
 								}
 								if (face.size() > 3)
-									parts.push_back(face);
+									parts.push_back({ face, txinf });
 								else
 									Log::Fault("[LoadWorld] Misformed mesh part!\n");
 							}
@@ -171,7 +198,7 @@ void loadWorld(char* input)
 				for (auto p : parts)
 				{
 					std::vector<glm::vec3*> faceVerts;
-					for (auto v : p)
+					for (auto v : p.first)
 					{
 						if (v >= vertList.size())
 						{
@@ -179,7 +206,8 @@ void loadWorld(char* input)
 						}
 						faceVerts.push_back(vertList[v]);
 					}
-					addMeshFace(node->m_mesh, faceVerts.data(), faceVerts.size());
+					meshPart_t* newPart = addMeshFace(node->m_mesh, faceVerts.data(), faceVerts.size());
+					newPart->txData = p.second;
 				}
 
 				node->Init();

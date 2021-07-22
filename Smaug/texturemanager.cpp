@@ -116,6 +116,20 @@ texture_t CTextureManager::ErrorTexture()
 	return GetErrorTexture();
 }
 
+void CTextureManager::TextureName(texture_t id, char* dest, size_t len)
+{
+	if (!dest)
+		return;
+
+	for (auto p : m_textureMap)
+		if (p.second == id)
+		{
+			strncpy(dest, p.first.c_str(), len);
+			return;
+		}
+	strncpy(dest, "TEXTURE_UNKNOWN", len);
+}
+
 CTextureManager& TextureManager()
 {
 	static CTextureManager s_textureManager;

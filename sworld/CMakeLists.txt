@@ -5,6 +5,7 @@ set( SOURCES
 	worldeditor.cpp
 	worldsave.cpp
 	worldtest.cpp
+	worldinterface.cpp
 	actionmanager.cpp
 )
 

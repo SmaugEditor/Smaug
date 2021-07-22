@@ -1,5 +1,6 @@
 #pragma once
 #include "mesh.h"
+#include "worldinterface.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
@@ -119,17 +120,6 @@ namespace std
 		}
 	};
 }
-
-
-// Nodes
-class INodeRenderer
-{
-public:
-	virtual void SetOwner(CNode* node) = 0;
-	virtual void Rebuild() = 0;
-	virtual void Destroy() = 0;
-};
-void SupplyNodeRenderer(INodeRenderer*(*func)());
 
 
 class CNode
