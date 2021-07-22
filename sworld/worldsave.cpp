@@ -145,12 +145,19 @@ void loadWorld(char* input)
 								{
 									szIdx = part->Get("verts").value.string;
 
-									txinf.texture = WorldInterface()->LookupTextureId(part->Get("texture").value.string);
-									
+									char* txstr = part->Get("texture").value.string;
+									if (txstr && strcmp(txstr, "TEXTURE_UNKNOWN") != 0)
+										txinf.texture = WorldInterface()->LookupTextureId(txstr);
+									else
+										txinf.texture == INVALID_TEXTURE;
+
 									char* txInfo = part->Get("txinf").value.string;
-									int success = sscanf(txInfo, "%a %a %a %a", &txinf.offset.x, &txinf.offset.y, &txinf.scale.x, &txinf.scale.y );
-									if (success != 4)
-										Log::Fault("[LoadWorld] Failed to completely read texture info!\n");
+									if (txInfo)
+									{
+										int success = sscanf(txInfo, "%a %a %a %a", &txinf.offset.x, &txinf.offset.y, &txinf.scale.x, &txinf.scale.y );
+										if (success != 4)
+											Log::Fault("[LoadWorld] Failed to completely read texture info!\n");
+									}
 								}
 
 								std::vector<int> face;
@@ -162,7 +169,7 @@ void loadWorld(char* input)
 								if (face.size() > 3)
 									parts.push_back({ face, txinf });
 								else
-									Log::Fault("[LoadWorld] Misformed mesh part!\n");
+									Log::Fault("[LoadWorld] Malformed mesh part!\n");
 							}
 						}
 					}

@@ -67,7 +67,6 @@ void CInputManager::SetInput(input_t in, int state)
 	}
 	else
 		s->state = 0;
-	printf("%d %d", in.code, state);
 }
 
 void CInputManager::EndFrame()

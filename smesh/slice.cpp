@@ -11,8 +11,8 @@
 /////////////////////////////
 
 
-#define DEBUG_PRINT(...) Log::Debug(__VA_ARGS__)
-//#define DEBUG_PRINT(...) 
+//#define DEBUG_PRINT(...) Log::Debug(__VA_ARGS__)
+#define DEBUG_PRINT(...) 
 
 
 // Cuts another face into a face using the cracking method
