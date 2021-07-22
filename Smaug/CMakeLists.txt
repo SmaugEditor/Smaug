@@ -21,23 +21,11 @@ set( SOURCES
 
 	cursor.cpp 
 
-	log.cpp
 	utils.cpp 
 
-	raytest.cpp
-	mesh/mesh.cpp
-	mesh/tessellate.cpp
-	mesh/slice.cpp
-	mesh/meshtest.cpp
-	mesh/meshedit.cpp
 	meshrenderer.cpp
-
-	worldeditor.cpp 
 	worldrenderer.cpp 
-	worldsave.cpp
 
-	actionmanager.cpp 
-	editoractions.cpp 
 	toolbox.cpp 
 	basetool.cpp 
 	nodetools.cpp 
@@ -56,7 +44,6 @@ set( SOURCES
 
 	grid.cpp
 	
-
 	input.cpp
 )
 
@@ -106,8 +93,8 @@ endforeach()
 
 include_directories( . )
 add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} shaders/varying.def.sc )
-target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp mesh )
-target_link_libraries( smaug bigg keyvalues assimp lodepng )
+target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp sshared smesh sworld )
+target_link_libraries( smaug bigg keyvalues assimp lodepng sshared smesh sworld )
 set_target_properties( smaug PROPERTIES
 	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 	CXX_STANDARD 20

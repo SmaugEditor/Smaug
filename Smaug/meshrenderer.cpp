@@ -1,8 +1,8 @@
 #include "meshrenderer.h"
 #include "utils.h"
-#include "GLFW/glfw3.h"
-
 #include "modelmanager.h"
+
+#include "GLFW/glfw3.h"
 #include <debugdraw.h>
 
 struct rMeshVertex_t
@@ -29,11 +29,14 @@ static bgfx::VertexLayout MeshVertexLayout()
 }
 
 
-CMeshRenderer::CMeshRenderer(cuttableMesh_t& mesh) : m_mesh(mesh), m_empty(false)
+void CMeshRenderer::SetOwner(CNode* node)
 {
+	m_node = node;
+	m_mesh = &node->m_mesh;
+	m_empty = true;
 }
 
-CMeshRenderer::~CMeshRenderer()
+void CMeshRenderer::Destroy()
 {
 	if(m_vertexBuf.idx != bgfx::kInvalidHandle)
 		bgfx::destroy(m_vertexBuf);
@@ -41,13 +44,13 @@ CMeshRenderer::~CMeshRenderer()
 		bgfx::destroy(m_indexBuf);
 }
 
-void CMeshRenderer::RebuildRenderData()
+void CMeshRenderer::Rebuild()
 {
 	
 	m_partRenderData.clear();
 
 	// Sort our parts into batches per texture
-	for (auto p : m_mesh.parts)
+	for (auto p : m_mesh->parts)
 	{
 		if (m_partRenderData.find(p->txData.texture) == m_partRenderData.end())
 		{
@@ -91,7 +94,7 @@ void CMeshRenderer::Render(CModelTransform trnsfm, bgfx::ViewId viewID, bgfx::Pr
 	if (m_empty)
 		return;
 
-	trnsfm.SetLocalOrigin(trnsfm.GetLocalOrigin() + m_mesh.origin);
+	trnsfm.SetLocalOrigin(trnsfm.GetLocalOrigin() + m_mesh->origin);
 	glm::mat4 mtx = trnsfm.Matrix();
 	
 	for (auto b : m_partRenderData)

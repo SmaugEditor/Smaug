@@ -44,13 +44,6 @@ struct testRayPlane_t : public test_t
 
 };
 
-class CNode;
-struct testWorld_t : public testRayPlane_t
-{
-	CNode* node;
-	meshPart_t* part;
-	face_t* face;
-};
 
 struct testLineLine_t : public test_t
 {
@@ -71,15 +64,6 @@ struct tri_t
 	glm::vec3& operator[](int i) { return verts[i]; }
 };
 
-/////////////////////
-// World Geo Tests //
-/////////////////////
-
-
-// Test if a ray hits any geo in the world
-testWorld_t testRay(ray_t ray);
-// Test if a line hits any geo in the world before running out
-testWorld_t testLine(line_t line);
 
 /////////////////////
 // Local Geo Tests //
@@ -105,3 +89,9 @@ testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p);
 // Wish this could be a template...
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
 bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);
+
+// Templates pleaase
+testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t* vert, float closestT);
+testRayPlane_t rayVertLoopTestNoCull(ray_t ray, vertex_t* vert, float closestT);
+
+void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest);

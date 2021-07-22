@@ -57,6 +57,62 @@ void CUIView::Draw(float dt)
 
 }
 
+
+
+void ShowEditHistory()
+{
+	int redoTo = INT_MAX;
+	int undoTo = INT_MAX;
+
+	if (ImGui::Begin("Edit History"))
+	{
+		if (GetActionManager().m_redoStack.size())
+		{
+			for (int i = 0; i < GetActionManager().m_redoStack.size(); i++)
+			{
+				ImGui::Text(GetActionManager().m_redoStack[i]->GetName());
+				if (ImGui::IsItemClicked())
+				{
+					redoTo = i;
+				}
+			}
+			ImGui::Separator();
+		}
+		for (int i = GetActionManager().m_actionHistory.size() - 1; i >= 0; i--)
+		{
+			ImGui::Text(GetActionManager().m_actionHistory[i]->GetName());
+			if (ImGui::IsItemClicked())
+			{
+				undoTo = i;
+			}
+		}
+	}
+	ImGui::End();
+
+	if (GetActionManager().m_actionHistory.size())
+		for (int i = GetActionManager().m_actionHistory.size() - 1; i >= undoTo; i--)
+		{
+			GetActionManager().Undo();
+		}
+
+	if (GetActionManager().m_redoStack.size())
+		for (int i = GetActionManager().m_redoStack.size() - 1; i >= redoTo; i--)
+		{
+			GetActionManager().Redo();
+		}
+
+
+	if (Input().IsDown({ GLFW_KEY_LEFT_CONTROL, false }) && Input().Clicked({ GLFW_KEY_Z, false }))
+	{
+		GetActionManager().Undo();
+	}
+	else if (Input().IsDown({ GLFW_KEY_LEFT_CONTROL, false }) && Input().Clicked({ GLFW_KEY_Y, false }))
+	{
+		GetActionManager().Redo();
+	}
+}
+
+
 void CUIView::Update(float dt, float mx, float my)
 {
 	GetCursor().Update(dt);
@@ -225,8 +281,7 @@ void CUIView::Update(float dt, float mx, float my)
 
 	m_drawSelectedView = SelectedView().Show();
 
-	GetActionManager().Update();
-
+	ShowEditHistory();
 	 
 	m_toolBox.ShowToolBox();
 	m_settingsMenu.DrawMenu();

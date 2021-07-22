@@ -54,7 +54,12 @@ public:
 
 	virtual void Preview();
 
+	virtual void ShowToolProperties();
+
+
 	CWallExtrudeAction* m_wallExtrudeAction;
+
+	int m_sideCount = 4;
 };
 
 

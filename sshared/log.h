@@ -21,7 +21,6 @@
 namespace Log
 {
 
-extern thread_local std::vector<char> _g_priv_fmt_buf;
 
 enum class MessageType
 {
@@ -34,6 +33,9 @@ enum class MessageType
 	FAULT,
 	FATAL,
 };
+
+// Used by the logger for temp working space. Don't use this if you're not the logger!
+char* WorkingBuf(size_t len);
 
 // On failure, logs and pops up a message box
 bool Assert(bool condition, const char* expression, int line, const char* file, const char* function);
@@ -61,8 +63,7 @@ void DrainFormat(MessageType type, const char* str, T... args)
 	// I would use std::format, if it was supported
 	// Maybe make use of it at a later date!
 
-	_g_priv_fmt_buf.reserve( size );
-	char* buf = _g_priv_fmt_buf.data();
+	char* buf = WorkingBuf(size);
 
 	snprintf(buf, size, str, args...);
 	Drain(type, buf);

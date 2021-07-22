@@ -1,5 +1,6 @@
 #include "objexporter.h"
 #include "worldeditor.h"
+#include "log.h"
 
 #include <sstream>
 #include <cstring>

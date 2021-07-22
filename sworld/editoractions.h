@@ -1,6 +1,5 @@
 #pragma once
 #include "actionmanager.h"
-#include "selectionmanager.h"
 #include <vector>
 
 class CDragAction : public CBaseDragAction
@@ -160,6 +159,8 @@ public:
 
 	CNode* CreateExtrusion(CNode* node, meshPart_t* part);
 
+	virtual void Select(std::vector<selectionInfo_t> selectInfo);
+	virtual void Cancel();
 	virtual void Preview();
 	virtual void Act();
 	virtual void Undo();
@@ -170,7 +171,8 @@ public:
 		return SelectionFlag::SF_PART;
 	}
 
-	std::vector<CNodeRef> m_quads = {};
+	// the uint16 is a pos within m_selectionInfo
+	std::vector<std::pair<CNodeRef, unsigned short>> m_quads = {};
 };
 
 
@@ -205,7 +207,8 @@ public:
 	void Paint(selectionInfo_t& si, textureMeshPartData_t& tx)
 	{
 		si.part->txData = tx;
-		si.node->m_renderData.RebuildRenderData();
+		if(si.node->m_renderData)
+			si.node->m_renderData->Rebuild();
 	}
 
 	std::vector<textureMeshPartData_t> m_originalPaint;

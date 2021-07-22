@@ -1,29 +1,29 @@
 #pragma once
 
-#include "mesh.h"
+#include "worldeditor.h"
 #include "modelmanager.h"
 #include "shadermanager.h"
 
 #include <bgfx/bgfx.h>
 
 
-class CMeshRenderer
+class CMeshRenderer : public INodeRenderer
 {
 public:
-	CMeshRenderer(cuttableMesh_t& mesh);
-	~CMeshRenderer();
+	CMeshRenderer() {};
 
-	void RebuildRenderData();
+	virtual void SetOwner(CNode* node);
+	virtual void Destroy();
+	virtual void Rebuild();
 	
 	// This does not bgfx::submit!!
 	void Render(bgfx::ViewId viewID, bgfx::ProgramHandle shader);
 	void Render(CModelTransform trnsfm, bgfx::ViewId viewID, bgfx::ProgramHandle shader);
 	
-	cuttableMesh_t& Mesh() { return m_mesh; }
-
-	bool Empty() { return m_empty; }
+	bool Empty() { return m_empty || m_node->IsNewBorn(); }
 private:
-	cuttableMesh_t& m_mesh;
+	CNode* m_node;
+	cuttableMesh_t* m_mesh;
 	void BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Memory*& indexBuf);
 
 	

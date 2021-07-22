@@ -1,7 +1,8 @@
 #include "worldsave.h"
 #include "worldeditor.h"
-#include "svarex.h"
 #include "actionmanager.h"
+#include "log.h"
+
 #include <KeyValue.h>
 
 static const int SAVE_FILE_VERSION = 0;

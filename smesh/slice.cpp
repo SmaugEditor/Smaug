@@ -2,10 +2,9 @@
 #include "mesh.h"
 #include "meshtest.h"
 #include "raytest.h"
-#include "utils.h"
 #include "tessellate.h"
+#include "log.h"
 #include <glm/geometric.hpp>
-#include <debugdraw.h>
 
 /////////////////////////////
 // Mesh face shape cutting //

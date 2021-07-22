@@ -5,6 +5,7 @@
 #include "shadermanager.h"
 #include "actionmanager.h"
 #include "grid.h"
+#include "meshrenderer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <GLFW/glfw3.h>
@@ -33,7 +34,7 @@ void CSelectedView::Draw(float dt)
 		bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
 		
 		ShaderManager().SetColor(glm::vec4(nodeColor(m_selectedNode.Node()),1.0f));
-		m_selectedNode->m_renderData.Render(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
+		((CMeshRenderer*)m_selectedNode->m_renderData)->Render(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
 	}
 }
 

@@ -6,7 +6,7 @@
 #include "utils.h"
 #include "cursor.h"
 #include "meshrenderer.h"
-#include "raytest.h"
+#include "worldtest.h"
 
 #include "svar.h"
 #include "svarex.h"

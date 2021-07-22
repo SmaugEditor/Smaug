@@ -1,7 +1,5 @@
 #pragma once
-#include "worldrenderer.h"
 #include "mesh.h"
-#include "meshrenderer.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
@@ -124,6 +122,14 @@ namespace std
 
 
 // Nodes
+class INodeRenderer
+{
+public:
+	virtual void SetOwner(CNode* node) = 0;
+	virtual void Rebuild() = 0;
+	virtual void Destroy() = 0;
+};
+void SupplyNodeRenderer(INodeRenderer*(*func)());
 
 
 class CNode
@@ -134,8 +140,8 @@ public:
 	void Init();
 
 	void MarkDirty() { m_dirty = 2; }
-	void MarkDirtyPreview() { m_dirty = 1; }
-
+	void MarkDirtyPreview() { if(m_dirty >= 0 && m_dirty < 2) m_dirty = 1; }
+	bool IsNewBorn() { return m_dirty == -1; }
 
 	//void ConstructWalls();
 	bool IsPointInAABB(glm::vec3 point);
@@ -157,7 +163,7 @@ public:
 
 protected:
 	// Nodes should not be manually deleted!
-	~CNode() {}
+	~CNode() { if (m_renderData) m_renderData->Destroy(); }
 
 	void PreviewUpdate();
 	void PreviewUpdateThisOnly();
@@ -170,7 +176,7 @@ protected:
 public:
 
 	cuttableMesh_t m_mesh;
-	CMeshRenderer m_renderData;
+	INodeRenderer* m_renderData;
 	
 	std::unordered_set<CNodeRef> m_cutting;
 	std::unordered_set<CNodeRef> m_cutters;
@@ -181,7 +187,7 @@ protected:
 	nodeId_t m_id = INVALID_NODE_ID;
 
 	// Does this node need updating?
-	// 1 - Preview, 2 - Full update
+	// -1 : Just born, 0 : Content, 1 : Preview, 2 : Full update
 	int m_dirty = 0;
 
 	friend class CWorldEditor;

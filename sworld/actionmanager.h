@@ -1,9 +1,27 @@
 #pragma once
 
 #include "worldeditor.h"
-#include "selectionmanager.h"
 #include <glm/glm.hpp>
 #include <typeinfo>
+
+enum SelectionFlag
+{
+	SF_NONE = 0,
+	SF_NODE = 1,
+	//SF_VERT = 2,
+	SF_EDGE = 4,
+	SF_PART = 8
+};
+MAKE_BITFLAG(SelectionFlag);
+
+struct selectionInfo_t
+{
+	SelectionFlag    selected = SelectionFlag::SF_NONE;
+	CNodeRef         node;
+	//CNodeVertexRef   vert;
+	CNodeMeshPartRef part;
+	CNodeVertexRef   edge;
+};
 
 class CActionManager;
 
@@ -16,12 +34,12 @@ public:
 	virtual const char* GetName() = 0;
 
 	virtual void Preview() = 0;
-	//virtual void Cancel() = 0;
+	virtual void Cancel() {};
 
 protected:
 	virtual void Act() = 0;
 
-	virtual void Undo() = 0; // THESE WONT WORK ATM
+	virtual void Undo() = 0;
 	virtual void Redo() = 0;
 
 	friend CActionManager;
@@ -64,14 +82,11 @@ class CActionManager
 public:
 
 	void CommitAction(IAction* action);
-	//bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
 
 	void Clear();
 
 	void Undo();
 	void Redo();
-
-	void Update();
 
 	std::vector<IAction*> m_actionHistory;
 	std::vector<IAction*> m_redoStack;

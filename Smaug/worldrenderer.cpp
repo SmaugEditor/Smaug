@@ -1,12 +1,19 @@
 #include "worldrenderer.h"
 #include "worldeditor.h"
 #include "utils.h"
+#include "meshrenderer.h"
 
 #include <bgfx/bgfx.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+INodeRenderer* createMeshRenderer()
+{
+	return new CMeshRenderer();
+}
+
 void CWorldRenderer::Init()
 {
+	SupplyNodeRenderer(&createMeshRenderer);
 }
 
 void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
@@ -16,7 +23,9 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 	for (auto p : world.m_nodes)
 	{
 		CNode* node = p.second;
-		if (node->m_renderData.Empty())
+		CMeshRenderer* renderer = (CMeshRenderer*)node->m_renderData;
+
+		if (renderer->Empty())
 			continue;
 
 		// Set the color
@@ -32,7 +41,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 			| BGFX_STATE_BLEND_INDEPENDENT
 			, BGFX_STATE_BLEND_FUNC_RT_1(BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_SRC_COLOR)
 		);
-		node->m_renderData.Render(viewId, shaderProgram);
+		renderer->Render(viewId, shaderProgram);
 	}
 }
 
@@ -43,7 +52,9 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 	for (auto p : GetWorldEditor().m_nodes)
 	{
 		CNode* node = p.second;
-		if (node->m_renderData.Empty())
+		CMeshRenderer* renderer = (CMeshRenderer*)node->m_renderData;
+
+		if (renderer->Empty())
 			continue;
 
 		if(node->IsVisible())
@@ -52,7 +63,7 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 			// Set the color
 			// Precompute this?
 			ShaderManager().SetColor(glm::vec4(nodeColor(node), 1.0f));
-			node->m_renderData.Render(viewId, shaderProgram);
+			renderer->Render(viewId, shaderProgram);
 		}
 	}
 }

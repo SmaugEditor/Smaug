@@ -2,7 +2,7 @@
 #include "svarex.h"
 #include "settingsmenu.h"
 #include "cursor.h"
-
+#include "imgui.h"
 
 BEGIN_SVAR_TABLE(CNodeToolsSettings)
 	DEFINE_TABLE_SVAR_INPUT(dragToolToggle,    GLFW_KEY_G,          false)
@@ -84,8 +84,9 @@ void CDragTool::Preview()
 void CExtrudeTool::StartDrag()
 {
 	m_wallExtrudeAction = new CWallExtrudeAction;
-	m_wallExtrudeAction->Select(m_selectionInfo);
 	m_wallExtrudeAction->SetMoveStart(m_mouseStartDragPos);
+	m_wallExtrudeAction->SetMoveDelta({0,0,0});
+	m_wallExtrudeAction->Select(m_selectionInfo);
 }
 
 void CExtrudeTool::EndDrag()
@@ -103,6 +104,7 @@ void CExtrudeTool::EndDrag()
 	if (glm::length(m_mouseDragDelta) == 0)
 	{
 		// No delta... Delete the action and move on
+		m_wallExtrudeAction->Cancel();
 		delete m_wallExtrudeAction;
 		m_wallExtrudeAction = nullptr;
 	}
@@ -134,6 +136,14 @@ void CExtrudeTool::Preview()
 		m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
 		m_wallExtrudeAction->Preview();
 	}
+}
+
+void CExtrudeTool::ShowToolProperties()
+{
+	if (ImGui::Begin("Extrude Tool", 0, ImGuiWindowFlags_NoDecoration))
+	{
+	}
+	ImGui::End();
 }
 
 

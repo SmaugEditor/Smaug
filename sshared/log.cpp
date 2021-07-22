@@ -12,7 +12,13 @@
 void defaultSink(Log::MessageType type, const char* message);
 static Log::messageSink_t s_messageSink = &defaultSink;
 
-thread_local std::vector<char> Log::_g_priv_fmt_buf;
+static thread_local std::vector<char> _g_priv_fmt_buf;
+
+char* Log::WorkingBuf(size_t len)
+{
+    _g_priv_fmt_buf.reserve(len);
+    return _g_priv_fmt_buf.data();
+}
 
 // Windows colors
 // Maybe change their values on Linux?

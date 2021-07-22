@@ -18,4 +18,8 @@ add_subdirectory( thirdparty/assimp )
 add_subdirectory( thirdparty/lodepng.cmake )
 
 include_directories( thirdparty )
+
+add_subdirectory( sshared )
+add_subdirectory( smesh )
+add_subdirectory( sworld )
 add_subdirectory( Smaug )

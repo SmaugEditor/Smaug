@@ -1,26 +1,8 @@
 #pragma once
 #include "mesh.h"
 #include "worldeditor.h"
-#include "raytest.h"
-
-enum SelectionFlag
-{
-	SF_NONE = 0,
-	SF_NODE	= 1,
-	//SF_VERT = 2,
-	SF_EDGE = 4,
-	SF_PART = 8
-};
-MAKE_BITFLAG(SelectionFlag);
-
-struct selectionInfo_t
-{
-	SelectionFlag    selected = SelectionFlag::SF_NONE;
-	CNodeRef         node;
-	//CNodeVertexRef   vert;
-	CNodeMeshPartRef part;
-	CNodeVertexRef   edge;
-};
+#include "worldtest.h"
+#include "actionmanager.h"
 
 class CSelectionManager
 {

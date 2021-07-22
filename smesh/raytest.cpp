@@ -1,7 +1,4 @@
 #include "raytest.h"
-#include "worldeditor.h"
-#include "basicdraw.h"
-#include "modelmanager.h"
 #include "meshtest.h"
 #include <glm/geometric.hpp>
 
@@ -206,7 +203,7 @@ void rayQuadTest(ray_t ray, Quad_t quad, testRayPlane_t& lastTest)
 }
 
 
-template<bool cull = true>
+template<bool cull>
 testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t* vert, float closestT)
 {
     glm::vec3 normal = vertNextNormal(vert);
@@ -219,6 +216,10 @@ testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t* vert, float closestT)
         return test;
     return { false };
 }
+
+testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t* vert, float closestT) { return rayVertLoopTest<true>(ray, vert, closestT); }
+testRayPlane_t rayVertLoopTestNoCull(ray_t ray, vertex_t* vert, float closestT) { return rayVertLoopTest<false>(ray, vert, closestT); }
+
 
 // This is terrible
 void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
@@ -264,60 +265,6 @@ void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
     if (test.hit && test.intersect.x >= plane[2].x && test.intersect.y >= plane[2].y && test.intersect.x <= plane[0].x && test.intersect.y <= plane[0].y)
         lastTest = test;
 
-}
-
-void testNode(ray_t ray, CNode* node, testWorld_t& end)
-{
-    testWorld_t aabbTest;
-    aabb_t aabb = node->GetAbsAABB();
-
-
-    rayAABBTest(ray, aabb, aabbTest);
-    if (!aabbTest.hit)
-        return;
-
-    // Test mesh
-    // Offset the ray to the node
-    glm::vec3 origin = node->m_mesh.origin;
-    ray.origin -= origin;
-    for (auto p : node->m_mesh.parts)
-        for (auto f : p->sliced ? p->sliced->collision : p->collision)
-        {
-            testRayPlane_t rayTest = rayVertLoopTest<true>(ray, f->verts.front(), end.t);
-            if (rayTest.hit)
-            {
-                rayTest.intersect += origin;
-                // G++ won't let me just cast rayTest like MSVC does, soo
-                *((testRayPlane_t*)&end) = rayTest;
-                end.face = f;
-                end.part = p;
-                end.node = node;
-            }
-        }
-    
-}
-
-testWorld_t testRay(ray_t ray)
-{
-    testWorld_t end = { false };
-
-    for (auto p : GetWorldEditor().m_nodes)
-    {
-        testNode(ray, p.second, end );
-    }
-    return end;
-}
-
-// TODO: Add distance based optimizations!
-testWorld_t testLine(line_t line)
-{
-    testWorld_t rpTest = testRay({ line.origin, line.delta });
-    if (glm::distance(rpTest.intersect, line.origin) > glm::length(line.delta))
-    {
-        // Too long!
-        return { false };
-    }
-    return rpTest;
 }
 
 

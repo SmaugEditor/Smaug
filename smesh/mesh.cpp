@@ -1,7 +1,6 @@
 #include "mesh.h"
 #include "raytest.h"
 #include "containerutil.h"
-#include "utils.h"
 #include <glm/geometric.hpp>
 
 // Gets the normal of the *next* vert

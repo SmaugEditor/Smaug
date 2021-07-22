@@ -1,12 +1,11 @@
 #pragma once
 
+#include "utils.h"
+
 #include <bgfx/bgfx.h>
 #include <map>
 #include <string>
 
-// Dummy stuff so when we rewire this to be bgfx independent, it's easier
-typedef uint16_t texture_t;
-#define INVALID_TEXTURE bgfx::kInvalidHandle
 
 class CTextureManager
 {

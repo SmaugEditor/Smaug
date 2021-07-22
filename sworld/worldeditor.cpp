@@ -205,7 +205,7 @@ void CWorldEditor::Update()
 		CNode* node = n;
 		if (node->m_dirty == 2)
 			node->UpdateThisOnly();
-		if (node->m_dirty == 1)
+		if (node->m_dirty == 1 || node->m_dirty == -1)
 			node->PreviewUpdateThisOnly();
 	}
 }
@@ -297,6 +297,11 @@ CTriNode* CWorldEditor::CreateTri()
 }
 */
 
+static INodeRenderer* (*s_nodeSupplier)();
+void SupplyNodeRenderer(INodeRenderer* (*func)())
+{
+	s_nodeSupplier = func;
+}
 
 CWorldEditor& GetWorldEditor()
 {
@@ -305,12 +310,19 @@ CWorldEditor& GetWorldEditor()
 }
 
 
-CNode::CNode() : m_renderData(m_mesh), m_id(MAX_NODE_ID), m_visible(true)
+CNode::CNode() : m_renderData(nullptr), m_id(MAX_NODE_ID), m_visible(true)
 {
+	if (s_nodeSupplier)
+	{
+		m_renderData = s_nodeSupplier();
+		m_renderData->SetOwner(this);
+	}
 }
 
 void CNode::Init()
 {
+	m_dirty = -1;
+
 	/*
 	m_sides = new nodeSide_t[m_sideCount];
 	LinkSides();
@@ -409,7 +421,8 @@ void CNode::PreviewUpdateThisOnly()
 		triangluateMeshPartConvexFaces(*pa, pa->tris);
 	}
 
-	m_renderData.RebuildRenderData();
+	if (m_renderData)
+		m_renderData->Rebuild();
 
 	m_dirty = 0;
 }

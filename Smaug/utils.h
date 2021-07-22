@@ -1,6 +1,7 @@
 #pragma once
 
 #include "log.h"
+#include "shared.h"
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -8,7 +9,6 @@
 #include <cmath>
 #include <initializer_list>
 
-const double PI = 3.141592653589793238463;
 
 // This function does not take Y into account
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range);
@@ -23,78 +23,6 @@ enum class SolveToLine2DSnap
 };
 glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, SolveToLine2DSnap* snap = nullptr);
 
-
-// Pitch, Yaw, Roll
-void Directions(glm::vec3 angles, glm::vec3* forward = nullptr, glm::vec3* right = nullptr, glm::vec3* up = nullptr);
-glm::vec3 Angles(glm::vec3 forward, glm::vec3* up = nullptr);
-
-
-
-template<typename T>
-constexpr T max(T a, T b)
-{
-	if (a > b)
-		return a;
-	return b;
-}
-
-template<typename T>
-constexpr T min(T a, T b)
-{
-	if (a < b)
-		return a;
-	return b;
-}
-
-
-template<typename T>
-constexpr T clamp(T value, T min, T max)
-{
-	if (value > max)
-		return max;
-	if (value < min)
-		return min;
-	return value;
-}
-
-template<bool unordered = false>
-inline constexpr bool inRange(float min, float max, float value)
-{
-	if constexpr (unordered)
-	{
-		if (min > max)
-		{
-			float t = min;
-			min = max;
-			max = t;
-		}
-	}
-	return (value >= min) && (value <= max);
-}
-
-template<bool unordered = false>
-inline constexpr bool rangeInRange(float largerMin, float largerMax, float smallerMin, float smallerMax)
-{
-	return inRange<unordered>(largerMin, largerMax, smallerMin) || inRange<unordered>(largerMin, largerMax, smallerMax);
-}
-
-template<bool unordered1 = false, bool unordered2 = false>
-inline constexpr bool rangeOverlap(float min1, float max1, float min2, float max2)
-{
-	return rangeInRange<unordered1>(min1, max1, min2, max2) || rangeInRange<unordered2>(min2, max2, min1, max1);
-}
-
-
-inline constexpr bool closeTo(float value, float target, float threshold = 0.0001f)
-{
-	return inRange(target - threshold, target + threshold, value);
-}
-
-
-inline constexpr glm::vec3 dirMask(glm::vec3 vec)
-{
-	return { 1.0f - std::fabs(vec.x), 1.0f - std::fabs(vec.y), 1.0f - std::fabs(vec.z) };
-}
 
 
 #define COLOR_RED   glm::vec3( 1.0, 0.0, 0.0 )
@@ -124,13 +52,6 @@ inline glm::vec3 randColorHue()
 }
 
 
-#define MAKE_BITFLAG(enumName) \
-inline enumName& operator |=  (enumName& a, enumName b) { a = static_cast<enumName>(a | b);  return a; } \
-inline enumName& operator &=  (enumName& a, enumName b) { a = static_cast<enumName>(a & b);  return a; } \
-inline enumName& operator ^=  (enumName& a, enumName b) { a = static_cast<enumName>(a ^ b);  return a; } \
-inline enumName& operator <<= (enumName& a, int b)      { a = static_cast<enumName>(a >> b); return a; } \
-inline enumName& operator >>= (enumName& a, int b)      { a = static_cast<enumName>(a << b); return a; } \
-inline enumName  operator ~   (enumName a) { return static_cast<enumName>(~(char)a); }
 
 namespace CommandLine
 {
