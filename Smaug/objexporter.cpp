@@ -4,6 +4,8 @@
 
 #include <sstream>
 #include <cstring>
+#include <map>
+#include <texturemanager.h>
 
 static inline void WriteVertex(glm::vec3 vec, std::stringstream& stream)
 {
@@ -15,6 +17,46 @@ static inline void WriteNorm(glm::vec3 vec, std::stringstream& stream)
 	stream << "vn " << vec.x << " " << vec.y << " " << vec.z << "\n";
 }
 
+static inline glm::vec2 TexCoord(glm::vec3 norm, glm::vec3 pos)
+{
+	glm::vec2 texcoord;
+
+	glm::vec3 tw = { fabs(norm.x), fabs(norm.y), fabs(norm.z) };
+
+	if (tw.x >= tw.z && tw.x >= tw.y)
+	{
+		texcoord = glm::vec2(pos.z, pos.y);
+		texcoord.x *= norm.x > 0.0 ? 1.0 : -1.0;
+	}
+	else if (tw.z >= tw.y && tw.z >= tw.x)
+	{
+		texcoord = glm::vec2(pos.x, pos.y);
+		texcoord.x *= norm.z < 0.0 ? 1.0 : -1.0;
+	}
+	else
+	{
+		texcoord = glm::vec2(pos.x, pos.z);
+		texcoord.x *= norm.y < 0.0 ? -1.0 : 1.0;
+	}
+	texcoord.y *= -1.0;
+
+	return texcoord;
+}
+
+static inline void WriteTexCoord(glm::vec2 tex, std::stringstream& stream)
+{
+	/*
+	if(tex.x > 1.0f || tex.x < 0)
+		tex.x = fmod(tex.x, 1.0f);
+	if (tex.x < 0) tex.x += 1;
+
+	if (tex.y > 1.0f || tex.y < 0)
+		tex.y = fmod(tex.y, 1.0f);
+	if (tex.y < 0) tex.y += 1;
+	*/
+
+	stream << "vt " << tex.x << " " << tex.y << "\n";
+}
 
 char* COBJExporter::Export(CWorldEditor* world)
 {
@@ -26,6 +68,9 @@ char* COBJExporter::Export(CWorldEditor* world)
 	stream << "Release";
 #endif
 	stream << " build compiled on " << __DATE__ << "\n";
+
+	// We don't automatically generate mtl's, yet, but for now, just assume they have one of these laying around somewhere
+	stream << "\nmtllib textures.mtl\n";
 
 	stream << "\n# Vertexes\n";
 	for (auto p : GetWorldEditor().m_nodes)
@@ -50,21 +95,63 @@ char* COBJExporter::Export(CWorldEditor* world)
 		for (meshPart_t* p : mesh.parts)
 			WriteNorm(p->normal, stream);
 
+
+		stream << "# - Texture Coords\n";
+		for (meshPart_t* p : mesh.parts)
+		{
+			if (p->sliced)
+			{
+				for (auto f : p->sliced->faces)
+				{
+					for (auto v : f->verts)
+					{
+						glm::vec2 texcoord = TexCoord(p->normal, *v->vert + node->m_mesh.origin) * p->txData.scale + p->txData.offset;
+						WriteTexCoord(texcoord, stream);
+					}
+				}
+			}
+			else
+			{
+				for (auto v : p->verts)
+				{
+					glm::vec2 texcoord = TexCoord(p->normal, *v->vert + node->m_mesh.origin) * p->txData.scale + p->txData.offset;
+					WriteTexCoord(texcoord, stream);
+				}
+			}
+		}
+
 	}
 
 	int vertOffset = 1;
-	stream << "\n# Faces\n";
 	int partNormOffset = 1;
+	int texcoordOffset = 1;
 
+	stream << "\n# Faces\n";
+
+	
+
+	// We need to sort ALL of our faces by material before dumping!
+	struct faceDump_t
+	{
+		meshPart_t* part;
+
+		// vert tex norm order
+		std::vector<int> idxs;
+	};
+	std::map<texture_t,std::vector<faceDump_t>> sortedParts;
 	for (auto p : GetWorldEditor().m_nodes)
 	{
 		CNode* node = p.second;
 
 		cuttableMesh_t& mesh = node->m_mesh;
-		stream << "# Node " << node->NodeID() << "\n";
-
+		
 		for (auto p : mesh.parts)
 		{
+			if (sortedParts.find(p->txData.texture) == sortedParts.end())
+			{
+				// Didn't find it; let's make a new spot for all our nice data
+				sortedParts.insert({ p->txData.texture, {} });
+			}
 
 			for (auto f : p->sliced ? p->sliced->collision : p->collision)
 			{
@@ -74,10 +161,12 @@ char* COBJExporter::Export(CWorldEditor* world)
 					continue;
 				}
 
-				stream << "f";
+				sortedParts[p->txData.texture].push_back({p});
+				faceDump_t& faceout = sortedParts[p->txData.texture].back();
+
 				for (auto v : f->verts)
 				{
-					uint16_t vert = 0;
+					int vert = 0;
 					auto f = std::find(mesh.verts.begin(), mesh.verts.end(), v->vert);
 					if (f != mesh.verts.end())
 					{
@@ -92,23 +181,68 @@ char* COBJExporter::Export(CWorldEditor* world)
 						}
 						else
 						{
-							Log::Fault("[MeshRenderer] Mesh refering to vert not in list!!\n");
+							Log::TFault("Mesh refering to vert not in list!!\n");
 						}
 					}
 
-					stream << " " << (vert + vertOffset);
-					stream << "//" << partNormOffset;
-				}
+					// Root around for our texture coord
+					// Kinda suboptimal!
+					int texpos = texcoordOffset;
+					if (p->sliced)
+					{
+						for (auto sf : p->sliced->faces)
+							for (auto sv : sf->verts)
+							{
+								if (sv->vert == v->vert)
+									goto fullBreakTexcoordFind;
+								texpos++;
+							}
+					}
+					else
+					{
+						for (auto pv : p->verts)
+						{
+							if (pv->vert == v->vert)
+								goto fullBreakTexcoordFind;
+							texpos++;
+						}
+					}
+					fullBreakTexcoordFind:
 
-				stream << "\n";
+					faceout.idxs.push_back(vert + vertOffset);
+					faceout.idxs.push_back(texpos);
+					faceout.idxs.push_back(partNormOffset);
+					
+				}
 			}
 			partNormOffset++;
+			if (p->sliced)
+				for (auto sf : p->sliced->faces)
+					texcoordOffset += sf->verts.size();
+			else
+				texcoordOffset += p->verts.size();
 		}
 
 		vertOffset += mesh.verts.size() + mesh.cutVerts.size();
 	}
 
+	char txName[64];
+	for (auto t : sortedParts)
+	{
+		TextureManager().TextureName(t.first, txName, sizeof(txName));
+		stream << "usemtl " << txName << "\n";
+		for (auto f : t.second)
+		{
+			stream << "f";
+			for (int vi = 0; vi + 2 < f.idxs.size(); vi+=3)
+			{
+				stream << " " << f.idxs[vi] << "/" << f.idxs[vi+1] << "/" << f.idxs[vi+2];
+			}
+			stream << "\n";
 
+
+		}
+	}
 	// Output
 	std::string str = stream.str();
 	// I think this is probably dumb, but oh well
