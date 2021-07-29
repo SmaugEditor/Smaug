@@ -1,6 +1,5 @@
 #include "debugdraw.h"
-#include "basicdraw.h"
-#include <GLFW/glfw3.h>
+#include <editorinterface.h>
 
 
 class CDebugDraw::ITempItem
@@ -20,7 +19,7 @@ public:
     
     virtual void Draw()
     {
-        BasicDraw().Line(m_start, m_end, m_color, m_width);
+        EngineInterface()->DrawLine(m_start, m_end, m_width, m_color);
     }
 
     virtual bool Dead(float curTime)
@@ -39,7 +38,7 @@ public:
 
 void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width, float decay)
 {
-    m_itemsToDraw.push_back(new CTempLine{start,end,color,width,(float)glfwGetTime() + decay});
+    m_itemsToDraw.push_back(new CTempLine{start,end,color,width,EngineInterface()->Time() + decay});
 }
 
 
@@ -116,7 +115,7 @@ void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
 
 void CDebugDraw::Draw()
 {
-    float curtime = glfwGetTime();
+    float curtime = EngineInterface()->Time();
     
     for (int i = 0; i < m_itemsToDraw.size(); i++)
     {

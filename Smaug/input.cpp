@@ -1,6 +1,5 @@
 #include "input.h"
-#include "smaugapp.h"
-
+#include <cstring>
 
 #define PRESSED 0x1
 #define JUST_PRESSED 0x2
@@ -32,9 +31,9 @@ CInputManager::CInputManager()
 bool CInputManager::IsDown(input_t in)
 {
 	if (in.isMouseButton)
-		return glfwGetMouseButton(GetApp().GetWindow(), in.code) == GLFW_PRESS;
+		return s_mouseButtons[in.code].Pressed();
 	else
-		return glfwGetKey(GetApp().GetWindow(), in.code) == GLFW_PRESS;
+		return m_keyboardButtons[in.code].Pressed();
 }
 
 bool CInputManager::Clicked(input_t in)
@@ -58,7 +57,7 @@ void CInputManager::SetInput(input_t in, int state)
 	else
 		s = &m_keyboardButtons[in.code];
 
-	if (state == GLFW_PRESS || state == GLFW_REPEAT)
+	if (state == 1 || state == 2)
 	{
 		if (s->Pressed())
 			s->state = PRESSED;
@@ -79,9 +78,9 @@ void CInputManager::EndFrame()
 }
 
 
-#define KEY(name) {GLFW_KEY_##name, #name, false},
-#define MOUSE(name) {GLFW_MOUSE_BUTTON_##name, "MOUSE" #name, true},
-static inputName_t s_inputNameUnknown = { GLFW_KEY_UNKNOWN, "UNKNOWN", false };
+#define KEY(name) {KEY_##name, #name, false},
+#define MOUSE(name) {MOUSE_##name, "MOUSE" #name, true},
+static inputName_t s_inputNameUnknown = { KEY_UNKNOWN, "UNKNOWN", false };
 
 // 32 to 96 inclusively
 static inputName_t s_inputNames[] =
@@ -244,12 +243,12 @@ input_t InputFromName(const char* name)
 	}
 
 	// No clue. Return unknown.
-	return { GLFW_KEY_UNKNOWN, false };
+	return { KEY_UNKNOWN, false };
 }
 
 const char* InputToName(input_t in)
 {
-	if (in.code > GLFW_KEY_UNKNOWN && in.code <= GLFW_KEY_LAST)
+	if (in.code > KEY_UNKNOWN && in.code <= KEY_LAST)
 	{
 		for (int i = 0; i < sizeof(s_inputNames) / sizeof(inputName_t); i++)
 		{

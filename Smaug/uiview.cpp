@@ -1,7 +1,6 @@
 #include "uiview.h"
 #include "objexporter.h"
 #include "vmfexporter.h"
-#include "filesystem.h"
 #include "basetool.h"
 #include "cursor.h"
 #include "nodetools.h"
@@ -10,9 +9,10 @@
 #include "utils.h"
 #include "worldsave.h"
 
-#include <imgui_internal.h>
+#include <imgui.h>
+#include <editorinterface.h>
 
-void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+void CUIView::Init(uint16_t viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
@@ -25,10 +25,10 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 	m_editViews[1].m_editPlaneAngle = { -PI / 2, 0, 0 };
 	m_editViews[2].m_editPlaneAngle = { -PI / 2, PI / 2, 0 };
 
-	for(int i = 0; i < 3; i++)
-		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x121212FF);
 	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
 	SelectedView().Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
+	for(int i = 0; i < 3; i++)
+		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x121212FF);
 
 	m_drawPreviewView = true;
 	m_drawEditView = true;
@@ -43,9 +43,6 @@ void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearCol
 
 void CUIView::Draw(float dt)
 {
-	CBaseView::Draw(dt);
-
-
 
 	for (int i = 0; i < 3; i++)
 		m_editViews[i].Draw(dt);
@@ -102,11 +99,11 @@ void ShowEditHistory()
 		}
 
 
-	if (Input().IsDown({ GLFW_KEY_LEFT_CONTROL, false }) && Input().Clicked({ GLFW_KEY_Z, false }))
+	if (Input().IsDown({ KEY_LEFT_CONTROL, false }) && Input().Clicked({ KEY_Z, false }))
 	{
 		GetActionManager().Undo();
 	}
-	else if (Input().IsDown({ GLFW_KEY_LEFT_CONTROL, false }) && Input().Clicked({ GLFW_KEY_Y, false }))
+	else if (Input().IsDown({ KEY_LEFT_CONTROL, false }) && Input().Clicked({ KEY_Y, false }))
 	{
 		GetActionManager().Redo();
 	}
@@ -122,17 +119,8 @@ void CUIView::Update(float dt, float mx, float my)
 	ImVec2 uv0, uv1;
 	uv0.x = 1;
 	uv1.x = 0;
-	if (RendererProperties().coordSystem == ECoordSystem::RIGHT_HANDED)
-	{
-		uv0.y = 1;
-		uv1.y = 0;
-	}
-	else
-	{
-		uv0.y = 0;
-		uv1.y = 1;
-	}
-
+	uv0.y = 0;
+	uv1.y = 1;
 
 	// UI
 	ImGui::ShowDemoWindow();
@@ -147,14 +135,14 @@ void CUIView::Update(float dt, float mx, float my)
 			if (ImGui::MenuItem("Save"))
 			{
 				char* str = saveWorld();
-				filesystem::SaveFileWithDialog(str, "*.smf");
+				EngineInterface()->SaveFilePrompt(str, strlen(str));// "*.smf");
 				delete[] str;
 			}
 
 			if (ImGui::MenuItem("Load"))
 			{
 				size_t len;
-				char* str = filesystem::LoadFileWithDialog(len, "*.smf");
+				char* str = EngineInterface()->ReadFilePrompt(len, 0, 0);// "*.smf");
 				if (str)
 				{
 					if(*str)
@@ -169,7 +157,7 @@ void CUIView::Update(float dt, float mx, float my)
 				{
 					CVMFExporter o;
 					char* str = o.Export(&GetWorldEditor());
-					filesystem::SaveFileWithDialog(str, "*.vmf");
+					EngineInterface()->SaveFilePrompt(str, strlen(str));// "*.vmf");
 					delete[] str;
 				}
 
@@ -177,7 +165,7 @@ void CUIView::Update(float dt, float mx, float my)
 				{
 					COBJExporter o;
 					char* str = o.Export(&GetWorldEditor());
-					filesystem::SaveFileWithDialog(str, "*.obj");
+					EngineInterface()->SaveFilePrompt(str, strlen(str)); //, "*.obj");
 					delete[] str;
 				}
 
@@ -290,4 +278,10 @@ void CUIView::Update(float dt, float mx, float my)
 
 	// Must be last!
 	GetWorldEditor().Update();
+}
+
+CUIView& AppUI()
+{
+	static CUIView s_uiView;
+	return s_uiView;
 }

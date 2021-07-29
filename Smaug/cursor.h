@@ -1,7 +1,6 @@
 #pragma once
 #include "actionmanager.h"
 #include <glm/vec3.hpp>
-#include <bgfx/bgfx.h>
 
 enum class CursorMode
 {

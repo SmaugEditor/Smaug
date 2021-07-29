@@ -1,21 +1,16 @@
 #pragma once
 
-#include <bgfx/bgfx.h>
-#include <map>
-#include <string>
-#include <vector>
 #include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
 // Is this class over engineered?
-class CModelTransform
+class CTransform
 {
 public:
-	CModelTransform();
-	CModelTransform(glm::vec3 pos, glm::vec3 rotation = { 0,0,0 }, glm::vec3 scale = { 1,1,1 }, CModelTransform* parent = nullptr) { m_pParent = parent; SetAbsOrigin(pos); SetAbsAngles(rotation); SetAbsScale(scale); }
+	CTransform();
+	CTransform(glm::vec3 pos, glm::vec3 rotation = { 0,0,0 }, glm::vec3 scale = { 1,1,1 }, CTransform* parent = nullptr) { m_pParent = parent; SetAbsOrigin(pos); SetAbsAngles(rotation); SetAbsScale(scale); }
 
-	void SetParent(CModelTransform* parent);
+	void SetParent(CTransform* parent);
 
 	// Local to parent
 	void SetLocalAngles(glm::vec3 ang) { m_angles = ang; }
@@ -35,7 +30,7 @@ public:
 
 	// Absolute position in the world
 	void SetAbsAngles(glm::vec3 ang);
-	void SetAbsAngles(float pitch, float yaw, float roll) { SetAbsOrigin({ pitch, yaw, roll }); }
+	void SetAbsAngles(float pitch, float yaw, float roll) { SetAbsAngles({ pitch, yaw, roll }); }
 	void SetAbsOrigin(glm::vec3 pos);
 	void SetAbsOrigin(float x, float y, float z) { SetAbsOrigin({ x, y, z }); }
 	void SetAbsScale(glm::vec3 scale);
@@ -54,33 +49,5 @@ private:
 	glm::vec3 m_position;
 	glm::vec3 m_scale;
 
-	CModelTransform* m_pParent;
+	CTransform* m_pParent;
 };
-
-
-class IModel
-{
-public:
-	virtual ~IModel() {};
-	virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale) = 0;
-	virtual void Render(CModelTransform* transform) = 0;
-
-};
-
-class CModelManager
-{
-public:
-	CModelManager();
-	IModel* LoadModel(const char* path);
-	void Shutdown();
-	IModel* ErrorModel();
-	void SetView(uint16_t view) { m_currentView = view; }
-	uint16_t CurrentView() { return m_currentView; }
-
-private:
-	// We map paths to textures as we load them so that we don't reload them later
-	std::map<std::string, IModel*> m_modelMap;
-	uint16_t m_currentView;
-};
-
-CModelManager& ModelManager();

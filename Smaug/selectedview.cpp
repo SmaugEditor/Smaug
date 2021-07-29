@@ -1,18 +1,17 @@
 #include "selectedview.h"
 
 #include "worldeditor.h"
-#include "worldrenderer.h"
-#include "shadermanager.h"
 #include "actionmanager.h"
 #include "grid.h"
-#include "meshrenderer.h"
+
+#include "editorinterface.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <GLFW/glfw3.h>
-#include <imgui_internal.h>
 
+#include <imgui.h>
+#include "imgui_internal.h"
 
-void CSelectedView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+void CSelectedView::Init(uint16_t viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 	m_selectedNode = nullptr;
@@ -21,8 +20,11 @@ void CSelectedView::Init(bgfx::ViewId viewId, int width, int height, uint32_t cl
 
 void CSelectedView::Draw(float dt)
 {
+	EngineInterface()->BeginView(m_renderTarget);
+	EngineInterface()->ClearColor(m_renderTarget, m_clearColor);
+
 	CBaseView::Draw(dt);
-	float time = glfwGetTime();
+	float time = EngineInterface()->Time();
 
 	if (m_selectedNode.IsValid())
 	{
@@ -31,11 +33,12 @@ void CSelectedView::Draw(float dt)
 		glm::vec3 origin = m_selectedNode->m_mesh.origin;
 		glm::mat4 view = glm::lookAt(glm::vec3(cos(time) * -distance, distance, sin(time) * distance) + origin, origin, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 proj = glm::perspective(glm::radians(60.0f), m_aspectRatio, 0.1f, 800.0f);
-		bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
-		
-		ShaderManager().SetColor(glm::vec4(nodeColor(m_selectedNode.Node()),1.0f));
-		((CMeshRenderer*)m_selectedNode->m_renderData)->Render(m_viewId, ShaderManager().GetShaderProgram(Shader::WORLD_PREVIEW_SHADER));
+		EngineInterface()->SetViewMatrix(view, proj);
+
+		m_selectedNode->m_renderData->Draw();
 	}
+
+	EngineInterface()->EndView(m_renderTarget);
 }
 
 void CSelectedView::SetSelection(CNodeRef node)

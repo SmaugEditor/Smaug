@@ -13,7 +13,7 @@ public:
 		if(dest)
 			strncpy(dest, "NO_WORLD_INTERFACE", len);
 	}
-	virtual texture_t LookupTextureId(const char* texture)
+	virtual texture_t LoadTexture(const char* texture)
 	{
 		return INVALID_TEXTURE;
 	}

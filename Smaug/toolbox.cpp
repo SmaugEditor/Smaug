@@ -1,5 +1,4 @@
 #include "toolbox.h"
-#include "smaugapp.h"
 #include "cursor.h"
 #include "grid.h"
 
@@ -86,7 +85,7 @@ void CToolBox::ShowToolBox()
 		CBaseTool* tool = m_tools[i];
 
 		// Does this tool have a hold key?
-		if (tool->GetHoldInput().code != GLFW_KEY_UNKNOWN)
+		if (tool->GetHoldInput().code != KEY_UNKNOWN)
 		{
 			if (m_holdingTool && m_currentTool == tool)
 			{
@@ -129,7 +128,7 @@ void CToolBox::ShowToolBox()
 		}
 
 		// Does this tool have a toggle key?
-		if (tool->GetToggleInput().code != GLFW_KEY_UNKNOWN)
+		if (tool->GetToggleInput().code != KEY_UNKNOWN)
 		{
 			if (Input().IsDown(tool->GetToggleInput()))
 			{

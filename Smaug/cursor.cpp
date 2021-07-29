@@ -1,8 +1,7 @@
 #include "cursor.h"
-#include "basicdraw.h"
-#include "modelmanager.h"
 #include "grid.h"
 #include "utils.h"
+#include "editorinterface.h"
 
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -41,7 +40,7 @@ void CCursor::Draw(float scale)
 		//pos = Grid().Snap(m_position);
 	}
 
-	m_model->Render(pos, rot, glm::vec3(scale));
+	m_model->Draw(pos, rot, glm::vec3(scale));
 }
 
 void CCursor::SetPosition(glm::vec3 pos)
@@ -101,7 +100,7 @@ void CCursor::SetEditPosition(glm::vec3 pos)
 
 void CCursor::SetModel(const char* path)
 {
-	m_model = ModelManager().LoadModel(path);
+	m_model = EngineInterface()->LoadModel(path);
 }
 
 void CCursor::SetMode(CursorMode mode)

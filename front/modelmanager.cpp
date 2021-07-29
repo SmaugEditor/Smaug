@@ -32,8 +32,8 @@ public:
     };
 
     ~CModel();
-    virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale);
-    virtual void Render(CModelTransform* transform);
+    virtual void Draw(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale);
+    virtual void Draw(CTransform* transform);
 
     ModelVertex* m_vertices;
     size_t m_vertCount;
@@ -53,7 +53,7 @@ public:
 class CErrorModel : public IModel
 {
 public:
-    virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
+    virtual void Draw(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
     {
         float time = glfwGetTime();
         
@@ -64,7 +64,7 @@ public:
         BasicDraw().Cube(mtx);
         //bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::ERROR_MODEL_SHADER));// , BGFX_DISCARD_NONE);
     }
-    virtual void Render(CModelTransform* transform)
+    virtual void Draw(CTransform* transform)
     {
         float time = glfwGetTime();
 
@@ -259,7 +259,7 @@ CModel::~CModel()
     bgfx::destroy(m_indexBuf);
 }
 
-void CModel::Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
+void CModel::Draw(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
 {
     glm::mat4 mtx = glm::identity<glm::mat4>();
     mtx = glm::translate(mtx, origin);
@@ -275,7 +275,7 @@ void CModel::Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
     bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::MODEL_SHADER));// , BGFX_DISCARD_NONE);
 }
 
-void CModel::Render(CModelTransform* transform)
+void CModel::Draw(CTransform* transform)
 {
     glm::mat4 mtx = transform ? transform->Matrix() : glm::identity<glm::mat4>();
 
@@ -285,94 +285,4 @@ void CModel::Render(CModelTransform* transform)
     bgfx::setIndexBuffer(m_indexBuf);
 
     bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::MODEL_SHADER));// , BGFX_DISCARD_NONE);
-}
-
-CModelTransform::CModelTransform()
-{
-    m_position = { 0.0f,0.0f,0.0f };
-    m_angles   = { 0.0f,0.0f,0.0f };
-    m_scale    = { 1.0f,1.0f,1.0f };
-    m_pParent  = nullptr;
-
-}
-
-void CModelTransform::SetParent(CModelTransform* parent)
-{
-    if (parent != this)
-        m_pParent = parent;
-}
-
-void CModelTransform::SetAbsAngles(glm::vec3 ang)
-{
-    for (CModelTransform* p = m_pParent; p; p = p->m_pParent)
-    {
-        ang -= p->m_angles;
-    }
-
-    m_angles = ang;
-}
-
-void CModelTransform::SetAbsOrigin(glm::vec3 pos)
-{
-    for (CModelTransform* p = m_pParent; p; p = p->m_pParent)
-    {
-        pos -= p->m_position;
-    }
-
-    m_position = pos;
-}
-
-void CModelTransform::SetAbsScale(glm::vec3 scale)
-{
-    for (CModelTransform* p = m_pParent; p; p = p->m_pParent)
-    {
-        scale /= p->m_scale;
-    }
-
-    m_scale = scale;
-}
-
-glm::vec3 CModelTransform::GetAbsAngles()
-{
-    glm::vec3 ang = m_angles;
-    for (CModelTransform* p = m_pParent; p; p = p->m_pParent)
-    {
-        ang += p->m_angles;
-    }
-
-    return ang;
-}
-
-glm::vec3 CModelTransform::GetAbsOrigin()
-{
-    glm::vec3 pos = m_position;
-    for (CModelTransform* p = m_pParent; p; p = p->m_pParent)
-    {
-        pos += p->m_position;
-    }
-
-    return pos;
-}
-
-glm::vec3 CModelTransform::GetAbsScale()
-{
-    glm::vec3 scale = m_scale;
-    for (CModelTransform* p = m_pParent; p; p = p->m_pParent)
-    {
-        scale *= p->m_scale;
-    }
-
-    return scale;
-}
-
-glm::mat4 CModelTransform::Matrix()
-{
-    glm::mat4 mtx = glm::identity<glm::mat4>();
-    if (m_pParent)
-        mtx = m_pParent->Matrix();
-    mtx = glm::translate(mtx, m_position);
-    mtx *= glm::yawPitchRoll(m_angles.y, m_angles.x, m_angles.z);
-    mtx = glm::scale(mtx, m_scale);
-
-    return mtx;
 }

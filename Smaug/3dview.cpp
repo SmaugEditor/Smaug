@@ -1,60 +1,65 @@
 #include "3dview.h"
 
-#include "worldrenderer.h"
-#include "shadermanager.h"
-#include "smaugapp.h"
 #include "utils.h"
 #include "cursor.h"
-#include "meshrenderer.h"
 #include "worldtest.h"
 
 #include "svar.h"
 #include "svarex.h"
+#include "settingsmenu.h"
 
+#include "grid.h"
+#include "debugdraw.h"
+#include "transform.h"
+#include "selectionmanager.h"
+
+#include "editorinterface.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
-#include <GLFW/glfw3.h>
-#include <grid.h>
-#include <debugdraw.h>
 
+#include <imgui.h>
+#include <editview.h>
+#include <cameramarker.h>
+#include <uiview.h>
 
 BEGIN_SVAR_TABLE(C3DViewSettings)
-	DEFINE_TABLE_SVAR(viewFOV,           60.0f)
-	DEFINE_TABLE_SVAR(moveSpeed,         10.0f)
-	DEFINE_TABLE_SVAR(mouseSensitivity,  2.0f)
-	DEFINE_TABLE_SVAR(panningMultiplier, 20.0f)
-	DEFINE_TABLE_SVAR(scrollSpeed,       2.0f)
-	DEFINE_TABLE_SVAR_INPUT(forward,      GLFW_KEY_W, false)
-	DEFINE_TABLE_SVAR_INPUT(backward,     GLFW_KEY_S, false)
-	DEFINE_TABLE_SVAR_INPUT(left,         GLFW_KEY_A, false)
-	DEFINE_TABLE_SVAR_INPUT(right,        GLFW_KEY_D, false)
-	DEFINE_TABLE_SVAR_INPUT(up,           GLFW_KEY_E, false)
-	DEFINE_TABLE_SVAR_INPUT(down,         GLFW_KEY_Q, false)
-	DEFINE_TABLE_SVAR_INPUT(enable,       GLFW_KEY_Z, false)
-	DEFINE_TABLE_SVAR_INPUT(panView,	  GLFW_MOUSE_BUTTON_3, true)
+	DEFINE_TABLE_SVAR(viewFOV,            60.0f)
+	DEFINE_TABLE_SVAR(moveSpeed,          10.0f)
+	DEFINE_TABLE_SVAR(mouseSensitivity,   2.0f)
+	DEFINE_TABLE_SVAR(panningMultiplier,  20.0f)
+	DEFINE_TABLE_SVAR(scrollSpeed,        2.0f)
+	DEFINE_TABLE_SVAR_INPUT(forward,      KEY_W, false)
+	DEFINE_TABLE_SVAR_INPUT(backward,     KEY_S, false)
+	DEFINE_TABLE_SVAR_INPUT(left,         KEY_A, false)
+	DEFINE_TABLE_SVAR_INPUT(right,        KEY_D, false)
+	DEFINE_TABLE_SVAR_INPUT(up,           KEY_E, false)
+	DEFINE_TABLE_SVAR_INPUT(down,         KEY_Q, false)
+	DEFINE_TABLE_SVAR_INPUT(enable,       KEY_Z, false)
+	DEFINE_TABLE_SVAR_INPUT(panView,	  MOUSE_3, true)
 
-	DEFINE_TABLE_SVAR_INPUT(wireframe,	  GLFW_KEY_F1, false)
+	DEFINE_TABLE_SVAR_INPUT(wireframe,	  KEY_F1, false)
 END_SVAR_TABLE()
 
 static C3DViewSettings s_3dViewSettings;
 DEFINE_SETTINGS_MENU("3D View", s_3dViewSettings);
 
 
-void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+void C3DView::Init(uint16_t viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 	m_cameraAngle = glm::vec3(0.25, 0, 0);
 	m_cameraPos = glm::vec3(0, 15, -15);
 	m_controllingCamera = false;
 
-	m_gridCenter = ModelManager().LoadModel("assets/top.obj");
+	m_gridCenter = EngineInterface()->LoadModel("assets/top");
 }
 
 void C3DView::Draw(float dt)
 {
-	CBaseView::Draw(dt);
+	EngineInterface()->BeginView(m_renderTarget);
+	EngineInterface()->ClearColor(m_renderTarget, m_clearColor);
 
 	glm::vec3 forwardDir;
 	Directions(m_cameraAngle, &forwardDir);
@@ -62,8 +67,9 @@ void C3DView::Draw(float dt)
 
 	m_view = glm::lookAt(m_cameraPos, m_cameraPos + forwardDir, { 0,1,0 });
 	m_proj = glm::perspective(glm::radians(s_3dViewSettings.viewFOV.GetValue()), m_aspectRatio, 0.1f, 800.0f);
-	bgfx::setViewTransform(m_viewId, &m_view[0][0], &m_proj[0][0]);
-	GetWorldRenderer().Draw3D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
+	EngineInterface()->SetViewMatrix(m_view, m_proj);
+
+	EngineInterface()->DrawWorld3D();
 
 
 	
@@ -73,16 +79,18 @@ void C3DView::Draw(float dt)
 	GetCursor().Draw(1);
 
 	// Draw center of the edit view
-	CModelTransform r;
+	CTransform r;
 
 	r.SetAbsScale(clamp(CEditView::m_viewZoom / 80.0f, 0.25f, 1.0f));
-	m_gridCenter->Render(&r);
+	m_gridCenter->Draw(&r);
 
 
 #ifdef _DEBUG
 	DebugDraw().Draw();
 #endif
 	SelectionManager().Draw();
+
+	EngineInterface()->EndView(m_renderTarget);
 }
 
 void C3DView::Update(float dt, float mx, float my)
@@ -92,7 +100,7 @@ void C3DView::Update(float dt, float mx, float my)
 	if (Input().IsDown(s_3dViewSettings.enable.GetValue()) && io.KeysDownDuration[s_3dViewSettings.enable.GetValue().code] == 0)
 	{
 		m_controllingCamera = !m_controllingCamera;
-		GetApp().SetMouseLock(m_controllingCamera);
+		EngineInterface()->LockMouse(m_controllingCamera);
 	}
 
 	if (m_controllingCamera)
@@ -115,7 +123,7 @@ void C3DView::Update(float dt, float mx, float my)
 
 		SelectionManager().Update3D(t);
 		if(t.hit)
-			GetApp().m_uiView.m_toolBox.Update(dt, t.intersect);
+			AppUI().m_toolBox.Update(dt, t.intersect);
 
 	}
 	
@@ -202,6 +210,9 @@ void C3DView::Update(float dt, float mx, float my)
 
 		m_cameraPos += moveDelta;
 	}
+
+	CameraMarker().SetTransform(m_cameraPos, m_cameraAngle);
+
 
 #if defined( _DEBUG )
 	

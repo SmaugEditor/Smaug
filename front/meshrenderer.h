@@ -1,12 +1,14 @@
 #pragma once
 
-#include "worldeditor.h"
+#include "editorinterface.h"
 #include "modelmanager.h"
 #include "shadermanager.h"
 
 #include <bgfx/bgfx.h>
 
-
+class CNode;
+struct cuttableMesh_t;
+struct meshPart_t;
 class CMeshRenderer : public INodeRenderer
 {
 public:
@@ -17,10 +19,11 @@ public:
 	virtual void Rebuild();
 	
 	// This does not bgfx::submit!!
-	void Render(bgfx::ViewId viewID, bgfx::ProgramHandle shader);
-	void Render(CModelTransform trnsfm, bgfx::ViewId viewID, bgfx::ProgramHandle shader);
-	
-	bool Empty() { return m_empty || m_node->IsNewBorn(); }
+	void Draw(bgfx::ViewId viewID, bgfx::ProgramHandle shader);
+	void Draw(CTransform trnsfm, bgfx::ViewId viewID, bgfx::ProgramHandle shader);
+	void Draw() {};
+
+	bool Empty();
 private:
 	CNode* m_node;
 	cuttableMesh_t* m_mesh;
@@ -38,5 +41,6 @@ private:
 	std::map<texture_t, partData_t> m_partRenderData;
 	bgfx::DynamicVertexBufferHandle m_vertexBuf = BGFX_INVALID_HANDLE;
 	bgfx::DynamicIndexBufferHandle m_indexBuf = BGFX_INVALID_HANDLE;
+
 };
 

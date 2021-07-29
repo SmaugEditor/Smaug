@@ -9,7 +9,7 @@
 class CUIView : public CBaseView
 {
 public:
-	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
+	virtual void Init(uint16_t viewId, int width, int height, uint32_t clearColor);
 	virtual void Draw(float dt);
 	virtual void Update(float dt, float mx, float my);
 //private:
@@ -21,3 +21,5 @@ public:
 	CToolBox m_toolBox;
 	CSettingsMenu m_settingsMenu;
 };
+
+CUIView& AppUI();

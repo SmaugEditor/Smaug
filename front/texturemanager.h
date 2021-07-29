@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils.h"
+#include "shared.h"
 
 #include <bgfx/bgfx.h>
 #include <map>

@@ -1,17 +1,9 @@
 
-set(ASSIMP_NO_EXPORT ON)
-
 set( SOURCES 
-
-	main.cpp
-	smaugapp.cpp
 
 	baseview.cpp
 
-	shadermanager.cpp 
-	texturemanager.cpp
-	modelmanager.cpp
-	basicdraw.cpp 
+	doodle.cpp
 	debugdraw.cpp
 
 	3dview.cpp
@@ -20,18 +12,16 @@ set( SOURCES
 	selectedview.cpp 
 
 	cursor.cpp 
+	cameramarker.cpp
 
 	utils.cpp 
-
-	meshrenderer.cpp
-	worldrenderer.cpp 
+	transform.cpp
 
 	toolbox.cpp 
 	basetool.cpp 
 	nodetools.cpp 
 	selectionmanager.cpp
 
-	filesystem.cpp 
 	baseexporter.cpp 
 	objexporter.cpp 
 	vmfexporter.cpp 
@@ -46,68 +36,22 @@ set( SOURCES
 	
 	input.cpp
 
-	interfaceimpl.cpp
+	editorinterface.cpp
 )
 
-set( VERTEX_SHADERS shaders/vs_preview_view.sc shaders/vs_model.sc shaders/vs_grid.sc shaders/vs_line.sc )
-set( FRAGMENT_SHADERS shaders/fs_preview_view.sc shaders/fs_model.sc shaders/fs_grid.sc shaders/fs_line.sc )
-
-set( SHADER_OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders" )
-set( GLSL_VERSION 430 )
-set( DX_MODEL 5_0 )
-
-if(UNIX)
-    set( SHADER_PLATFORMS glsl spirv )
-else()
-    set( SHADER_PLATFORMS glsl dx11 spirv )
-endif()
-
-add_custom_target( invalidate_shaders )
-
-foreach(VS ${VERTEX_SHADERS})
-    get_filename_component(VS_PATH "${VS}" ABSOLUTE)
-
-    add_shader("${VS_PATH}" VERTEX
-        OUTPUT "${SHADER_OUT_DIR}"
-        GLSL_VERSION ${GLSL_VERSION}
-        DX11_MODEL ${DX_MODEL} 
-        PLATFORMS ${SHADER_PLATFORMS})
-
-		
-    add_custom_command(TARGET invalidate_shaders PRE_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E touch "${VS_PATH}")
-endforeach()
-
-
-foreach(FS ${FRAGMENT_SHADERS})
-    get_filename_component(FS_PATH "${FS}" ABSOLUTE)
-
-    add_shader("${FS_PATH}" FRAGMENT
-        OUTPUT "${SHADER_OUT_DIR}"
-        GLSL_VERSION ${GLSL_VERSION}
-        DX11_MODEL ${DX_MODEL} 
-        PLATFORMS ${SHADER_PLATFORMS})
-		 
-    add_custom_command(TARGET invalidate_shaders PRE_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E touch "${FS_PATH}")
-		
-endforeach()
 
 include_directories( . )
-add_executable( smaug ${SOURCES} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS} shaders/varying.def.sc )
-target_include_directories( smaug PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} assimp sshared smesh sworld )
-target_link_libraries( smaug bigg keyvalues assimp lodepng sshared smesh sworld )
+add_library( smaug STATIC ${SOURCES} )
+target_include_directories( smaug PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} sshared smesh sworld )
+target_link_libraries( smaug keyvalues sshared smesh sworld glm imgui )
 set_target_properties( smaug PROPERTIES
 	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 	CXX_STANDARD 20
 )
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT smaug)
 
 if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
 	target_compile_options(smaug PRIVATE /Zc:preprocessor)
 endif()
-
-install(DIRECTORY ${SHADER_OUT_DIR} DESTINATION bin)
 
 

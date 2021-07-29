@@ -20,7 +20,7 @@ int main( int argc, char** argv )
 		renderType = bgfx::RendererType::Direct3D9;
 	else if(CommandLine::HasAny("-dx11", "-d3d11", "-directx11"))
 		renderType = bgfx::RendererType::Direct3D11;
-	SetRendererType(renderType);
+	//SetRendererType(renderType);
 	
 	return GetApp().run( argc, argv, renderType );
 }

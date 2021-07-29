@@ -1,6 +1,7 @@
 #pragma once
 
-#include "texturemanager.h"
+#include "shared.h"
+
 #include <vector>
 #include <string>
 #include <tuple>

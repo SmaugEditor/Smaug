@@ -10,7 +10,7 @@ class IModel;
 class CEditView : public CBaseView
 {
 public:
-	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
+	virtual void Init(uint16_t viewId, int width, int height, uint32_t clearColor);
 	virtual void Update(float dt, float mx, float my);
 	virtual void Draw(float dt);
 	
@@ -23,9 +23,6 @@ private:
 
 	glm::vec3 TransformMousePos(float mx, float my, glm::vec3 cameraPos);
 
-	bgfx::ProgramHandle m_shaderProgram;
-
-
 	
 	struct
 	{
@@ -34,7 +31,6 @@ private:
 		glm::vec3 cameraStartPos;
 	} m_panView;
 
-	static IModel* m_cameraModel;
 	static IModel* m_tickModel;
 
 

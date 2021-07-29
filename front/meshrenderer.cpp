@@ -1,6 +1,8 @@
 #include "meshrenderer.h"
 #include "utils.h"
 #include "modelmanager.h"
+#include "worldeditor.h"
+#include "mesh.h"
 
 #include "GLFW/glfw3.h"
 #include <debugdraw.h>
@@ -83,13 +85,13 @@ void CMeshRenderer::Rebuild()
 	}
 }
 
-void CMeshRenderer::Render(bgfx::ViewId viewID, bgfx::ProgramHandle shader)
+void CMeshRenderer::Draw(bgfx::ViewId viewID, bgfx::ProgramHandle shader)
 {
-	CModelTransform t;
-	Render(t, viewID, shader);
+	CTransform t;
+	Draw(t, viewID, shader);
 }
 
-void CMeshRenderer::Render(CModelTransform trnsfm, bgfx::ViewId viewID, bgfx::ProgramHandle shader)
+void CMeshRenderer::Draw(CTransform trnsfm, bgfx::ViewId viewID, bgfx::ProgramHandle shader)
 {
 	if (m_empty)
 		return;
@@ -105,6 +107,11 @@ void CMeshRenderer::Render(CModelTransform trnsfm, bgfx::ViewId viewID, bgfx::Pr
 		bgfx::setIndexBuffer(m_indexBuf, b.second.indexStart, b.second.indexCount);
 		bgfx::submit(viewID, shader);
 	}
+}
+
+bool CMeshRenderer::Empty()
+{
+	return m_empty || m_node->IsNewBorn();
 }
 
 

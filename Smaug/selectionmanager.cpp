@@ -1,16 +1,13 @@
 #include "selectionmanager.h"
 #include "cursor.h"
-#include "debugdraw.h"
 #include "settingsmenu.h"
 #include "svarex.h"
 #include "utils.h"
-
-#include <GLFW/glfw3.h>
-#include <basicdraw.h>
+#include "doodle.h"
 
 BEGIN_SVAR_TABLE(CSelectionSettings)
-DEFINE_TABLE_SVAR_INPUT(select, GLFW_MOUSE_BUTTON_1, true)
-DEFINE_TABLE_SVAR_INPUT(multiselectmode, GLFW_KEY_LEFT_CONTROL, false)
+DEFINE_TABLE_SVAR_INPUT(select, MOUSE_1, true)
+DEFINE_TABLE_SVAR_INPUT(multiselectmode, KEY_LEFT_CONTROL, false)
 END_SVAR_TABLE()
 
 static CSelectionSettings s_selectionSettings;
@@ -45,7 +42,7 @@ void CSelectionManager::Draw()
 	for (auto s : m_selected)
 	{
 		if (s.part.IsValid())
-			BasicDraw().Face(s.part, COLOR_GREEN);
+			Doodle().Face(s.part, COLOR_GREEN);
 
 	}
 

@@ -1,10 +1,11 @@
 #include "worldrenderer.h"
-#include "worldeditor.h"
+#include "editorinterface.h"
 #include "utils.h"
 #include "meshrenderer.h"
 
 #include <bgfx/bgfx.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <worldeditor.h>
 
 INodeRenderer* createMeshRenderer()
 {
@@ -40,7 +41,7 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 			| BGFX_STATE_BLEND_INDEPENDENT
 			, BGFX_STATE_BLEND_FUNC_RT_1(BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_SRC_COLOR)
 		);
-		renderer->Render(viewId, shaderProgram);
+		renderer->Draw(viewId, shaderProgram);
 	}
 }
 
@@ -62,7 +63,7 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 			// Set the color
 			// Precompute this?
 			ShaderManager().SetColor(glm::vec4(nodeColor(node), 1.0f));
-			renderer->Render(viewId, shaderProgram);
+			renderer->Draw(viewId, shaderProgram);
 		}
 	}
 }

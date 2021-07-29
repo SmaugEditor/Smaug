@@ -4,8 +4,6 @@
 #include "editoractions.h"
 #include "texturebrowser.h"
 
-#include <GLFW/glfw3.h>
-
 class CDragTool : public CBaseDragTool
 {
 public:

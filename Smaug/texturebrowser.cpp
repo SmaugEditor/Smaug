@@ -1,5 +1,5 @@
 #include "texturebrowser.h"
-#include "texturemanager.h"
+#include "editorinterface.h"
 #include <filesystem>
 #include <string>
 #include <cmath>
@@ -8,11 +8,15 @@
 CTextureBrowser::CTextureBrowser()
 {
 	std::string path = "textures";
-	for (const auto& entry : std::filesystem::directory_iterator(path))
+	std::filesystem::directory_entry de(path);
+	if (de.exists())
 	{
-		std::string p = entry.path().string();
-		texture_t th = TextureManager().LoadTexture(p.c_str());
-		m_textures.push_back({ p, th });
+		for (const auto& entry : std::filesystem::directory_iterator(path))
+		{
+			std::string p = entry.path().string();
+			texture_t th = EngineInterface()->LoadTexture(p.c_str());
+			m_textures.push_back({ p, th });
+		}
 	}
 	m_selectedTexture = INVALID_TEXTURE;
 }

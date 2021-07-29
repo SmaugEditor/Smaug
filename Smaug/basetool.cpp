@@ -1,14 +1,14 @@
 #include "basetool.h"
 #include "actionmanager.h"
 #include "editoractions.h"
-#include "smaugapp.h"
 #include "cursor.h"
-#include "texturemanager.h"
 #include "grid.h"
+#include "selectedview.h"
 
-#include <GLFW/glfw3.h>
 #include <debugdraw.h>
+#include <editorinterface.h>
 
+#include <imgui.h>
 
 void CBaseDragTool::Enable()
 {
@@ -46,8 +46,7 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 		GetCursor().SetEditPosition(mousePosSnapped);
 		m_mouseDragDelta = delta;
 
-		// Using glfw input until something is figured out about ImGui's overriding
-		if (glfwGetMouseButton(GetApp().GetWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE)
+		if (!Input().IsDown({ MOUSE_1, true }))
 		{
 			EndDrag();
 			SelectionManager().m_selected.clear();
@@ -64,7 +63,7 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 	else
 	{
 		// If we're not currently, dragging, we want to watch for mouse input so we can begin our drag action
-		if (!SelectionManager().BusySelecting() && glfwGetMouseButton(GetApp().GetWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+		if (!SelectionManager().BusySelecting() && Input().IsDown({ MOUSE_1, true }))
 		{
 			m_selectionInfo = SelectionManager().m_selected;
 
@@ -79,14 +78,13 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 		{
 			// Can't use our search for our mouse pos :(
 			GetCursor().SetPosition(mousePosRaw);
-
 		}
 	}
 }
 
 void CBaseTool::Init()
 {
-	m_iconHandle = TextureManager().LoadTexture(GetIconPath());
+	m_iconHandle = EngineInterface()->LoadTexture(GetIconPath());
 }
 
 void CBaseTool::Enable()

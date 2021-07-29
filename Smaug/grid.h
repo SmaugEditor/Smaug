@@ -2,7 +2,6 @@
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
-#include <bgfx/bgfx.h>
 
 class CGrid
 {
@@ -25,12 +24,6 @@ private:
 	glm::vec3 m_pos;
 	glm::vec3 m_vecGridDirMask;
 	glm::vec3 m_angles;
-
-	bgfx::VertexBufferHandle m_planeVertexBuf;
-	bgfx::IndexBufferHandle m_planeIndexBuf;
-	bgfx::UniformHandle m_gridScale;
-	// Which axis should have grid?
-	bgfx::UniformHandle m_gridDirMask;
 
 };
 

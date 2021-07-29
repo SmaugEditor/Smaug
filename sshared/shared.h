@@ -2,8 +2,8 @@
 #include <glm/vec3.hpp>
 
 // Dummy stuff so when we rewire this to be bgfx independent, it's easier
-typedef uint16_t texture_t;
-#define INVALID_TEXTURE UINT16_MAX
+typedef void* texture_t;
+#define INVALID_TEXTURE 0
 
 const double PI = 3.141592653589793238463;
 

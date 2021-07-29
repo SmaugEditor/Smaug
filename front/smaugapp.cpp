@@ -1,8 +1,10 @@
 #include "smaugapp.h"
 #include "worldrenderer.h"
 #include "shadermanager.h"
-#include "worldsave.h"
 #include "interfaceimpl.h"
+
+IEditorInterface* s_editorInterface;
+
 
 void smaugKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -15,7 +17,7 @@ void smaugKeyCallback(GLFWwindow* window, int key, int scancode, int action, int
 	io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
 	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
 
-	Input().SetInput({key, false}, action);
+	s_editorInterface->SetInput({key, false}, action);
 }
 
 void smaugMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -24,7 +26,7 @@ void smaugMouseButtonCallback(GLFWwindow* window, int button, int action, int mo
 	if (button >= 0 && button < IM_ARRAYSIZE(io.MouseDown))
 		io.MouseDown[button] = action != GLFW_RELEASE;
 
-	Input().SetInput({ button, true }, action);
+	s_editorInterface->SetInput({ button, true }, action);
 }
 
 void CSmaugApp::initialize(int _argc, char** _argv)
@@ -36,14 +38,16 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	//io.ConfigDockingWithShift = true;
 
+	s_editorInterface = SupplyEngineInterface(new CEngineInterface);
+
 	GetWorldRenderer().Init();
 
+	ImGuiMemAllocFunc allocfn;
+	ImGuiMemFreeFunc freefn;
+	void* userdata;
+	ImGui::GetAllocatorFunctions(&allocfn, &freefn, &userdata);
+	s_editorInterface->Startup(ImGui::GetCurrentContext(), allocfn, freefn, userdata);
 
-	SupplyWorldInterface(new CWorldInterface);
-	defaultWorld();
-
-
-	m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
 
 	m_mouseLocked = false;
 	mFpsLock = 120;
@@ -56,6 +60,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 int CSmaugApp::shutdown()
 {
+	s_editorInterface->Shutdown();
 	ShaderManager().Shutdown();
 	return 0;
 }
@@ -64,9 +69,6 @@ void CSmaugApp::onReset()
 {
 	uint32_t width = getWidth();
 	uint32_t height = getHeight();
-
-	m_uiView.m_width = width;
-	m_uiView.m_height = height;
 
 	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 	bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
@@ -93,9 +95,12 @@ void CSmaugApp::ToggleMouseLock()
 
 void CSmaugApp::update(float dt)
 {
-	m_uiView.Update(dt,0,0);
-	m_uiView.Draw(dt);
-	Input().EndFrame();
+	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+	bgfx::setViewRect(0, 0, 0, getWidth(), getHeight());
+
+	s_editorInterface->Update();
+	s_editorInterface->Draw();
+	s_editorInterface->EndFrame();
 }
 
 

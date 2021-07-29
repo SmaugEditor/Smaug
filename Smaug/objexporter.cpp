@@ -5,7 +5,7 @@
 #include <sstream>
 #include <cstring>
 #include <map>
-#include <texturemanager.h>
+#include <editorinterface.h>
 
 static inline void WriteVertex(glm::vec3 vec, std::stringstream& stream)
 {
@@ -229,7 +229,7 @@ char* COBJExporter::Export(CWorldEditor* world)
 	char txName[64];
 	for (auto t : sortedParts)
 	{
-		TextureManager().TextureName(t.first, txName, sizeof(txName));
+		EngineInterface()->LookupTextureName(t.first, txName, sizeof(txName));
 		stream << "usemtl " << txName << "\n";
 		for (auto f : t.second)
 		{

@@ -1,6 +1,5 @@
 #pragma once
 #include <bigg.hpp>
-#include "uiview.h"
 
 
 class CSmaugApp : public bigg::Application
@@ -20,8 +19,6 @@ public:
 	
 	GLFWwindow* GetWindow() { return mWindow; };
 
-
-	CUIView m_uiView;
 	bool m_mouseLocked;
 };
 

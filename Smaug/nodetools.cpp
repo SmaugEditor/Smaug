@@ -5,13 +5,13 @@
 #include "imgui.h"
 
 BEGIN_SVAR_TABLE(CNodeToolsSettings)
-	DEFINE_TABLE_SVAR_INPUT(dragToolToggle,    GLFW_KEY_G,          false)
-	DEFINE_TABLE_SVAR_INPUT(dragToolHold,	   GLFW_KEY_UNKNOWN,    false)
-	DEFINE_TABLE_SVAR_INPUT(extrudeToolToggle, GLFW_KEY_UNKNOWN,    false)
-	DEFINE_TABLE_SVAR_INPUT(extrudeToolHold,   GLFW_KEY_LEFT_SHIFT, false)
-	DEFINE_TABLE_SVAR_INPUT(paintToolToggle,   GLFW_KEY_UNKNOWN,    false)
-	DEFINE_TABLE_SVAR_INPUT(paintToolHold,     GLFW_KEY_UNKNOWN,    false)
-	DEFINE_TABLE_SVAR_INPUT(breakAlign,		   GLFW_KEY_LEFT_ALT,   false)
+	DEFINE_TABLE_SVAR_INPUT(dragToolToggle,    KEY_G,          false)
+	DEFINE_TABLE_SVAR_INPUT(dragToolHold,	   KEY_UNKNOWN,    false)
+	DEFINE_TABLE_SVAR_INPUT(extrudeToolToggle, KEY_UNKNOWN,    false)
+	DEFINE_TABLE_SVAR_INPUT(extrudeToolHold,   KEY_LEFT_SHIFT, false)
+	DEFINE_TABLE_SVAR_INPUT(paintToolToggle,   KEY_UNKNOWN,    false)
+	DEFINE_TABLE_SVAR_INPUT(paintToolHold,     KEY_UNKNOWN,    false)
+	DEFINE_TABLE_SVAR_INPUT(breakAlign,		   KEY_LEFT_ALT,   false)
 END_SVAR_TABLE()
 
 static CNodeToolsSettings s_nodeToolsSettings;
@@ -150,7 +150,7 @@ void CExtrudeTool::ShowToolProperties()
 void CPaintTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw)
 {
 	GetCursor().SetPosition(mousePosRaw);
-	if (!SelectionManager().BusySelecting() && Input().Clicked({GLFW_MOUSE_BUTTON_1, true}))
+	if (!SelectionManager().BusySelecting() && Input().Clicked({MOUSE_1, true}))
 	{
 		if(!m_paintAction)
 			m_paintAction = new CPaintAction();

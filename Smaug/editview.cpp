@@ -1,27 +1,26 @@
 #include "editview.h"
 
-#include "smaugapp.h"
-
+#include "settingsmenu.h"
 #include "worldeditor.h"
-#include "worldrenderer.h"
 #include "utils.h"
-#include "shadermanager.h"
 #include "editoractions.h"
-#include "basicdraw.h"
 #include "cursor.h"
 #include "svarex.h"
-#include "modelmanager.h"
 #include "grid.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <debugdraw.h>
+#include <transform.h>
+#include <editorinterface.h>
+#include <imgui.h>
+#include <selectionmanager.h>
 
 BEGIN_SVAR_TABLE(CEditViewSettings)
 	DEFINE_TABLE_SVAR(scrollSpeed,              5.0f)
 	DEFINE_TABLE_SVAR(proportionalScroll,       true)
 	DEFINE_TABLE_SVAR(proportionalScrollScale,  100.0f)
-	DEFINE_TABLE_SVAR_INPUT(panView, GLFW_MOUSE_BUTTON_3, true)
+	DEFINE_TABLE_SVAR_INPUT(panView, MOUSE_3,   true)
 END_SVAR_TABLE()
 
 static CEditViewSettings s_editViewSettings;
@@ -30,18 +29,14 @@ DEFINE_SETTINGS_MENU("Edit View", s_editViewSettings);
 glm::vec3 CEditView::m_cameraPos = glm::vec3(0, 0, 0);
 float CEditView::m_viewZoom = 80;
 
-IModel* CEditView::m_cameraModel = nullptr;
 IModel* CEditView::m_tickModel = nullptr;
-void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+void CEditView::Init(uint16_t viewId, int width, int height, uint32_t clearColor)
 {
 	CBaseView::Init(viewId, width, height, clearColor);
 
 
-	m_shaderProgram = ShaderManager().GetShaderProgram(Shader::EDIT_VIEW_SHADER);
-	if(!m_cameraModel)
-		m_cameraModel = ModelManager().LoadModel("assets/camera.obj");
 	if(!m_tickModel)
-		m_tickModel = ModelManager().LoadModel("assets/tick.obj");
+		m_tickModel = EngineInterface()->LoadModel("assets/tick");
 
 	// Zoom and pan
 	m_viewZoom = 80;
@@ -114,7 +109,8 @@ void CEditView::Update(float dt, float mx, float my)
 
 void CEditView::Draw(float dt)
 {
-	CBaseView::Draw(dt);
+	EngineInterface()->BeginView(m_renderTarget);
+	EngineInterface()->ClearColor(m_renderTarget, m_clearColor);
 
 
 	float width = m_viewZoom * m_aspectRatio;
@@ -138,20 +134,17 @@ void CEditView::Draw(float dt)
 	}
 
 	glm::mat4 proj = glm::ortho(-(float)width, (float)width, -(float)height, (float)height, -900.0f, 800.0f);
-	bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
+	EngineInterface()->SetViewMatrix(view, proj);
 
-	
+	EngineInterface()->DrawWorld2D();
 
-	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
-	
-	float t = glfwGetTime();
 
 	for (auto p : GetWorldEditor().m_nodes)
 	{
-		CModelTransform mt;
+		CTransform mt;
 		mt.SetAbsOrigin(p.second->Origin());
 		mt.SetAbsScale(min(m_viewZoom / 16.0f, 4.0f));
-		m_tickModel->Render(&mt);
+		m_tickModel->Draw(&mt);
 	}
 
 
@@ -159,12 +152,6 @@ void CEditView::Draw(float dt)
 	GetCursor().Draw(m_viewZoom / 16.0f);
 
 
-	// Camera Icon
-	glm::vec3 camAngle = GetApp().m_uiView.m_previewView.m_cameraAngle;
-	glm::vec3 camPos = GetApp().m_uiView.m_previewView.m_cameraPos;
-
-	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5));
-	
 	// Grid gets drawn last. Figure out transparency!
 	Grid().Draw({ width, height }, m_cameraPos, m_editPlaneAngle, m_focused, up * -200.0f);
 
@@ -178,6 +165,7 @@ void CEditView::Draw(float dt)
 #endif
 	SelectionManager().Draw();
 
+	EngineInterface()->EndView(m_renderTarget);
 }
 
 glm::vec3 CEditView::TransformMousePos(float mx, float my)

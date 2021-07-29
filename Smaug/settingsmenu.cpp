@@ -1,11 +1,8 @@
 #include "settingsmenu.h"
 #include "imgui.h"
 #include "svarex.h"
-#include "filesystem.h"
 #include "KeyValue.h"
-#include "smaugapp.h"
-
-#include "GLFW/glfw3.h"
+#include <editorinterface.h>
 
 #define SETTINGS_FILE_NAME "settings.cfg"
 
@@ -119,7 +116,8 @@ void CSettingsRegister::LoadSettings()
 {
     // Load Settings file into a KV
     size_t length = 0;
-    char* str = filesystem::LoadFile(SETTINGS_FILE_NAME, length);
+    char* str = EngineInterface()->ReadFile(SETTINGS_FILE_NAME, length);
+
     // Was the load a success?
     if (str)
     {
@@ -143,7 +141,7 @@ void CSettingsRegister::SaveSettings()
     char* str = kvr.ToString();
     if (str)
     {
-        filesystem::SaveFile(SETTINGS_FILE_NAME, str);
+        EngineInterface()->SaveFile(SETTINGS_FILE_NAME, str, strlen(str));
         delete[] str;
     }
 }

@@ -147,7 +147,7 @@ void loadWorld(char* input)
 
 									char* txstr = part->Get("texture").value.string;
 									if (txstr && strcmp(txstr, "TEXTURE_UNKNOWN") != 0)
-										txinf.texture = WorldInterface()->LookupTextureId(txstr);
+										txinf.texture = WorldInterface()->LoadTexture(txstr);
 									else
 										txinf.texture == INVALID_TEXTURE;
 

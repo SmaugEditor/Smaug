@@ -4,6 +4,7 @@
 
 #include <lodepng.h>
 
+
 const static uint8_t s_errorTexture[] =
 {
 	255, 000, 000, 255,   255, 255, 255, 255,
@@ -26,9 +27,8 @@ public:
 static texture_t GetErrorTexture()
 {
 	static CErrorTexture s_errorT;
-	return s_errorT.m_textureHandle.idx;
+	return reinterpret_cast<texture_t>(s_errorT.m_textureHandle.idx);
 }
-
 
 texture_t CTextureManager::LoadTexture(const char* path)
 {
@@ -104,11 +104,11 @@ texture_t CTextureManager::LoadTexture(const char* path)
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::Enum::RGBA8, 0, mem);
 
 	// Put this in our map so we can grab it later instead of loading it again.
-	m_textureMap.insert({ path, textureHandle.idx });
+	m_textureMap.insert({ path, reinterpret_cast<texture_t>(textureHandle.idx) });
 
 
 	Log::TPrint("Loaded image %s\n", path);
-	return textureHandle.idx;
+	return reinterpret_cast<texture_t>(textureHandle.idx);
 }
 
 texture_t CTextureManager::ErrorTexture()
