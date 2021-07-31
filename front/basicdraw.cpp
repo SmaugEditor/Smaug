@@ -81,7 +81,9 @@ CBasicDraw::CBasicDraw()
 
 	m_lineVertexBuf = bgfx::createVertexBuffer(bgfx::makeRef(s_lineVertices, sizeof(s_lineVertices)), LineFormat::ms_layout);
 	m_lineIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_lineTriList, sizeof(s_lineTriList)));
-
+	
+	m_gridScale = bgfx::createUniform("gridScale", bgfx::UniformType::Vec4);
+	m_gridDirMask = bgfx::createUniform("gridDirMask", bgfx::UniformType::Vec4);
 }
 
 CBasicDraw::~CBasicDraw()
@@ -92,6 +94,8 @@ CBasicDraw::~CBasicDraw()
 	bgfx::destroy(m_lineVertexBuf);
 	bgfx::destroy(m_lineIndexBuf);
 
+	bgfx::destroy(m_gridScale);
+	bgfx::destroy(m_gridDirMask);
 }
 
 
@@ -153,6 +157,34 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 		| BGFX_STATE_MSAA);
 
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::LINE));
+}
+
+void CBasicDraw::Grid(CTransform& transform, int scale)
+{
+
+	glm::vec4 vecScale = glm::vec4(1 / (float)(pow(2, scale)));
+
+	glm::vec3 vecDir;
+	Directions(transform.GetLocalAngles(), 0, 0, &vecDir);
+	vecDir = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z) };
+
+
+	bgfx::setTransform(&transform.Matrix()[0][0]);
+	bgfx::setVertexBuffer(0, m_planeVertexBuf);
+	bgfx::setIndexBuffer(m_planeIndexBuf);
+	bgfx::setUniform(m_gridScale, &vecScale);
+	bgfx::setUniform(m_gridDirMask, &vecDir);
+	bgfx::setState(
+		BGFX_STATE_CULL_CW
+		| BGFX_STATE_WRITE_RGB
+		| BGFX_STATE_WRITE_A
+		| BGFX_STATE_DEPTH_TEST_ALWAYS
+		| BGFX_STATE_MSAA
+		| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_ONE, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+		| BGFX_STATE_BLEND_INDEPENDENT
+		, BGFX_STATE_BLEND_FUNC_RT_1(BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_SRC_COLOR)
+	);
+	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::GRID));
 }
 
 CBasicDraw& BasicDraw()

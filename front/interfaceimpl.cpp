@@ -87,6 +87,11 @@ void CEngineInterface::ClearColor(renderTarget_t rt, uint32_t color)
 	bgfx::setViewClear(reinterpret_cast<uint16_t>(rt), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, color);
 }
 
+void CEngineInterface::DrawGrid(CTransform& transform, int scale)
+{
+	BasicDraw().Grid(transform, scale);
+}
+
 void CEngineInterface::BeginView(renderTarget_t rt)
 {
 	uint16_t id = reinterpret_cast<uint16_t>(rt);

@@ -96,6 +96,9 @@ public:
 	virtual void DrawWorld3D() = 0;
 	virtual void DrawWorld2D() = 0;
 
+	// Draw a 2D grid,
+	virtual void DrawGrid(CTransform& transform, int scale) = 0;
+
 };
 
 IEngineInterface* EngineInterface();

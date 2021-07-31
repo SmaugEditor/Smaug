@@ -22,7 +22,6 @@ private:
 
 	glm::vec2 m_screenSize;
 	glm::vec3 m_pos;
-	glm::vec3 m_vecGridDirMask;
 	glm::vec3 m_angles;
 
 };

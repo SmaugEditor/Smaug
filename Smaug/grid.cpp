@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/geometric.hpp>
+#include <transform.h>
+#include <editorinterface.h>
 
 BEGIN_SVAR_TABLE(CGridSettings)
 	DEFINE_TABLE_SVAR_INPUT(increase, KEY_RIGHT_BRACKET, false)
@@ -70,16 +72,13 @@ void CGrid::Draw(glm::vec2 screenSize, glm::vec3 pos, glm::vec3 angles, bool sub
 		m_pos = pos;
 	}
 
-	glm::vec3 vecDir;
-	Directions(angles, 0, 0, &vecDir);
-	m_vecGridDirMask = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z) };
+	CTransform t;
+	t.SetLocalScale(screenSize.x, 0, screenSize.y);
+	t.SetLocalAngles(angles);
+	t.SetLocalOrigin(pos + offsetHack);
+	
+	EngineInterface()->DrawGrid(t, m_iScale);
 
-	glm::vec3 scale = glm::vec3(screenSize.x, 0, screenSize.y);
-	glm::mat4 mtx = glm::identity<glm::mat4>();
-	mtx = glm::translate(mtx, pos + offsetHack);
-
-	mtx *= glm::yawPitchRoll(angles.y, angles.x, angles.z);
-	mtx = glm::scale(mtx, scale);
 }
 
 glm::vec3 CGrid::Snap(glm::vec3 in)

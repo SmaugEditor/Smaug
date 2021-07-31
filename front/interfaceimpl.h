@@ -34,6 +34,7 @@ public:
 	virtual void SetViewMatrix(glm::mat4& view, glm::mat4& proj) override;
 	virtual void DrawWorld3D() override;
 	virtual void DrawWorld2D() override;
+	virtual void DrawGrid(CTransform& transform, int scale) override;
 	virtual texture_t TextureFromRenderTarget(renderTarget_t rt) override;
 
 	glm::mat4 m_view;
