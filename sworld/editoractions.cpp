@@ -40,11 +40,14 @@ void CWallExtrudeAction::Cancel()
 {
 	for (int i = 0; auto info: m_selectInfo)
 	{
-		CNodeRef quad = m_quads[i++].first;
-		if (quad.IsValid())
+		if (info.part.IsValid())
 		{
-			GetWorldEditor().DeleteNode(quad.Node());
-			info.node->MarkDirty();
+			CNodeRef quad = m_quads[i++].first;
+			if (quad.IsValid())
+			{
+				GetWorldEditor().DeleteNode(quad.Node());
+				info.node->MarkDirty();
+			}
 		}
 	}
 	m_quads.clear();
