@@ -8,8 +8,8 @@ uniform vec4 gridDirMask;
 
 void main()
 {
-	vec3 gridCoords = mod(v_texcoord0 * gridScale.xyz, 1);
-	vec3 midLineCoords = mod(gridCoords * 2, 1);
+	vec3 gridCoords = mod(v_texcoord0 * gridScale.xyz, 1.0);
+	vec3 midLineCoords = mod(gridCoords * 2.0, 1.0);
 	gridCoords = abs(gridCoords - 0.5);
 	midLineCoords = abs(midLineCoords - 0.5);
 	
@@ -42,12 +42,12 @@ void main()
 	red += gridDirMask.y * (float(axisLines.y < lineWidth) * 0.5);
 	red += gridDirMask.z * (float(axisLines.z < lineWidth) * 0.5);
 	float redDisable = float( red == 0.0 );
-	float redDampen =  float(red > 0) * 0.5;
+	float redDampen =  float(red > 0.0) * 0.5;
 
 	
 	float lineWidthBigGrid = 0.5 - lineWidth * 0.125 * 0.5;
 	// Big blue
-	vec3 bigGridCoords = mod(v_texcoord0 * gridScale.xyz * 0.125, 1);
+	vec3 bigGridCoords = mod(v_texcoord0 * gridScale.xyz * 0.125, 1.0);
 	bigGridCoords = abs(bigGridCoords - 0.5);
 	float blue = 0.0;
 	blue += gridDirMask.x * float(bigGridCoords.x > lineWidthBigGrid);

@@ -131,3 +131,8 @@ texture_t CEngineInterface::TextureFromRenderTarget(renderTarget_t rt)
 {
 	return reinterpret_cast<texture_t>(bgfx::getTexture(m_renderTargets[reinterpret_cast<uint16_t>(rt)-1].framebuffer).idx);
 }
+
+bool CEngineInterface::ShouldFlipViews()
+{
+	return RendererProperties().coordSystem == ECoordSystem::RIGHT_HANDED;
+}

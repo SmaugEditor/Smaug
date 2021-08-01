@@ -23,3 +23,21 @@ public:
 };
 
 CSmaugApp& GetApp();
+
+
+enum class ECoordSystem
+{
+	RIGHT_HANDED = 0,
+	LEFT_HANDED = 1
+};
+
+// Add more stuff to this if you want!
+struct RendererProperties_t
+{
+	ECoordSystem coordSystem;
+	bgfx::RendererType::Enum renderType;
+};
+
+void SetRendererType(bgfx::RendererType::Enum type);
+bgfx::RendererType::Enum RendererType();
+const RendererProperties_t& RendererProperties();

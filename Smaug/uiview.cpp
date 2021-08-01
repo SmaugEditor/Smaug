@@ -119,8 +119,17 @@ void CUIView::Update(float dt, float mx, float my)
 	ImVec2 uv0, uv1;
 	uv0.x = 1;
 	uv1.x = 0;
-	uv0.y = 0;
-	uv1.y = 1;
+	if (EngineInterface()->ShouldFlipViews())
+	{
+		uv0.y = 1;
+		uv1.y = 0;
+	}
+	else
+	{
+		uv0.y = 0;
+		uv1.y = 1;
+	}
+
 
 	// UI
 	ImGui::ShowDemoWindow();

@@ -99,6 +99,9 @@ public:
 	// Draw a 2D grid,
 	virtual void DrawGrid(CTransform& transform, int scale) = 0;
 
+	// Do you want us to flip the UV coords for the imgui edit views?
+	virtual bool ShouldFlipViews() = 0;
+
 };
 
 IEngineInterface* EngineInterface();

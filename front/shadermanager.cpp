@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <bigg.hpp>
+#include <basicdraw.h>
 
 static struct
 {
@@ -87,6 +88,11 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 
 void CShaderManager::Init()
 {
+	// All uniforms *must* be initialized before the shaders are loaded
+	m_colorUniform = bgfx::createUniform("u_color", bgfx::UniformType::Vec4);
+	m_textureUniform = bgfx::createUniform("u_texture", bgfx::UniformType::Sampler);
+	BasicDraw();
+
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
 		
@@ -100,9 +106,6 @@ void CShaderManager::Init()
 		
 	}
 
-
-	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
-	m_textureUniform = bgfx::createUniform("u_texture", bgfx::UniformType::Sampler);
 }
 
 void CShaderManager::Shutdown()

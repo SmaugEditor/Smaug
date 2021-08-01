@@ -3,6 +3,7 @@
 #include "shadermanager.h"
 #include "interfaceimpl.h"
 
+
 IEditorInterface* s_editorInterface;
 
 
@@ -109,4 +110,41 @@ CSmaugApp& GetApp()
 {
 	static CSmaugApp app;
 	return app;
+}
+
+// Keep this private
+RendererProperties_t gRenderProps;
+
+void SetRendererType(bgfx::RendererType::Enum type)
+{
+	auto old = gRenderProps.renderType;
+	gRenderProps.renderType = type;
+
+	// Init the rest of the fields 
+	if (old != type)
+	{
+		using RT = bgfx::RendererType::Enum;
+		switch (type)
+		{
+		case RT::Direct3D11:
+		case RT::Direct3D12:
+		case RT::Direct3D9:
+		case RT::Vulkan:
+			gRenderProps.coordSystem = ECoordSystem::LEFT_HANDED;
+			break;
+		default:
+			gRenderProps.coordSystem = ECoordSystem::RIGHT_HANDED;
+		}
+	}
+
+}
+
+bgfx::RendererType::Enum RendererType()
+{
+	return gRenderProps.renderType;
+}
+
+const RendererProperties_t& RendererProperties()
+{
+	return gRenderProps;
 }

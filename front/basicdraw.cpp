@@ -144,11 +144,11 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 	//ang.z = PI / 4.0f;
 	mt.SetLocalAngles(ang);
 
+	ShaderManager().SetColor(glm::vec4(color, 1.0f));
 	bgfx::setTransform(&mt.Matrix()[0][0]);
 	bgfx::setVertexBuffer(0, m_lineVertexBuf);
 	bgfx::setIndexBuffer(m_lineIndexBuf);
 
-	ShaderManager().SetColor(glm::vec4(color, 1.0f));
 	bgfx::setState(0
 		| BGFX_STATE_WRITE_RGB
 		| BGFX_STATE_WRITE_A
@@ -166,14 +166,14 @@ void CBasicDraw::Grid(CTransform& transform, int scale)
 
 	glm::vec3 vecDir;
 	Directions(transform.GetLocalAngles(), 0, 0, &vecDir);
-	vecDir = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z) };
+	glm::vec4 dirMask = { 1.0f - fabs(vecDir.x), 1.0f - fabs(vecDir.y), 1.0f - fabs(vecDir.z), 1.0 };
 
 
+	bgfx::setUniform(m_gridScale, &vecScale);
+	bgfx::setUniform(m_gridDirMask, &dirMask);
 	bgfx::setTransform(&transform.Matrix()[0][0]);
 	bgfx::setVertexBuffer(0, m_planeVertexBuf);
 	bgfx::setIndexBuffer(m_planeIndexBuf);
-	bgfx::setUniform(m_gridScale, &vecScale);
-	bgfx::setUniform(m_gridDirMask, &vecDir);
 	bgfx::setState(
 		BGFX_STATE_CULL_CW
 		| BGFX_STATE_WRITE_RGB
