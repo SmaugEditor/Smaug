@@ -962,31 +962,24 @@ void applyCuts(cuttableMesh_t* mesh, std::vector<mesh_t*>& cutters)
 		glm::vec3 partNorm = part->normal;
 		std::vector<meshPart_t*> slicers;
 
+		glm::vec3 partPoint = *part->verts.front()->vert + mesh->origin;
 		// Find candidates
 		for (auto cutter : cutters)
 		{
 			for (auto slicer : cutter->parts)
 			{
 				glm::vec3 slicerNorm = slicer->normal;
-				// Make it relative to what we're cutting
-				glm::vec3 slicerPoint = *slicer->verts.front()->vert + cutter->origin - mesh->origin;
-
-
-				glm::vec3 centerDiff = *part->verts.front()->vert - slicerPoint;
-
-				// Flatten the diff to the axis of the normal, this way we can see how far the parts are from eachother.
-				centerDiff *= partNorm;
-
-				// Do we share an axis?
-				if (glm::length(centerDiff) >= 0.01f)
-					continue;
+				
+				// Put em in the world
+				glm::vec3 slicerPoint = *slicer->verts.front()->vert + cutter->origin;
 
 				// Do our normals actually oppose?
 				if (!closeTo(glm::dot(slicerNorm, partNorm), -1))
 					continue;
 
-				// Good enough of a candidate!
-				slicers.push_back(slicer);
+				// If we flip one of our norms, are we on the same plane?
+				if (closeTo(-glm::dot(slicerNorm, slicerPoint), glm::dot(partNorm, partPoint)))
+					slicers.push_back(slicer);
 			}
 		}
 
