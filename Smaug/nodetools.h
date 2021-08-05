@@ -23,6 +23,7 @@ public:
 
 	virtual void StartDrag();
 	virtual void EndDrag();
+	virtual void Disable();
 
 	virtual void Preview();
 
@@ -49,6 +50,7 @@ public:
 
 	virtual void StartDrag();
 	virtual void EndDrag();
+	virtual void Disable();
 
 	virtual void Preview();
 

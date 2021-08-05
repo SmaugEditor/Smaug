@@ -60,7 +60,16 @@ void CDragTool::EndDrag()
 		// The manager is taking care of it for us now
 		m_action = nullptr;
 	}
-};
+}
+void CDragTool::Disable()
+{
+	if (m_action)
+	{
+		m_action->Cancel();
+		delete m_action;
+		m_action = nullptr;
+	}
+}
 
 void CDragTool::Preview()
 {
@@ -117,7 +126,16 @@ void CExtrudeTool::EndDrag()
 		m_wallExtrudeAction = nullptr;
 	}
 
-};
+}
+void CExtrudeTool::Disable()
+{
+	if (m_wallExtrudeAction)
+	{
+		m_wallExtrudeAction->Cancel();
+		delete m_wallExtrudeAction;
+		m_wallExtrudeAction = nullptr;
+	}
+}
 
 void CExtrudeTool::Preview()
 {
