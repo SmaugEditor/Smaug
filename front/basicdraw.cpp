@@ -69,9 +69,17 @@ static glm::vec3 s_lineVertices[] =
 };
 static const uint16_t s_lineTriList[] = { 0, 3, 2, 2, 1, 0, 4, 7, 6, 6, 5, 4 };
 
+static CBasicDraw* s_basicDraw = 0;
+
+CBasicDraw& BasicDraw()
+{
+	return *s_basicDraw;
+}
 
 CBasicDraw::CBasicDraw()
 {
+	s_basicDraw = this;
+
 	TexturedPlanePosColorVertex::init();
 	LineFormat::init();
 
@@ -88,6 +96,8 @@ CBasicDraw::CBasicDraw()
 
 CBasicDraw::~CBasicDraw()
 {
+	s_basicDraw = 0;
+
 	bgfx::destroy(m_planeVertexBuf);
 	bgfx::destroy(m_planeIndexBuf);
 
@@ -186,10 +196,3 @@ void CBasicDraw::Grid(CTransform& transform, int scale)
 	);
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::GRID));
 }
-
-CBasicDraw& BasicDraw()
-{
-	static CBasicDraw s_basicDraw;
-	return s_basicDraw;
-}
-

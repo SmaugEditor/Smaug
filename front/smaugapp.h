@@ -1,7 +1,7 @@
 #pragma once
 #include <bigg.hpp>
 
-
+class CBasicDraw;
 class CSmaugApp : public bigg::Application
 {
 public:
@@ -20,6 +20,8 @@ public:
 	GLFWwindow* GetWindow() { return mWindow; };
 
 	bool m_mouseLocked;
+
+	CBasicDraw* m_basicdraw;
 };
 
 CSmaugApp& GetApp();

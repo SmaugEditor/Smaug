@@ -2,6 +2,7 @@
 #include "worldrenderer.h"
 #include "shadermanager.h"
 #include "interfaceimpl.h"
+#include "basicdraw.h"
 
 
 IEditorInterface* s_editorInterface;
@@ -32,7 +33,10 @@ void smaugMouseButtonCallback(GLFWwindow* window, int button, int action, int mo
 
 void CSmaugApp::initialize(int _argc, char** _argv)
 {
+	// Must be made before the shadermanager inits for the uniforms to be created! 
+	m_basicdraw = new CBasicDraw();
 	ShaderManager().Init();
+
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -62,6 +66,8 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 int CSmaugApp::shutdown()
 {
 	s_editorInterface->Shutdown();
+
+	delete m_basicdraw;
 	ShaderManager().Shutdown();
 	return 0;
 }
