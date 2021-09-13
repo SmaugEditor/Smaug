@@ -69,8 +69,11 @@ void CWallExtrudeAction::Preview()
 
 }
 
-void CWallExtrudeAction::Act()
+bool CWallExtrudeAction::Act()
 {
+	if (m_quads.size() == 0)
+		return false;
+
 	for (auto pair : m_quads)
 	{
 		meshPart_t* newBack = pair.first->m_mesh.parts[1];
@@ -82,12 +85,16 @@ void CWallExtrudeAction::Act()
 		pair.first->MarkDirty();
 	}
 
+	return true;
 }
 
 void CWallExtrudeAction::Undo()
 {
 	for (int i = 0; auto info: m_selectInfo)
 	{
+		if (!info.part.IsValid())
+			continue;
+
 		CNodeRef quad = m_quads[i++].first;
 		if (quad.IsValid())
 		{
@@ -102,10 +109,7 @@ void CWallExtrudeAction::Redo()
 	for (int i = 0; auto info: m_selectInfo)
 	{
 		if (!info.part.IsValid())
-		{
-			i++;
 			continue;
-		}
 
 		CNodeRef quadRef = m_quads[i++].first;
 		CNode* node = CreateExtrusion(info.node.Node(), info.part);

@@ -130,6 +130,11 @@ struct textureMeshPartData_t
 	glm::vec2 offset;
 	glm::vec2 scale;
 	texture_t texture;
+
+	bool operator==(const textureMeshPartData_t& other)
+	{
+		return other.texture == texture && other.offset == offset && other.scale == scale;
+	}
 };
 
 

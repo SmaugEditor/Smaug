@@ -37,7 +37,8 @@ public:
 	virtual void Cancel() {};
 
 protected:
-	virtual void Act() = 0;
+	// return true on success
+	virtual bool Act() = 0;
 
 	virtual void Undo() = 0;
 	virtual void Redo() = 0;

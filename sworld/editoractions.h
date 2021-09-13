@@ -49,8 +49,11 @@ public:
 		}
 	}
 
-	virtual void Act()
+	virtual bool Act()
 	{
+		if (m_originalPos.size() == 0)
+			return false;
+
 		for (int j = 0; auto i : m_selectInfo)
 		{
 			if (i.edge.IsValid())
@@ -73,6 +76,8 @@ public:
 
 		// Save on some memory
 		m_originalPos.clear();
+
+		return true;
 	}
 
 	virtual void Undo()
@@ -162,7 +167,7 @@ public:
 	virtual void Select(std::vector<selectionInfo_t> selectInfo);
 	virtual void Cancel();
 	virtual void Preview();
-	virtual void Act();
+	virtual bool Act();
 	virtual void Undo();
 	virtual void Redo();
 
@@ -196,7 +201,17 @@ public:
 
 	virtual void Preview() { for(auto& si : m_selectInfo) Paint(si, m_newPaint); }
 
-	virtual void Act() { Preview(); }
+	virtual bool Act()
+	{
+		if (m_selectInfo.size() == 0)
+			return false;
+		
+		bool success = false;
+		for (auto& si : m_selectInfo)
+			success |= Paint(si, m_newPaint);
+	
+		return success;
+	}
 
 	virtual void Undo() { for (int i = 0; auto & si : m_selectInfo) Paint(si, m_originalPaint[i++]); }
 
@@ -204,11 +219,15 @@ public:
 
 	virtual SelectionFlag GetSelectionType() { return SelectionFlag::SF_PART; }
 
-	void Paint(selectionInfo_t& si, textureMeshPartData_t& tx)
+	bool Paint(selectionInfo_t& si, textureMeshPartData_t& tx)
 	{
+		if (si.part->txData == tx)
+			return false;
+
 		si.part->txData = tx;
 		if(si.node->m_renderData)
 			si.node->m_renderData->Rebuild();
+		return true;
 	}
 
 	std::vector<textureMeshPartData_t> m_originalPaint;

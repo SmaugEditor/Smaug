@@ -13,9 +13,17 @@ CActionManager& GetActionManager()
 
 void CActionManager::CommitAction(IAction* action)
 {
-	action->Act();
+	bool success = action->Act();
+	if (!success)
+	{
+		// Action failed! push it right into the can!
+		delete action;
+		return;
+	}
+
 	m_actionHistory.push_back(action);
 	
+	// Clear out the future we're overriding
 	for (auto a : m_redoStack)
 		delete a;
 	m_redoStack.clear();
