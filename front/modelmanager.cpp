@@ -176,7 +176,24 @@ void CModelManager::Shutdown()
 
 IModel* CModelManager::LoadModel(const char* path)
 {
-    auto modelSearch = m_modelMap.find(path);
+    char modelPath[512];
+    strcpy(modelPath, path);
+    char* ext = strrchr(modelPath, '.');
+
+    if (ext)
+    {
+        if (strcmp(ext, ".obj") != 0)
+        {
+            *ext = 0;
+            strcat(modelPath, ".obj");
+        }
+    }
+    else
+    {
+        strcat(modelPath, ".obj");
+    }
+    
+    auto modelSearch = m_modelMap.find(modelPath);
     if (modelSearch != m_modelMap.end())
     {
         // Turns out, we already have this loaded.
@@ -192,7 +209,7 @@ IModel* CModelManager::LoadModel(const char* path)
     // And have it read the given file with some example postprocessing
     // Usually - if speed is not the most important aspect for you - you'll
     // probably to request more postprocessing than we do in this example.
-    const aiScene* scene = importer.ReadFile(path,
+    const aiScene* scene = importer.ReadFile(modelPath,
         aiProcess_CalcTangentSpace |
         aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
@@ -201,7 +218,7 @@ IModel* CModelManager::LoadModel(const char* path)
     if (!scene || scene->mNumMeshes == 0)
     {
         // Oh, no. We failed to load the image...
-        Log::TWarn("Failed to load model %s\n", path);
+        Log::TWarn("Failed to load model %s\n", modelPath);
         return GetErrorModel();
     }
 
@@ -221,7 +238,7 @@ IModel* CModelManager::LoadModel(const char* path)
         // Empty check
         if (*str.C_Str())
         {
-            std::filesystem::path p = path;
+            std::filesystem::path p = modelPath;
             p.remove_filename();
             p.append(str.C_Str());
             model->m_texture = TextureManager().LoadTexture((char*)p.u8string().c_str());
@@ -234,11 +251,11 @@ IModel* CModelManager::LoadModel(const char* path)
 
 
     // Add the model to the map
-    m_modelMap.emplace(std::string(path), model);
+    m_modelMap.emplace(std::string(modelPath), model);
 
 
 
-    Log::TPrint("Loaded model %s\n", path);
+    Log::TPrint("Loaded model %s\n", modelPath);
     return model;
 }
 
