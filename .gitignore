@@ -412,3 +412,5 @@ MigrationBackup/
 *.sln*
 build/
 working/
+*.dir/
+RelWithDebInfo/
