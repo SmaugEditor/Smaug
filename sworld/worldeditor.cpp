@@ -225,7 +225,7 @@ void CWorldEditor::RegisterNode(CNode* node)
 	nodeId_t selectedId = m_currentNodeId;
 	while(m_nodes.contains(selectedId))
 		selectedId++;
-	m_currentNodeId = selectedId++;
+	m_currentNodeId = selectedId + 1;
 
 	m_nodes.emplace(selectedId, node);
 	node->m_id = selectedId;
