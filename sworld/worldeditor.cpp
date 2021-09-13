@@ -221,10 +221,14 @@ void CWorldEditor::Clear()
 
 void CWorldEditor::RegisterNode(CNode* node)
 {
-	m_nodes.emplace(m_currentNodeId, node);
+	// Search for a free id
+	nodeId_t selectedId = m_currentNodeId;
+	while(m_nodes.contains(selectedId))
+		selectedId++;
+	m_currentNodeId = selectedId++;
 
-	node->m_id = m_currentNodeId;
-	m_currentNodeId++;
+	m_nodes.emplace(selectedId, node);
+	node->m_id = selectedId;
 
 	// If this ever happens, it'll be awful.
 	SASSERT(m_currentNodeId != INVALID_NODE_ID);

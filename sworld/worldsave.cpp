@@ -92,6 +92,8 @@ void loadWorld(char* input)
 {
 	resetWorld();
 
+	nodeId_t maxId = 0;
+
 	KeyValueRoot kvFile(input);
 
 	char* verstr = kvFile.Get("smf").value.string;
@@ -105,7 +107,7 @@ void loadWorld(char* input)
 			
 			std::vector<glm::vec3> verts;
 			std::vector<std::pair<std::vector<int>, textureMeshPartData_t>> parts;
-			int id = 0;
+			nodeId_t id = 0;
 			glm::vec3 origin{0,0,0};
 
 			// Suck data for each node
@@ -220,6 +222,9 @@ void loadWorld(char* input)
 				node->Init();
 
 				GetWorldEditor().AssignID(node, id);
+
+				if (id > maxId)
+					maxId = id;
 			}
 			else
 			{
@@ -231,6 +236,7 @@ void loadWorld(char* input)
 	for (auto n : GetWorldEditor().m_nodes)
 		n.second->MarkDirty();
 
+	GetWorldEditor().m_currentNodeId = maxId;
 }
 
 void resetWorld()
