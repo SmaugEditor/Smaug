@@ -13,12 +13,14 @@ public:
 
 	void Draw();
 
-	SelectionFlag SelectionMode() { return SelectionFlag::SF_PART; }
+	SelectionFlag SelectionMode() { return m_selectionMode; }
 
 	bool MultiselectMode();
 
 	// Are we still selecting something at the moment?
 	bool BusySelecting() { return MultiselectMode() || m_selected.size() == 0; }
+
+	void ShowSelectionMenu();
 private:
 	// If replace current is true, it will discard all currently selected objects in place of the new selection
 	// Returns true if something was selected
@@ -32,6 +34,8 @@ public:
 
 private:
 	aabb_t m_selectionBox;
+
+	SelectionFlag m_selectionMode = SelectionFlag::SF_PART;
 };
 
 CSelectionManager& SelectionManager();

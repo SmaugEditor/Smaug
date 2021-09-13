@@ -282,7 +282,8 @@ void CUIView::Update(float dt, float mx, float my)
 	 
 	m_toolBox.ShowToolBox();
 	m_settingsMenu.DrawMenu();
-	
+	SelectionManager().ShowSelectionMenu();
+
 	Grid().Update();
 
 	// Must be last!

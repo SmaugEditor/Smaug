@@ -4,6 +4,7 @@
 #include "svarex.h"
 #include "utils.h"
 #include "doodle.h"
+#include <imgui.h>
 
 BEGIN_SVAR_TABLE(CSelectionSettings)
 DEFINE_TABLE_SVAR_INPUT(select, MOUSE_1, true)
@@ -181,6 +182,60 @@ void CSelectionManager::AddSelection(selectionInfo_t& si)
 		m_selected.push_back(si);
 	}
 }
+
+
+void CSelectionManager::ShowSelectionMenu()
+{
+	// Simplify this?
+	if (ImGui::Begin("Selection Mode"))
+	{
+		bool push = false;
+		const ImVec4 selectColor = { 128, 0, 0, 255 };
+		if (m_selectionMode & SelectionFlag::SF_NODE)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, selectColor);
+			push = true;
+		}
+		if (ImGui::Button("Node"))
+			m_selectionMode = SelectionFlag::SF_NODE;
+		if (push)
+		{
+			ImGui::PopStyleColor(1);
+			push = false;
+		}
+
+
+		if (m_selectionMode & SelectionFlag::SF_PART)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, selectColor);
+			push = true;
+		}
+		if (ImGui::Button("Part"))
+			m_selectionMode = SelectionFlag::SF_PART;
+		if (push)
+		{
+			ImGui::PopStyleColor(1);
+			push = false;
+		}
+		
+		
+
+		if (m_selectionMode & SelectionFlag::SF_EDGE)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, selectColor);
+			push = true;
+		}
+		if (ImGui::Button("Edge"))
+			m_selectionMode = SelectionFlag::SF_EDGE;
+		if (push)
+		{
+			ImGui::PopStyleColor(1);
+			push = false;
+		}
+	}
+	ImGui::End();
+}
+
 
 CSelectionManager& SelectionManager()
 {
