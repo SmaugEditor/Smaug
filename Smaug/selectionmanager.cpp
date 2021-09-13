@@ -44,7 +44,12 @@ void CSelectionManager::Draw()
 	{
 		if (s.part.IsValid())
 			Doodle().Face(s.part, COLOR_GREEN);
-
+		if (s.edge.IsValid())
+		{
+			glm::vec3 start = *s.edge->vert + s.node.Node()->Origin();
+			glm::vec3 end = *s.edge->edge->vert->vert + s.node.Node()->Origin();
+			Doodle().Line(start, end, COLOR_GREEN);
+		}
 	}
 
 }
