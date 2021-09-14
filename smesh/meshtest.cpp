@@ -70,26 +70,31 @@ pointInConvexTest_t pointInConvexLoopQuery(vertex_t* vert, glm::vec3 pos)
 
 	do
 	{
-		
+
 		vertex_t* next = v->edge->vert;
 
 		glm::vec3 delta = *next->vert - *v->vert;
 		glm::vec3 perp = glm::cross(delta, norm);
 		float m = glm::dot(pos - *v->vert, perp);
 
-		if (m > 0)
+		//if (m == 0)
+		if(closeTo(m, 0, EPSILON_FACE))
+		{
+			if constexpr (ignoreNonOuterEdges)
+			{
+				if (!v->edge->pair)
+					test.onEdge++;
+				else
+					test.inside++;
+			}
+			else
+				test.onEdge++;
+		}
+		else if (m > 0)
 			test.outside++;
 		else if (m < 0)
 			test.inside++;
-		else if constexpr (ignoreNonOuterEdges)
-		{
-			if (!v->edge->pair)
-				test.onEdge++;
-			else
-				test.inside++;
-		}
-		else
-			test.onEdge++;
+		
 		
 		// Please don't pass me a weird mesh...
 		v = next;

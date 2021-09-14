@@ -380,16 +380,61 @@ draggable_t dragEdge(draggable_t draggable, glm::vec3* point)
 
 
 // Pulled from a section of faceSnips
-bool areLinesParallel(line_t cL, line_t pL)
+bool areLinesOverlapped(line_t cL, line_t pL)
 {
 
 	// Check if this line parallel to our cutting line
-	glm::vec3 cross = glm::cross(cL.delta, pL.delta);
-	if (closeTo(cross.x, 0) && closeTo(cross.y, 0) && closeTo(cross.z, 0))
+	const float clmag = glm::length(cL.delta);
+	const float plmag = glm::length(pL.delta);
+	const float div = clmag * plmag;
+
+	// If this happens, one of the lines are a point. Probably bad
+	if (div == 0)
+	{
+		// Since this is a point, just check if it's on the line?
+		if (clmag == 0.0f && plmag == 0.0f)
+		{
+			// Two points?!
+			return closeTo(cL.origin, pL.origin);
+		}
+		else if(clmag == 0.0f)
+		{
+			// is cl on pl?
+			glm::vec3 local = cL.origin - pL.origin;
+			glm::vec3 o = glm::dot(local, pL.delta) * pL.delta;
+			return closeTo(cL.origin, o);
+		}
+		else
+		{
+			// is pl on cl?
+			glm::vec3 local = pL.origin - cL.origin;
+			glm::vec3 o = glm::dot(local, cL.delta) * cL.delta;
+			return closeTo(pL.origin, o);
+		}
+	}
+
+	float parallelDot = fabs(glm::dot(cL.delta, pL.delta) / div);
+	if(closeTo(parallelDot, 1))
 	{
 		// So they're parallel, are they also on top of eachother?
-		glm::vec3 stemDir = glm::cross(cL.delta, pL.origin - cL.origin);
-		if (closeTo(cross.x, 0) && closeTo(cross.y, 0) && closeTo(cross.z, 0))
+		
+		bool sharedLine = false;
+
+		glm::vec3 stemDelta = pL.origin - cL.origin;
+		float sdmag = glm::length(stemDelta);
+		if (sdmag == 0)
+		{
+			// 0 len delta means we're directly on it
+			sharedLine = true;
+		}
+		else
+		{
+			float stemDot = fabs(glm::dot(cL.delta, stemDelta) / (clmag * sdmag));
+			sharedLine = closeTo(stemDot, 1);
+
+		}
+
+		if(sharedLine)
 		{
 			//glm::vec3 absPartEnd = partEndLocal + meshOrigin;
 			glm::vec3 absCutterEnd = cL.origin + cL.delta;
@@ -400,12 +445,12 @@ bool areLinesParallel(line_t cL, line_t pL)
 				(e - s) . d = m;
 			*/
 
-			float lpow = pow(glm::length(pL.delta), 2);
-			float mCutterStem = glm::dot(cL.origin - pL.origin, pL.delta) / lpow;
-			float mCutterEnd = glm::dot(absCutterEnd - pL.origin, pL.delta) / lpow;
-
+			float lpow = glm::dot(pL.delta, pL.delta);
+			float mCutterStem = glm::dot(cL.origin - pL.origin, pL.delta);
+			float mCutterEnd = glm::dot(absCutterEnd - pL.origin, pL.delta);
+			 
 			// Since this is in terms of pL.delta, a mag of 1 is = to part end and 0 = part stem
-			return rangeOverlap<false, true>(0, 1, mCutterStem, mCutterEnd);
+			return rangeOverlap<false, true>(0, lpow, mCutterStem, mCutterEnd);
 		}
 	}
 
@@ -618,7 +663,7 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 					// We might have to discard this intersection if 
 					// - we're entering
 					// - it hits a corner exactly
-					// - our external angle on the part is >= 90
+					// - our external angle of the lead and the edge on the part is >= 90; it's convex
 					// - our cutter is parallel to our prev edge
 					// else we might make bad geo
 					if (si.entering)
@@ -649,10 +694,11 @@ bool faceSnips(cuttableMesh_t& mesh, mesh_t& cuttingMesh, meshPart_t* part, mesh
 						else
 							continue;
 
-						DEBUG_PRINT("Leading edge dot %f\n", glm::dot(cross, partNorm));
-						if (glm::dot(cross, partNorm) >= 0)
+						float ang = glm::dot(cross, partNorm);
+						DEBUG_PRINT("Leading edge dot %f\n", ang);
+						if (ang >= 0)
 						{
-							if (areLinesParallel(cL, leading))
+							if (areLinesOverlapped(cL, leading))
 							{
 								DEBUG_PRINT("Duump eet.\n");
 
@@ -974,11 +1020,11 @@ void applyCuts(cuttableMesh_t* mesh, std::vector<mesh_t*>& cutters)
 				glm::vec3 slicerPoint = *slicer->verts.front()->vert + cutter->origin;
 
 				// Do our normals actually oppose?
-				if (!closeTo(glm::dot(slicerNorm, partNorm), -1))
+				if (!closeTo(glm::dot(slicerNorm, partNorm), -1, EPSILON_FACE))
 					continue;
 
 				// If we flip one of our norms, are we on the same plane?
-				if (closeTo(-glm::dot(slicerNorm, slicerPoint), glm::dot(partNorm, partPoint)))
+				if (closeTo(-glm::dot(slicerNorm, slicerPoint), glm::dot(partNorm, partPoint), EPSILON_FACE))
 					slicers.push_back(slicer);
 			}
 		}
@@ -1019,7 +1065,7 @@ void applyCuts(cuttableMesh_t* mesh, std::vector<mesh_t*>& cutters)
 				for (int l = 0; l < faceSlicers.size(); l++)
 				{
 
-					// Really not fond of this, but we have to turn the currect face into a valid covex face for testing for each slice...
+					// Really not fond of this, but we have to turn the correct face into a valid covex face for testing for each slice...
 					// Any way to reuse this data?
 					if (didSlice)
 					{

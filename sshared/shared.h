@@ -7,6 +7,8 @@ typedef void* texture_t;
 
 const double PI = 3.141592653589793238463;
 
+#define ZERO_VEC3 {0.0f, 0.0f, 0.0f}
+
 
 // Pitch, Yaw, Roll
 void Directions(glm::vec3 angles, glm::vec3* forward = nullptr, glm::vec3* right = nullptr, glm::vec3* up = nullptr);
@@ -67,10 +69,26 @@ inline constexpr bool rangeOverlap(float min1, float max1, float min2, float max
 	return rangeInRange<unordered1>(min1, max1, min2, max2) || rangeInRange<unordered2>(min2, max2, min1, max1);
 }
 
+// Certain operations introduce more error than others
 
-inline constexpr bool closeTo(float value, float target, float threshold = 0.0001f)
+// General purpose
+#define EPSILON 0.0001f
+// Use this while working with faces, doing dots and crosses
+#define EPSILON_FACE 0.001f
+// For comparing points
+#define EPSILON_POINT 0.0001f
+
+inline constexpr bool closeTo(float value, float target, float threshold = EPSILON)
 {
-	return inRange(target - threshold, target + threshold, value);
+	value -= target;
+	return value <= threshold && value >= -threshold;
+}
+
+inline constexpr bool closeTo(glm::vec3 value, glm::vec3 target, float threshold = EPSILON_POINT)
+{
+	value -= target;
+	return value.x <=  threshold && value.y <=  threshold && value.z <=  threshold 
+		&& value.x >= -threshold && value.y >= -threshold && value.z >= -threshold;
 }
 
 
