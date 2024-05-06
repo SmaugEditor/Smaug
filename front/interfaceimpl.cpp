@@ -84,7 +84,8 @@ renderTarget_t CEngineInterface::CreateRenderTarget(uint32_t width, uint32_t hei
 
 void CEngineInterface::ClearColor(renderTarget_t rt, uint32_t color)
 {
-	bgfx::setViewClear(reinterpret_cast<uint16_t>(rt), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, color);
+	uint16_t id = reinterpret_cast<uintptr_t>(rt);
+	bgfx::setViewClear(id, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, color);
 }
 
 void CEngineInterface::DrawGrid(CTransform& transform, int scale)
@@ -94,7 +95,7 @@ void CEngineInterface::DrawGrid(CTransform& transform, int scale)
 
 void CEngineInterface::BeginView(renderTarget_t rt)
 {
-	uint16_t id = reinterpret_cast<uint16_t>(rt);
+	uint16_t id = reinterpret_cast<uintptr_t>(rt);
 	
 	auto& view = m_renderTargets[id-1];
 	ModelManager().SetView(id);
@@ -129,7 +130,8 @@ void CEngineInterface::DrawWorld2D()
 
 texture_t CEngineInterface::TextureFromRenderTarget(renderTarget_t rt)
 {
-	return reinterpret_cast<texture_t>(bgfx::getTexture(m_renderTargets[reinterpret_cast<uint16_t>(rt)-1].framebuffer).idx);
+    uint16_t id = reinterpret_cast<uintptr_t>(rt);
+	return reinterpret_cast<texture_t>(bgfx::getTexture(m_renderTargets[id-1].framebuffer).idx);
 }
 
 bool CEngineInterface::ShouldFlipViews()

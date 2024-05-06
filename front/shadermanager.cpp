@@ -36,7 +36,7 @@ bgfx::ProgramHandle LoadShader(const char* fragment, const char* vertex, bgfx::P
 		"shaders/dx11/",  // Direct3D11
 		"shaders/dx11/",  // Direct3D12
 		nullptr,		  // Gnm
-		nullptr,		  // Metal
+		"shaders/metal/", // Metal
 		nullptr,		  // Nvm
 		"shaders/essl/",  // OpenGL ES
 		"shaders/glsl/",  // OpenGL
@@ -135,9 +135,15 @@ void CShaderManager::SetColor(glm::vec4 color)
 void CShaderManager::SetTexture(texture_t texture)
 {
 	if (texture != reinterpret_cast<texture_t>(0))// bgfx::kInvalidHandle))
-		bgfx::setTexture(0, m_textureUniform, { reinterpret_cast<uint16_t>(texture) });
+	{
+		uint16_t id = reinterpret_cast<uintptr_t>(texture);
+		bgfx::setTexture(0, m_textureUniform, { id });
+	}
 	else
-		bgfx::setTexture(0, m_textureUniform, { reinterpret_cast<uint16_t>(TextureManager().ErrorTexture()) });
+	{
+		uint16_t id = reinterpret_cast<uintptr_t>(TextureManager().ErrorTexture());
+		bgfx::setTexture(0, m_textureUniform, { id });
+	}
 }
 
 bgfx::ProgramHandle CShaderManager::GetShaderProgram(Shader shader)

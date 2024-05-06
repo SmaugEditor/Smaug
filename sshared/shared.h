@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/vec3.hpp>
+#include <math.h>
 
 // Dummy stuff so when we rewire this to be bgfx independent, it's easier
 typedef void* texture_t;
