@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdarg.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <vector>
 #include <typeinfo>
 #include <cstring>

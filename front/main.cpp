@@ -3,9 +3,11 @@
 
 #ifdef _WIN32
 static constexpr auto DEFAULT_RENDER_TYPE = bgfx::RendererType::Direct3D11;
+#elif __APPLE__
+static constexpr auto DEFAULT_RENDER_TYPE = bgfx::RendererType::Metal;
 #else
 static constexpr auto DEFAULT_RENDER_TYPE = bgfx::RendererType::OpenGL;
-#endif 
+#endif
 
 int main( int argc, char** argv )
 {
@@ -20,6 +22,8 @@ int main( int argc, char** argv )
 		renderType = bgfx::RendererType::Direct3D9;
 	else if(CommandLine::HasAny("-dx11", "-d3d11", "-directx11"))
 		renderType = bgfx::RendererType::Direct3D11;
+	else if(CommandLine::HasAny("-metal"))
+		renderType = bgfx::RendererType::Metal;
 	SetRendererType(renderType);
 	
 	return GetApp().run( argc, argv, renderType );

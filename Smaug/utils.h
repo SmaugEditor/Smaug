@@ -31,7 +31,7 @@ glm::vec2 SolveToLine2D(glm::vec2 pos, glm::vec2 lineStart, glm::vec2 lineEnd, S
 #define COLOR_WHITE glm::vec3( 1.0, 1.0, 1.0 )
 #define COLOR_GRAY  glm::vec3( 0.5, 0.5, 0.5 )
 
-inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
+inline glm::vec3 colorHSV(float hue, float saturation, float value)
 {
 	const float hueRange = 2 * PI;
 	const float onesixth = hueRange / 6;
@@ -43,7 +43,8 @@ inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 	oB = (oB * saturation + (1.0f - saturation)) * value;
 	return glm::vec3(oR, oG, oB);
 }
-inline constexpr glm::vec3 colorHSV(glm::vec3 vec) { return colorHSV(vec.x, vec.y, vec.z); }
+
+inline glm::vec3 colorHSV(glm::vec3 vec) { return colorHSV(vec.x, vec.y, vec.z); }
 
 inline glm::vec3 randColorHue()
 {
